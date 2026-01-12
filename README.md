@@ -1,12 +1,9 @@
 🎮 GameVision
-
 GameVision es una aplicación móvil desarrollada como proyecto TFM, centrada en el análisis, seguimiento y visualización de información relacionada con videojuegos, combinando una arquitectura limpia con una experiencia de usuario moderna y fluida.
 El proyecto pone el foco en la gestión avanzada de estado, el consumo de APIs externas, la persistencia de datos y una UI cuidada, pensada para escalar y mantenerse en el tiempo.
 
 📱 Descripción general
-
 GameVision nace como una aplicación orientada a usuarios interesados en descubrir, analizar y guardar información relevante sobre videojuegos, aplicando buenas prácticas de desarrollo móvil y una separación clara de responsabilidades.
-
 El proyecto sirve como demostración técnica de:
 - Arquitectura MVVM
 - Consumo de servicios remotos
