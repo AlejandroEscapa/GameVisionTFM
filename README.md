@@ -34,6 +34,7 @@ El proyecto sirve como demostración técnica de:
 🧱 Arquitectura
 
 Patrón MVVM
+
 Separación en:
 - Views
 - ViewModels
@@ -43,6 +44,7 @@ Separación en:
 - Proyecto preparado para escalabilidad y mantenimiento
 
 🛠 Tecnologías y stack
+
 Lenguaje: Swift
 UI: SwiftUI
 Arquitectura: MVVM
@@ -51,6 +53,7 @@ Persistencia de datos
 Gestión de estado con ObservableObject
 
 📌 Estado del proyecto
+
 ✅ Finalizado (TFM)
 🔧 Optimizable y ampliable
 📁 Proyecto de referencia para portfolio
