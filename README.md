@@ -1,6 +1,6 @@
 # 🎮 GameVision
 
-GameVision es una aplicación iOS desarrollada como **TFM**, enfocada en el análisis, descubrimiento y seguimiento de videojuegos, aplicando arquitectura limpia y una experiencia de usuario moderna.
+GameVision es una aplicación **Android** desarrollada como **TFM**, enfocada en el análisis, descubrimiento y seguimiento de videojuegos, aplicando arquitectura limpia y una experiencia de usuario moderna.
 
 Proyecto diseñado como **pieza principal de portfolio** y referencia técnica para procesos de selección.
 
@@ -24,7 +24,7 @@ El proyecto prioriza:
 ### 🎮 Exploración de videojuegos
 - 🔍 Búsqueda avanzada de videojuegos
 - 🎯 Filtros por plataformas, géneros y fecha de lanzamiento
-- 📄 Detalle completo de cada título (rating, plataformas, descripción)
+- 📄 Detalle completo de cada título (**rating**, **plataformas**, **descripción**)
 
 ---
 
@@ -36,10 +36,10 @@ El proyecto prioriza:
 ---
 
 ### 🎨 Interfaz y experiencia
-- 🌟 UI desarrollada íntegramente en *SwiftUI*
-- 🧭 Navegación fluida con `NavigationStack`
+- 🌟 UI desarrollada íntegramente en *Jetpack Compose*
+- 🧭 Navegación fluida con *Navigation Compose*
 - ✨ Animaciones suaves y transiciones coherentes
-- 🌙 Soporte Dark / Light Mode
+- 🌙 Soporte **Dark / Light Mode**
 
 ---
 
@@ -53,15 +53,15 @@ El proyecto prioriza:
 
 ## 🛠 Tecnologías y stack
 
-- **Lenguaje:** Swift 5.8+
-- **UI:** SwiftUI
-- **Arquitectura:** MVVM (`ObservableObject`, `StateObject`)
+- **Lenguaje:** Kotlin
+- **UI:** Jetpack Compose
+- **Arquitectura:** MVVM (*ViewModel*, *StateFlow* / *LiveData*)
 - **Backend / API:** API externa de videojuegos
-- **Persistencia local (opcional):** CoreData
+- **Persistencia local (opcional):** Room
 
 ### Componentes auxiliares
-- Pull-to-refresh con `ScrollView` y `LazyVStack`
-- Animaciones con `.transition`, `.spring` y `.easeIn`
+- Pull-to-refresh con *LazyColumn* y *SwipeRefresh*
+- Animaciones con *AnimatedVisibility* y *animate\*AsState*
 - Componentes reutilizables y testables
 
 ---
@@ -73,4 +73,4 @@ Proyecto diseñado como:
 1. **Pieza clave de portfolio**
 2. **Demostración de arquitectura limpia**
 3. **Base escalable para testing y evolución**
-4. **Referencia realista de app iOS moderna**
+4. **Referencia realista de app Android moderna**
