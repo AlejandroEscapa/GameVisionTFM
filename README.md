@@ -71,13 +71,11 @@ El proyecto prioriza:
 
 - **Lenguaje:** Kotlin  
 - **UI:** Jetpack Compose  
-- **Arquitectura:** MVVM (*ViewModel*, *StateFlow* / *LiveData*)  
+- **Arquitectura:** MVVM (*ViewModel*, *StateFlow* y *LiveData*)  
 - **Backend / API:** RAWG (consumida con *Retrofit*)  
-- **Persistencia local (opcional):** DataStore (Preferences / Proto)  
+- **Persistencia local (opcional):** DataStore
 
 ### Componentes auxiliares
-- Pull-to-refresh con *LazyColumn* y *SwipeRefresh*  
-- Animaciones con *AnimatedVisibility* y *animate\*AsState*  
 - Componentes reutilizables y testables  
 - Gestión de estado reactiva y desacoplada (Flows / Coroutines)
 
@@ -86,7 +84,6 @@ El proyecto prioriza:
 ## 🎯 Enfoque profesional
 
 Proyecto diseñado como:
-
 1. **Pieza clave de portfolio**  
 2. **Demostración de arquitectura limpia**  
 3. **Base escalable para testing y evolución**  
