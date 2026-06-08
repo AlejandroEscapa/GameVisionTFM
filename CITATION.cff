@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+title: "GameVision: Gaming Social Network & Discovery Platform for Android"
+message: >-
+  If you use this software in your research, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Alejandro
+    family-names: Olivares Escapa
+    email: alejandro.escapa@example.com
+    affiliation: Universidad
+    orcid: ""  # Add your ORCID if you have one: https://orcid.org
+repository-code: "https://github.com/AlejandroEscapa/MatchVisionTFM"
+url: "https://github.com/AlejandroEscapa/MatchVisionTFM"
+abstract: >-
+  GameVision is a native Android application built using modern Android
+  development practices. It combines video game discovery, real-time
+  gaming news, social features, user profiles, and personalized game
+  management into a unified mobile experience. Developed as part of a
+  Master's Thesis (TFM) to demonstrate proficiency in mobile application
+  development, software architecture, and modern Android technologies
+  including Kotlin, Jetpack Compose, MVVM, and Firebase.
+keywords:
+  - android
+  - kotlin
+  - jetpack-compose
+  - video-games
+  - social-network
+  - mobile-development
+  - firebase
+  - master-thesis
+  - tfg-tfm
+license: MIT
+version: 1.0.0
+date-released: "2025"  # Update with actual release year
