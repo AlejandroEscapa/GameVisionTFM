@@ -63,7 +63,7 @@ rm -rf ~/.gradle/caches/
 ## Contact
 
 - **Author**: Alejandro Olivares Escapa
-- **Email**: alejandro.escapa@example.com
+- **Email**: alejandro.oliesc97@gmail.com
 - **GitHub**: [@AlejandroEscapa](https://github.com/AlejandroEscapa)
 
 ---
