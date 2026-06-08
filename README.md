@@ -2,7 +2,7 @@
 
 ### Gaming Social Network & Discovery Platform for Android
 
-> **Trabajo de Fin de Máster** · Universidad · Curso AÑO
+> **Trabajo de Fin de Máster** · Tokio School · Curso 2026
 >
 > *A modern Android application focused on video game discovery, gaming news, social interaction, and personalized game tracking.*
 
@@ -62,8 +62,6 @@ The project follows an **MVVM + Clean Architecture** approach and leverages **Je
 |------|-------------|---------|--------|
 | *[Screenshot]* | *[Screenshot]* | *[Screenshot]* | *[Screenshot]* |
 
-> ⚠️ **Replace with actual screenshots**: Take screenshots at 1080×1920 resolution and place them in `docs/screenshots/`. Update using `![Home](docs/screenshots/home.png)` syntax.
-
 ---
 
 ## ✨ Key Features
@@ -113,13 +111,13 @@ The project follows an **MVVM + Clean Architecture** approach and leverages **Je
 GameVision follows **Clean Architecture** principles with **MVVM** in the presentation layer:
 
 ```text
-┌─────────────────────────────────────────────┐
+┌─────────────────────────────────────────────-┐
 │              PRESENTATION LAYER              │
-│  ┌──────────────┐  ┌──────────────────────┐ │
-│  │  Compose UI   │  │  Navigation Compose   │ │
-│  └──────┬───────┘  └──────────┬───────────┘ │
+│  ┌──────────────┐  ┌──────────────────────┐  │
+│  │  Compose UI  │  │  Navigation Compose  │  │
+│  └──────┬───────┘  └──────────┬───────────┘  │
 │         │                     │              │
-│  ┌──────▼─────────────────────▼───────────┐ │
+│  ┌──────▼─────────────────────▼───────────┐  │
 │  │              ViewModels                 │ │
 │  │  UserVM · SearchVM · NewsVM · ThemeVM   │ │
 │  │  GoogleVM · DDBBVM                      │ │
@@ -127,18 +125,18 @@ GameVision follows **Clean Architecture** principles with **MVVM** in the presen
 └─────────────────────┼────────────────────────┘
                       │
 ┌─────────────────────▼────────────────────────┐
-│                DOMAIN LAYER                   │
+│                DOMAIN LAYER                  │
 │  ┌──────────────┐  ┌──────────────────────┐  │
-│  │   Use Cases   │  │    Repositories       │  │
+│  │   Use Cases  │  │    Repositories      │  │
 │  └──────────────┘  └──────────────────────┘  │
 └─────────────────────┬────────────────────────┘
                       │
 ┌─────────────────────▼────────────────────────┐
-│                 DATA LAYER                    │
-│  ┌──────────┐ ┌──────────┐ ┌──────────────┐ │
-│  │ Retrofit  │ │Firestore │ │  Room +      │ │
-│  │  (RAWG)   │ │ (Cloud)  │ │  DataStore   │ │
-│  └──────────┘ └──────────┘ └──────────────┘ │
+│                 DATA LAYER                   │
+│  ┌──────────┐ ┌──────────┐ ┌──────────────┐  │
+│  │ Retrofit │ │Firestore │ │  Room +      │  │
+│  │  (RAWG)  │ │ (Cloud)  │ │  DataStore   │  │
+│  └──────────┘ └──────────┘ └──────────────┘  │
 └──────────────────────────────────────────────┘
 ```
 
@@ -380,8 +378,8 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 @mastersthesis{olivares_gamevision,
   author  = {Alejandro Olivares Escapa},
   title   = {{GameVision}: Gaming Social Network \& Discovery Platform for Android},
-  school  = {Universidad},
-  year    = {AÑO},
+  school  = {Tokio School},
+  year    = {2026},
   type    = {Master's Thesis (TFM)},
   url     = {https://github.com/AlejandroEscapa/MatchVisionTFM}
 }
@@ -450,7 +448,5 @@ For licensing inquiries: alejandro.escapa@example.com
 </p>
 
 **Built with ❤️ by [Alejandro Olivares Escapa](https://github.com/AlejandroEscapa)**
-
-⭐ *If you find this project useful, consider giving it a star!*
 
 </div>
