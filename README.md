@@ -36,7 +36,6 @@
 - [Core Modules](#-core-modules)
 - [Security](#-security)
 - [Testing](#-testing)
-- [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
 - [Citing This Work](#-citing-this-work)
 - [Support](#-support)
