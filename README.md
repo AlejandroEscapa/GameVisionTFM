@@ -332,29 +332,6 @@ android {
 
 ---
 
-## 📈 Roadmap
-
-### v1.1 (Short-term)
-- [ ] Push Notifications (FCM)
-- [ ] Offline mode with Room caching
-- [ ] Accessibility (TalkBack, large text)
-- [ ] App shortcuts
-
-### v1.2 (Mid-term)
-- [ ] Real-Time Chat
-- [ ] Achievement System
-- [ ] Multi-language (ES/EN/FR/DE)
-- [ ] UI test coverage > 60%
-
-### v2.0 (Long-term)
-- [ ] Recommendation Engine
-- [ ] AI-Powered Game Assistant
-- [ ] Cloud Save Sync
-- [ ] Wear OS companion
-- [ ] iOS version (MatchVision)
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
