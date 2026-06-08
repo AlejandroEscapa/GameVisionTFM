@@ -8,7 +8,7 @@ authors:
   - given-names: Alejandro
     family-names: Olivares Escapa
     email: alejandro.escapa@example.com
-    affiliation: Universidad
+    affiliation: Tokio School
     orcid: ""  # Add your ORCID if you have one: https://orcid.org
 repository-code: "https://github.com/AlejandroEscapa/MatchVisionTFM"
 url: "https://github.com/AlejandroEscapa/MatchVisionTFM"
