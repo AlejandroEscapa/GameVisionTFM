@@ -347,7 +347,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 ## 📚 Citing This Work
 
 ### APA 7th Edition
-> Olivares Escapa, A. (AÑO). *GameVision: Gaming Social Network & Discovery Platform for Android* [Master's Thesis, Universidad]. GitHub. https://github.com/AlejandroEscapa/MatchVisionTFM
+> Olivares Escapa, A. (2026). *GameVision: Gaming Social Network & Discovery Platform for Android* [Master's Thesis, Tokio School]. GitHub. https://github.com/AlejandroEscapa/MatchVisionTFM
 
 ### BibTeX
 ```bibtex
