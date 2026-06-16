@@ -36,9 +36,7 @@
 - [Core Modules](#-core-modules)
 - [Security](#-security)
 - [Testing](#-testing)
-- [Contributing](#-contributing)
 - [Citing This Work](#-citing-this-work)
-- [Support](#-support)
 - [Author](#-author)
 - [License](#-license)
 - [Project Vision](#-project-vision)
@@ -294,18 +292,6 @@ android {
 - Firestore security rules
 - Google OAuth 2.0 standards
 
-### 🔴 Before Publishing Publicly
-- [ ] Rotate all exposed API keys
-- [ ] Implement Firestore Security Rules (deny by default)
-- [ ] Add Firebase App Check
-- [ ] Enable Play Integrity API
-- [ ] Use EncryptedSharedPreferences
-- [ ] Implement Certificate Pinning (OkHttp)
-- [ ] Enable ProGuard/R8 obfuscation
-- [ ] Run OWASP dependency check plugin
-
-> **Report vulnerabilities**: See [SECURITY.md](SECURITY.md)
-
 ---
 
 ## 🧪 Testing
@@ -331,19 +317,6 @@ android {
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
-
-### Quick Start
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
-4. Push: `git push origin feature/amazing-feature`
-5. Open a Pull Request against `main`
-
----
-
 ## 📚 Citing This Work
 
 ### APA 7th Edition
@@ -362,13 +335,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 ```
 
 > See [CITATION.cff](CITATION.cff) for machine-readable metadata.
-
----
-
-## 🆘 Support
-
-- **Bugs & Features**: [GitHub Issues](https://github.com/AlejandroEscapa/GameVisionTFM/issues)
-- **Security issues**: See [SECURITY.md](SECURITY.md) for private reporting
 
 ---
 
