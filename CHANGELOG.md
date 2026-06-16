@@ -7,28 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
-
-### Added
-- *(features in development for next release)*
-
-### Changed
-- *(breaking changes or improvements planned)*
-
-### Deprecated
-- *(features being phased out)*
-
-### Removed
-- *(deprecated features removed)*
-
-### Fixed
-- *(bug fixes planned)*
-
-### Security
-- *(security patches planned)*
-
----
-
 ## [1.0.0] — 2026-06-08
 
 ### Added — Initial Release
@@ -53,6 +31,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Symbol | Meaning |
 |--------|---------|
-| `[Unreleased]` | Changes not yet in a release |
 | `[MAJOR.MINOR.PATCH]` | Semantic version (e.g., `1.0.0`) |
 | `YYYY-MM-DD` | Release date |
