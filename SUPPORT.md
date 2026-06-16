@@ -9,7 +9,7 @@
 - [SECURITY.md](SECURITY.md) — Vulnerability reporting
 
 ### 🐛 Bug Reports & Feature Requests
-- [GitHub Issues](https://github.com/AlejandroEscapa/MatchVisionTFM/issues)
+- [GitHub Issues](https://github.com/AlejandroEscapa/GameVisionTFM/issues)
   - Search existing issues before opening a new one
   - Use templates (Bug Report / Feature Request)
   - Include:
@@ -19,7 +19,7 @@
     - Logcat output for crashes
 
 ### 💬 Questions & Discussion
-- [GitHub Discussions](https://github.com/AlejandroEscapa/MatchVisionTFM/discussions) — Q&A, ideas, polls
+- [GitHub Discussions](https://github.com/AlejandroEscapa/GameVisionTFM/discussions) — Q&A, ideas, polls
 
 ### 🔒 Security Vulnerabilities
 See [SECURITY.md](SECURITY.md) for private reporting guidelines.

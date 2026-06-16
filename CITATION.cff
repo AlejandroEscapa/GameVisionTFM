@@ -7,11 +7,11 @@ type: software
 authors:
   - given-names: Alejandro
     family-names: Olivares Escapa
-    email: alejandro.escapa@example.com
+    email: alejandro.oliesc97@gmail.com
     affiliation: Tokio School
     orcid: ""  # Add your ORCID if you have one: https://orcid.org
-repository-code: "https://github.com/AlejandroEscapa/MatchVisionTFM"
-url: "https://github.com/AlejandroEscapa/MatchVisionTFM"
+repository-code: "https://github.com/AlejandroEscapa/GameVisionTFM"
+url: "https://github.com/AlejandroEscapa/GameVisionTFM"
 abstract: >-
   GameVision is a native Android application built using modern Android
   development practices. It combines video game discovery, real-time
