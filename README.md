@@ -218,8 +218,8 @@ app/
 
 ```bash
 # 1. Clone
-git clone https://github.com/AlejandroEscapa/MatchVisionTFM.git
-cd MatchVisionTFM
+git clone https://github.com/AlejandroEscapa/GameVisionTFM.git
+cd GameVisionTFM
 
 # 2. Firebase setup
 #    - Create project at console.firebase.google.com
@@ -347,7 +347,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 ## 📚 Citing This Work
 
 ### APA 7th Edition
-> Olivares Escapa, A. (2026). *GameVision: Gaming Social Network & Discovery Platform for Android* [Master's Thesis, Tokio School]. GitHub. https://github.com/AlejandroEscapa/MatchVisionTFM
+> Olivares Escapa, A. (2026). *GameVision: Gaming Social Network & Discovery Platform for Android* [Master's Thesis, Tokio School]. GitHub. https://github.com/AlejandroEscapa/GameVisionTFM
 
 ### BibTeX
 ```bibtex
@@ -357,7 +357,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
   school  = {Tokio School},
   year    = {2026},
   type    = {Master's Thesis (TFM)},
-  url     = {https://github.com/AlejandroEscapa/MatchVisionTFM}
+  url     = {https://github.com/AlejandroEscapa/GameVisionTFM}
 }
 ```
 
@@ -367,7 +367,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
 
 ## 🆘 Support
 
-- **Bugs & Features**: [GitHub Issues](https://github.com/AlejandroEscapa/MatchVisionTFM/issues)
+- **Bugs & Features**: [GitHub Issues](https://github.com/AlejandroEscapa/GameVisionTFM/issues)
 - **Security issues**: See [SECURITY.md](SECURITY.md) for private reporting
 
 ---
@@ -380,7 +380,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidel
   <a href="https://github.com/AlejandroEscapa">
     <img src="https://img.shields.io/badge/GitHub-000?style=flat-square&logo=github" alt="GitHub">
   </a>
-  <a href="https://linkedin.com/in/alejandroescapa">
+  <a href="https://linkedin.com/in/alejandro-olivares-escapa">
     <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin" alt="LinkedIn">
   </a>
 </p>
@@ -405,7 +405,7 @@ You may NOT:
 - Use it in whole or part for commercial or personal projects
 - Claim authorship
 
-For licensing inquiries: alejandro.escapa@example.com
+For licensing inquiries, contact via [GitHub](https://github.com/AlejandroEscapa) or [LinkedIn](https://linkedin.com/in/alejandro-olivares-escapa).
 
 ---
 
