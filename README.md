@@ -9,12 +9,12 @@
 ---
 
 <p align="center">
-  <a href="https://github.com/AlejandroEscapa/MatchVisionTFM/releases">
-    <img src="https://img.shields.io/github/v/release/AlejandroEscapa/MatchVisionTFM?style=flat-square&color=blue" alt="Release">
+  <a href="https://github.com/AlejandroEscapa/GameVisionTFM/releases">
+    <img src="https://img.shields.io/github/v/release/AlejandroEscapa/GameVisionTFM?style=flat-square&color=blue" alt="Release">
   </a>
   <img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg?style=flat-square" alt="License: All Rights Reserved">
-  <a href="https://github.com/AlejandroEscapa/MatchVisionTFM/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/AlejandroEscapa/MatchVisionTFM/ci.yml?style=flat-square" alt="CI">
+  <a href="https://github.com/AlejandroEscapa/GameVisionTFM/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/AlejandroEscapa/GameVisionTFM/ci.yml?style=flat-square" alt="CI">
   </a>
   <img src="https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?style=flat-square&logo=kotlin" alt="Kotlin">
   <img src="https://img.shields.io/badge/Jetpack%20Compose-Ready-4285F4?style=flat-square&logo=jetpackcompose" alt="Compose">
