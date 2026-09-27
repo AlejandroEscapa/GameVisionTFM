@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
+// Propiedades locales (SDK, claves de API, keystore): nunca en el control de versiones
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
 android {
     namespace = "es.androidtfm.gamevision"
     compileSdk = 37
@@ -16,11 +22,24 @@ android {
         applicationId = "es.androidtfm.gamevision"
         minSdk = 33
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+    }
+
+    signingConfigs {
+        // Firma de release leída de local.properties (storeFile/storePassword/keyAlias/keyPassword).
+        // Si no está configurada, el release se genera sin firmar.
+        localProps.getProperty("storeFile")?.let { storeFilePath ->
+            create("release") {
+                storeFile = file(storeFilePath)
+                storePassword = localProps.getProperty("storePassword")
+                keyAlias = localProps.getProperty("keyAlias")
+                keyPassword = localProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -31,6 +50,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (localProps.getProperty("storeFile") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -45,10 +67,6 @@ android {
     }
 
     // Claves de API leídas de local.properties (fuera del control de versiones; nunca hardcodear en el código fuente)
-    val localProps = Properties().apply {
-        val f = rootProject.file("local.properties")
-        if (f.exists()) f.inputStream().use { load(it) }
-    }
     buildTypes.all {
         buildConfigField("String", "NEWS_API_KEY", "\"${localProps.getProperty("newsApiKey", "")}\"")
         buildConfigField("String", "RAWG_API_KEY", "\"${localProps.getProperty("rawgApiKey", "")}\"")
