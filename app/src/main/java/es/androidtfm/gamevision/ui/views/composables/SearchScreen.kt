@@ -60,7 +60,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Game
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 

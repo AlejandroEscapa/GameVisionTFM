@@ -6,14 +6,15 @@ import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         // Inicializar Google Sign-In en el ViewModel
         val oneTapClient = Identity.getSignInClient(this)
@@ -148,15 +149,19 @@ fun MainScreen(
     var isNavHostInitialized by remember { mutableStateOf(false) }
 
     MaterialTheme(colorScheme = colors) {
-        // Configuración del sistema UI (barras de estado, navegación, etc.)
-        SystemUiController(window, isDarkTheme)
+        // Apariencia de los iconos de las barras del sistema (edge-to-edge: las barras son transparentes)
+        SystemBarAppearance(window, isDarkTheme)
 
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars),
+            modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
+            // El contenido se retira de las barras del sistema; el fondo llega hasta el borde
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.systemBars)
+            ) {
             // Se invoca el NavGraph compartido, pasando los ViewModels ya instanciados
             NavHost(
                 navController = navController,
@@ -176,6 +181,7 @@ fun MainScreen(
             LaunchedEffect(navController) {
                 isNavHostInitialized = true
             }
+            }
         }
     }
 
@@ -193,16 +199,13 @@ fun MainScreen(
 }
 
 /*
- * Configuración de UI para el sistema (barras de estado y navegación)
+ * Apariencia de los iconos de las barras del sistema (claro/oscuro).
+ * Con edge-to-edge las barras son transparentes: el color lo pone el fondo del contenido.
  */
 @Composable
-fun SystemUiController(window: Window, isDarkTheme: Boolean) {
-    val isLightTheme = !isSystemInDarkTheme()
-    val systemBarColor = if (isLightTheme) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
-
+fun SystemBarAppearance(window: Window, isDarkTheme: Boolean) {
     SideEffect {
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-        window.statusBarColor = systemBarColor.toArgb()
         insetsController.isAppearanceLightStatusBars = !isDarkTheme
         insetsController.isAppearanceLightNavigationBars = !isDarkTheme
     }

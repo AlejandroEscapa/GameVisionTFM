@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "es.androidtfm.gamevision"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "es.androidtfm.gamevision"
         minSdk = 33
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -56,7 +56,6 @@ dependencies {
     implementation(libs.androidx.animation.core)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling)
-    implementation(libs.compose.material)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.runtime)
@@ -67,7 +66,7 @@ dependencies {
 
     // UI Components
     implementation(libs.coil.compose)
-    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.coil.network.okhttp)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

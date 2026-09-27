@@ -25,7 +25,8 @@
             android:launchMode="singleTask"
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Gamevision">
+            android:theme="@style/Gamevision"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

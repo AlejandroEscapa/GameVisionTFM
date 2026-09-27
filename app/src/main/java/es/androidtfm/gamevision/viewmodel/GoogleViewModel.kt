@@ -11,8 +11,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -178,25 +176,27 @@ class GoogleViewModel : ViewModel() {
             // Cerrar sesión en Firebase
             firebaseAuth.signOut()
 
-            // Configurar opciones de Google Sign-In usando el mismo webClientId
-            val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(webClientId)
-                .requestEmail()
-                .build()
-            val googleSignInClient = GoogleSignIn.getClient(context, googleSignInOptions)
-            googleSignInClient.signOut()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Log.d("GoogleViewModel", "Sesión cerrada correctamente")
-                        _signInState.postValue(SignInState.Idle) // Restablece el estado a Idle
-                        onSuccess()
-                    } else {
-                        val errorMsg = task.exception?.message ?: "Error desconocido"
-                        Log.e("GoogleViewModel", errorMsg)
-                        _signInState.postValue(SignInState.Error(errorMsg))
-                        onError(errorMsg)
+            // Cerrar sesión en Google con la API de Identity (reemplaza a la API legacy GoogleSignIn)
+            val client = oneTapClient
+            if (client != null) {
+                client.signOut()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Log.d("GoogleViewModel", "Sesión cerrada correctamente")
+                            _signInState.postValue(SignInState.Idle) // Restablece el estado a Idle
+                            onSuccess()
+                        } else {
+                            val errorMsg = task.exception?.message ?: "Error desconocido"
+                            Log.e("GoogleViewModel", errorMsg)
+                            _signInState.postValue(SignInState.Error(errorMsg))
+                            onError(errorMsg)
+                        }
                     }
-                }
+            } else {
+                // Sin cliente de Identity inicializado: la sesión de Firebase ya está cerrada
+                _signInState.postValue(SignInState.Idle)
+                onSuccess()
+            }
         } catch (e: Exception) {
             Log.e("GoogleViewModel", "Error general en logout: ${e.message}")
             _signInState.postValue(SignInState.Error(e.message ?: "Error general en logout"))

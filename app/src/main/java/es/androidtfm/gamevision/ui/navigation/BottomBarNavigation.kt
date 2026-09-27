@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Face
@@ -72,16 +72,16 @@ fun AppScaffold(
     }
 
     Scaffold(
-        bottomBar = { ModernStyledBottomNavigation(navController, items) }
+        bottomBar = { ModernStyledNavigationBar(navController, items) }
     ) { innerPadding ->
         content(innerPadding)
     }
 }
 
 @Composable
-fun ModernStyledBottomNavigation(navController: NavController, items: List<BottomNavItem>) {
-    BottomNavigation(
-        backgroundColor = MaterialTheme.colorScheme.surface,
+fun ModernStyledNavigationBar(navController: NavController, items: List<BottomNavItem>) {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .fillMaxWidth()
@@ -91,7 +91,7 @@ fun ModernStyledBottomNavigation(navController: NavController, items: List<Botto
         items.forEach { item ->
             val isSelected = navController.currentDestination?.route == item.route
 
-            BottomNavigationItem(
+            NavigationBarItem(
                 selected = isSelected,
                 onClick = { navController.navigate(item.route) },
                 icon = {
@@ -115,5 +115,5 @@ fun GuestBottomNavigationBar(navController: NavController) {
         BottomNavItem("gamesearch", Icons.Filled.Search, "Search")
     )
 
-    ModernStyledBottomNavigation(navController, items)
+    ModernStyledNavigationBar(navController, items)
 }
