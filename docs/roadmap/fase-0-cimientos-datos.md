@@ -27,7 +27,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| D0.1 | **Proveedor de catálogo** | (a) Sólo adapter con RAWG · (b) Adapter + IGDB como principal · (c) Adapter + ambos con conmutación | **(a) en F0, (b) cuando haya licencia/tiempo**: el adapter ya deja la puerta abierta y evita el trabajo de OAuth2 de Twitch ahora | ⬜ |
+| D0.1 | **Proveedor de catálogo** | (a) Sólo adapter con RAWG · (b) Adapter + IGDB como principal · (c) Adapter + los dos, RAWG principal e IGDB secundario | **(c)**: RAWG principal (ya funciona y su licencia comercial es más simple) e IGDB integrado como secundario — es **gratis para uso no comercial**, aporta **metadatos en español** y demuestra que el adapter funciona con dos proveedores | ⬜ |
 | D0.2 | **Datos de los usuarios actuales** | (a) Migrar las 3 listas a la biblioteca nueva · (b) Empezar limpio y borrar | **(a) migrar**: son 9 usuarios reales del TFM y demuestra migración de datos (bien para el tribunal) | ⬜ |
 | D0.3 | **Alcance de la caché** | (a) Sólo fichas vistas · (b) Fichas + búsquedas populares · (c) Todo el catálogo | **(a) y luego (b)**: cachear fichas vistas arregla el 90 % del problema con coste mínimo | ⬜ |
 | D0.4 | **Cloud Functions ahora o después** | (a) Añadir ya · (b) Posponer a F2/F3 | **(b) posponer**: Firebase gratis no las necesita para F0/F1 y añaden complejidad de despliegue | ⬜ |
@@ -81,6 +81,31 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       el repositorio de biblioteca y el modo degradado.
 
 ---
+
+## Licencias de los proveedores de catálogo (verificado 27/09/2026)
+
+Decide D0.1, así que conviene tenerlo por escrito:
+
+| | **RAWG** (actual) | **IGDB** (candidato) |
+|---|---|---|
+| Uso no comercial (TFM) | Gratis | **Gratis** (Twitch Developer Service Agreement) |
+| Uso comercial | Gratis hasta ~100.000 usuarios/mes (`PLAUSIBLE`) | **Requiere acuerdo de partnership** — escribir a partner@igdb.com; no hay precio público |
+| Fricción de integración | Clave de API en segundos | Cuenta de Twitch con **2FA**, app registrada, **OAuth2** con renovación de token |
+| Límite de peticiones | ~20.000/mes (`PLAUSIBLE`) | 4 peticiones/segundo, 8 simultáneas |
+| Idiomas | Sólo inglés | **50+ idiomas (incluye español)** |
+| Fiabilidad | Caída de 1 d 15 h en agosto 2026; señales de abandono | Producción (Discord, Twitch, Xbox) |
+
+**Conclusión para el debate:** integrar IGDB **no cuesta nada mientras el proyecto sea no
+comercial**, y aporta español y fiabilidad. El coste aparece sólo si se monetiza **con IGDB
+como proveedor principal** — y en ese escenario RAWG (gratis hasta ~100k usuarios/mes) es la
+vía comercial más simple. Por eso la recomendación es RAWG principal + IGDB secundario,
+los dos detrás del adapter: cero coste hoy, y la decisión comercial se aplaza hasta que
+haya ingresos que justifiquen la conversación.
+
+> **Aparte de los proveedores:** las carátulas y los nombres de los juegos son propiedad
+> de las **editoras**, no del proveedor de datos. Eso aplica igual hoy con RAWG. Para el
+> TFM no es un problema; si el producto se comercializa, es un asunto a revisar
+> independientemente de qué API se use.
 
 ## Riesgos
 
