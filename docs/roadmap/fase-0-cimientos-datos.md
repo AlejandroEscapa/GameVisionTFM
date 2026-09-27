@@ -27,7 +27,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| D0.1 | **Proveedor de catálogo** | (a) Sólo adapter con RAWG · (b) Adapter + IGDB como principal · (c) Adapter + los dos, RAWG principal e IGDB secundario | **(c)**: RAWG principal (ya funciona y su licencia comercial es más simple) e IGDB integrado como secundario — es **gratis para uso no comercial**, aporta **metadatos en español** y demuestra que el adapter funciona con dos proveedores | ⬜ |
+| D0.1 | **Proveedor de catálogo** | ✅ **CERRADA** (27/09/2026): seguir con **RAWG** ahora, con el adapter por delante, y **migrar parcialmente a IGDB más adelante** (marcado abajo). Motivo: RAWG ya funciona, su licencia comercial es más simple (gratis hasta ~100k usuarios/mes) y el coste de IGDB hoy es trabajo de OAuth2 sin beneficio inmediato | ✅ |
 | D0.2 | **Datos de los usuarios actuales** | (a) Migrar las 3 listas a la biblioteca nueva · (b) Empezar limpio y borrar | **(a) migrar**: son 9 usuarios reales del TFM y demuestra migración de datos (bien para el tribunal) | ⬜ |
 | D0.3 | **Alcance de la caché** | (a) Sólo fichas vistas · (b) Fichas + búsquedas populares · (c) Todo el catálogo | **(a) y luego (b)**: cachear fichas vistas arregla el 90 % del problema con coste mínimo | ⬜ |
 | D0.4 | **Cloud Functions ahora o después** | (a) Añadir ya · (b) Posponer a F2/F3 | **(b) posponer**: Firebase gratis no las necesita para F0/F1 y añaden complejidad de despliegue | ⬜ |
@@ -107,6 +107,28 @@ haya ingresos que justifiquen la conversación.
 > TFM no es un problema; si el producto se comercializa, es un asunto a revisar
 > independientemente de qué API se use.
 
+## 🔖 MARCADO PARA EL FUTURO — Migración parcial a IGDB (no ahora)
+
+**Decidido el 27/09/2026:** no se integra IGDB en esta fase, pero queda marcado como
+trabajo futuro con condiciones de disparo claras. Lo que habría que hacer cuando toque:
+
+**Condiciones que lo activan (cualquiera de ellas):**
+1. RAWG vuelve a caer de forma prolongada o anuncia cierre (ya cayó 1 d 15 h en agosto 2026).
+2. Se quiere mostrar el catálogo **en español** (RAWG es sólo inglés; IGDB trae 50+ idiomas).
+3. Se necesita algo que RAWG no da: franquicias, estudios, DLC, modos de juego como entidades.
+4. Se monetiza y se quiere IGDB como proveedor principal (implica hablar con partner@igdb.com).
+
+**Trabajo estimado: ~media jornada.**
+- Registrar app en el Twitch Developer Portal (cuenta con **2FA**, Client Type *Confidential*).
+- OAuth2 *client-credentials* con renovación automática de token (el `Client Secret` va en
+  `local.properties`, nunca en el repositorio — mismo patrón que las claves actuales).
+- Implementar `IgdbGameCatalog` contra la interfaz `GameCatalog` (queries en Apicalypse).
+- Mapear su respuesta al modelo de dominio y activarlo por configuración de Hilt.
+- Verificar con los mismos criterios de aceptación de esta fase (CA0.1 y CA0.5).
+
+**Lo que NO cambia:** ni una pantalla. Ese es precisamente el valor de hacer el adapter
+en F0: la migración futura es añadir una clase y cambiar una línea de inyección.
+
 ## Riesgos
 
 | Riesgo | Mitigación |
@@ -126,4 +148,11 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 
 > Se rellena conforme se debaten. Formato: `D0.x — Opción elegida (fecha) — porqué`.
 
-_(vacío: pendiente de debate)_
+- **D0.1 — Seguir con RAWG + adapter, IGDB marcado para el futuro (27/09/2026)** — RAWG
+  funciona, su licencia comercial es más sencilla (gratis hasta ~100k usuarios/mes) y no
+  hay beneficio inmediato en asumir el OAuth2 de Twitch. La migración parcial a IGDB queda
+  documentada arriba con sus condiciones de disparo y su estimación (~media jornada),
+  y se hará sin tocar ninguna pantalla gracias al adapter.
+- **D0.5 — Diferida a F2 (27/09/2026)** — el modelo de amigos (simétrico vs seguir) se
+  decide en la fase social, que es donde tiene consecuencias. No bloquea F0.
+

@@ -278,7 +278,7 @@ haciendo).
 | Datos personales legibles públicamente | 🟠 Alta | Cloud Functions para búsqueda de usuarios y feeds |
 | Carga lenta con muchos amigos (N+1) | 🟠 Media | Agregados en Functions o consultas por lotes |
 | Coste de Firebase al crecer | 🟡 Media | Free tier holgado para el nicho; Functions sólo para agregados |
-| Licencia comercial de IGDB si hay ingresos | 🟡 Media | Mantener RAWG como respaldo y valorar licencia al monetizar |
+| Licencia comercial de IGDB si hay ingresos | 🟡 Media | **Decidido 27/09/2026:** seguir con RAWG (gratis hasta ~100k usuarios/mes) y dejar IGDB marcado como migración futura; se integra sólo si RAWG empeora, se quiere español o se monetiza. Ver [F0](roadmap/fase-0-cimientos-datos.md) |
 | Gamificación mal diseñada (rachas tóxicas) | 🟡 Media | Celebrar logros (Rewind), nunca castigar ausencias |
 
 ---
