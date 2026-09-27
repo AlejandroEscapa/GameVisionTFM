@@ -263,6 +263,11 @@ Diseñado sobre el estado actual del código (arquitectura, auth y design system
 Cada fase deja la app compilando, con tests verdes y verificada en emulador (como venimos
 haciendo).
 
+> **Seguimiento y debate fase por fase:** cada fase tiene su propio documento en
+> [`docs/roadmap/`](roadmap/README.md) con **decisiones abiertas para debatir antes de
+> empezar**, tareas marcables, criterios de aceptación con evidencia y registro de lo
+> decidido. El índice con el estado global está en [roadmap/README.md](roadmap/README.md).
+
 ---
 
 ## 9. Riesgos y cómo se cubren
