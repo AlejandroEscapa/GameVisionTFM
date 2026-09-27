@@ -1,7 +1,9 @@
 package es.androidtfm.gamevision.viewmodel
 
 import androidx.lifecycle.ViewModel
+import es.androidtfm.gamevision.BuildConfig
 import es.androidtfm.gamevision.retrofit.Article
+import es.androidtfm.gamevision.retrofit.NewsApiService
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -19,10 +21,13 @@ import java.util.Locale
  * Contiene todos los metodos con los que se interactua con la API de noticias.
  */
 
-class NewsViewModel : ViewModel() {
+class NewsViewModel(
+    // Inyectable para pruebas; por defecto usa la instancia Retrofit de la aplicación
+    private val newsApi: NewsApiService = RetrofitInstance.newsApi
+) : ViewModel() {
 
-    // Clave de la API para acceder al servicio de noticias
-    private val apiKey = "860f15b681614860b332dc2f3cac8f02"
+    // Clave de la API para acceder al servicio de noticias (definida en local.properties, fuera del control de versiones)
+    private val apiKey = BuildConfig.NEWS_API_KEY
 
     /**
      * Obtiene noticias filtradas según una consulta.
@@ -31,7 +36,7 @@ class NewsViewModel : ViewModel() {
      */
     suspend fun fetchFilteredNews(query: String): List<Article> {
         // Llamada a la API para obtener las noticias
-        val response = RetrofitInstance.newsApi.getEverything(query, apiKey)
+        val response = newsApi.getEverything(query, apiKey)
 
         // Filtra las noticias que no contienen "[Removed]" en el título o no tienen imagen
         return response.articles.filter {

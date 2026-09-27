@@ -6,6 +6,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.retrofit.GameApiService
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,10 @@ import retrofit2.HttpException
  * Contiene todos los métodos con los que se interactúa con la API de juegos.
  */
 
-class SearchViewModel : ViewModel() {
+class SearchViewModel(
+    // Inyectable para pruebas; por defecto usa la instancia Retrofit de la aplicación
+    private val gamesApi: GameApiService = RetrofitInstance.gamesApi
+) : ViewModel() {
 
     // Estados para la búsqueda de juegos
     private val _games = MutableStateFlow<List<Game>>(emptyList())
@@ -65,7 +69,7 @@ class SearchViewModel : ViewModel() {
 
             try {
                 // Llamada a la API para buscar juegos
-                val response = RetrofitInstance.gamesApi.searchGames(cleanedQuery)
+                val response = gamesApi.searchGames(cleanedQuery)
                 _games.value = response.results // Actualiza la lista de juegos
             } catch (e: HttpException) {
                 // Maneja errores HTTP
@@ -91,7 +95,7 @@ class SearchViewModel : ViewModel() {
 
             try {
                 // Llamada a la API para obtener los detalles del juego
-                val response = RetrofitInstance.gamesApi.getGameDetails(gameId)
+                val response = gamesApi.getGameDetails(gameId)
                 _gameDetails.value = response // Actualiza los detalles del juego
             } catch (e: HttpException) {
                 // Maneja errores HTTP
@@ -115,7 +119,7 @@ class SearchViewModel : ViewModel() {
             _isLoadingDetails.value = true // Indica que la carga ha comenzado
             try {
                 // Llamada a la API para obtener los detalles del juego
-                val response = RetrofitInstance.gamesApi.getGameDetails(gameId)
+                val response = gamesApi.getGameDetails(gameId)
                 _gamesMap[gameId] = response // Almacena los detalles en el mapa
             } catch (e: Exception) {
                 // Maneja errores generales (puedes agregar más detalles si es necesario)

@@ -20,8 +20,12 @@ import kotlinx.coroutines.flow.map
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "themeSettings")
 
 //Metodos para el cambio de tema
-class ThemeDataStore(context: Context) {
-    private val themeDataStore = context.settingsDataStore
+class ThemeDataStore(
+    context: Context,
+    // Inyectable para pruebas; por defecto usa el DataStore de la aplicación
+    themeDataStoreOverride: DataStore<Preferences>? = null
+) {
+    private val themeDataStore = themeDataStoreOverride ?: context.settingsDataStore
     private val theme = booleanPreferencesKey("theme") // Uso de booleanPreferencesKey
 
     // Flow que expone el estado del tema

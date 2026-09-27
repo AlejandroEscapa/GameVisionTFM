@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -38,6 +40,17 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    // Claves de API leídas de local.properties (fuera del control de versiones; nunca hardcodear en el código fuente)
+    val localProps = Properties().apply {
+        val f = rootProject.file("local.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    buildTypes.all {
+        buildConfigField("String", "NEWS_API_KEY", "\"${localProps.getProperty("newsApiKey", "")}\"")
+        buildConfigField("String", "RAWG_API_KEY", "\"${localProps.getProperty("rawgApiKey", "")}\"")
     }
 
     packaging.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -99,6 +112,8 @@ dependencies {
 
     // Testing
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

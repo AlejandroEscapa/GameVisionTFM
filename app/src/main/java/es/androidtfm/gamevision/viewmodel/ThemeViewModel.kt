@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import es.androidtfm.gamevision.datastore.ThemeDataStore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -21,13 +22,19 @@ import kotlinx.coroutines.launch
  * Se encarga de manejar el estado del tema (claro/oscuro) y proporcionar métodos para alternarlo.
  */
 
-class ThemeViewModel(application: Application) : AndroidViewModel(application) {
-    // Instancia de `ThemeDataStore` para acceder a las preferencias de tema
-    val themeDataStore = ThemeDataStore(application)
+class ThemeViewModel(
+    application: Application,
+    // Inyectable para pruebas; por defecto usa el DataStore de la aplicación
+    val themeDataStore: ThemeDataStore = ThemeDataStore(application),
+    // Scope inyectable para pruebas; por defecto usa el viewModelScope
+    externalScope: CoroutineScope? = null
+) : AndroidViewModel(application) {
+
+    private val scope: CoroutineScope = externalScope ?: viewModelScope
 
     // Exponemos el estado del tema como un `StateFlow`
     val isDarkTheme: StateFlow<Boolean> = themeDataStore.isDarkTheme.stateIn(
-        viewModelScope, // CoroutineScope del ViewModel
+        scope, // Scope del ViewModel (o el inyectado en pruebas)
         SharingStarted.Lazily, // Inicia la recolección de datos cuando hay al menos un observador
         false // Valor inicial (por defecto modo claro)
     )
@@ -36,7 +43,7 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
      * Función para alternar el tema entre claro y oscuro.
      */
     fun toggleTheme() {
-        viewModelScope.launch {
+        scope.launch {
             // Obtiene el estado actual del tema
             val currentTheme = isDarkTheme.value
             // Cambia el tema al estado opuesto
