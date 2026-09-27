@@ -24,20 +24,47 @@ users/{email}/                    ← documento por email del usuario
     └── wishlist/{gameId}
 ```
 
-## Diagnóstico del bloqueo actual (27/09/2026)
+## Diagnóstico verificado (27/09/2026)
 
 Probado con la API REST de Firestore y con la app en el emulador:
 
 | Operación | Resultado |
 |---|---|
-| Lectura sin autenticar | ✅ Permitida |
-| Escritura sin autenticar | ❌ `403 Missing or insufficient permissions` |
+| GET `/users/{email}` (documento) | ✅ 200 |
+| LIST `/users` | ✅ 200 |
+| LIST `/users/{email}/playedlist` (subcolección) | ❌ 403 PERMISSION_DENIED |
+| WRITE sin autenticar | ❌ 403 PERMISSION_DENIED |
+| WRITE con sesión de Firebase Auth | ✅ 200 |
 
-**Consecuencia:** el registro falla (no puede escribir el documento) y el login
-de los usuarios existentes tampoco puede funcionar porque **sus documentos no
-tienen campo `password`** (verificado: `alex.escapax@gmail.com` solo tiene
-nameSurname, username, description, country, imageUri). `loginCheck()` compara
-`document.getString("password") == password` → siempre devuelve `false`.
+Es decir, las reglas actuales permiten **leer** documentos y listar `users`, pero
+**deniegan listar las subcolecciones** (`history`, `playedlist`, `wishlist`,
+`messages`, `friends`) y **deniegan escribir sin autenticar**.
+
+### Consecuencias reales (todas reproducidas)
+
+1. **El registro desde la app no puede funcionar.** La app no autentica con
+   Firebase Auth en email/password, así que su escritura llega sin credenciales
+   → 403. (Verificado en logcat: `Error registrando usuario: PERMISSION_DENIED`.)
+2. **El login tampoco**, para los usuarios que ya existían, porque sus documentos
+   **no tienen campo `password`** (verificado en `alex.escapax@gmail.com`: solo
+   nameSurname, username, description, country, imageUri). `loginCheck()` compara
+   `document.getString("password") == password` → siempre `false`.
+3. **6 pantallas dependen de `FirebaseAuth.getInstance().currentUser`, que es
+   `null`** para los usuarios de email/password (solo lo rellena Google Sign-In):
+   `MainActivity`, `NewsScreen`, `ProfileScreen`, `GameListScreen`,
+   `SocialScreen`, `FriendsComposables`. Verificado en logcat:
+   `ProfileScreen: currentUser es null o no tiene email.` Por eso el perfil sale
+   vacío y las pantallas no cargan datos.
+4. **La lista de juegos no puede cargar** aunque el login funcione: leer la
+   subcolección `playedlist` da 403 (verificado en logcat:
+   `Error obteniendo juegos: PERMISSION_DENIED`).
+
+### Usuario de prueba creado
+
+`users/alex@gmail.com` con `password: 1234` (nameSurname, username, description,
+country), creado con una sesión REST autenticada porque el registro de la app
+no puede escribir. **Login verificado en el emulador**: entra y navega
+(barra inferior con 5 items). El perfil aparece vacío por el punto 3.
 
 ## Cómo desbloquearlo (dos opciones)
 
