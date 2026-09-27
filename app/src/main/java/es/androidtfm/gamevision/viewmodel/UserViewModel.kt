@@ -1,251 +1,266 @@
 package es.androidtfm.gamevision.viewmodel
 
-import android.util.Log
+import android.content.Context
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import javax.inject.Inject
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import es.androidtfm.gamevision.data.model.UserProfile
+import es.androidtfm.gamevision.data.repository.UserRepository
+import es.androidtfm.gamevision.data.session.SavedPassword
+import es.androidtfm.gamevision.data.session.SessionRepository
+import es.androidtfm.gamevision.data.session.SessionState
+import es.androidtfm.gamevision.data.session.toAuthUserMessage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 22/01/2025
+ * Fecha: 27/09/2026 (Frente 2 — SSOT de sesión y perfil)
  * Descripción:
- */
-
-/**
- * ViewModel para gestionar los datos del usuario y el formulario de registro/inicio de sesión.
  *
- * Se encarga de manejar el estado del formulario, la información del perfil, la carga y los mensajes.
+ * Punto único de la identidad y del perfil del usuario para toda la UI.
+ *
+ * Antes: la identidad viajaba en formFields["email"], en FirebaseAuth.currentUser
+ * y en un flag en memoria, y el perfil se copiaba a mano de pantalla en pantalla.
+ * Ahora: `session` (de SessionRepository) dice quién ha iniciado sesión y
+ * `profile` es un flujo en vivo del documento de Firestore — todas las pantallas
+ * leen de aquí y se actualizan solas.
+ *
+ * `formFields` queda reducido a lo que debe ser: estado de entrada del formulario.
  */
-
-/**
- * Modelo de datos del perfil.
- */
-data class ProfileInfo(
-    var nameSurname: String,
-    var username: String,
-    var description: String,
-    var country: String,
-    var email: String
-)
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val sessionRepository: SessionRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
-    /**
-     * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
-     */
-    constructor() : this(FirebaseAuth.getInstance())
-
-    // Estado del formulario con los campos inicializados
-    private val _formFields = MutableStateFlow(
-        mutableMapOf(
-            "username" to "",
-            "password" to "",
-            "confirmPassword" to "",
-            "country" to "",
-            "email" to "",
-            "nameSurname" to "",
-            "description" to ""
-        )
+    private val emptyForm = mutableMapOf(
+        "username" to "",
+        "password" to "",
+        "confirmPassword" to "",
+        "country" to "",
+        "email" to "",
+        "nameSurname" to "",
+        "description" to ""
     )
 
+    // ---- Estado de formulario (solo entrada de datos) ----
+    private val _formFields = MutableStateFlow<Map<String, String>>(emptyForm.toMap())
     val formFields: StateFlow<Map<String, String>> = _formFields.asStateFlow()
 
-    // Estado del perfil del usuario
-    private val _profileInfo = MutableStateFlow(ProfileInfo("", "", "", "", ""))
-    val profileInfo: StateFlow<ProfileInfo> = _profileInfo.asStateFlow()
+    // ---- SSOT de sesión ----
+    /** Estado de sesión de la app (única fuente de verdad). */
+    val session: StateFlow<SessionState> = sessionRepository.sessionState
 
-    // Estado de carga
+    /** Email del usuario autenticado, o null si es invitado/anónimo. */
+    val currentEmail: StateFlow<String?> = session
+        .map { (it as? SessionState.LoggedIn)?.email }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** true solo en modo invitado explícito. */
+    val isGuest: StateFlow<Boolean> = session
+        .map { it is SessionState.Guest }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    // ---- SSOT del perfil: flujo en vivo ----
+    /**
+     * Perfil del usuario actual. Se re-suscribe automáticamente al cambiar de
+     * usuario y refleja los cambios de Firestore sin refetch manual.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val profile: StateFlow<UserProfile> = currentEmail
+        .flatMapLatest { email ->
+            if (email.isNullOrBlank()) flowOf(Result.success(UserProfile()))
+            else userRepository.observeProfile(email)
+        }
+        .map { result -> result.getOrElse { UserProfile() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserProfile())
+
+    /** Último error de carga del perfil (para poder mostrarlo). */
+    private val _profileError = MutableStateFlow<String?>(null)
+    val profileError: StateFlow<String?> = _profileError.asStateFlow()
+
+    // ---- Estado de UI ----
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Estado para mensajes
     private val _message = MutableStateFlow("")
     val message: StateFlow<String> = _message.asStateFlow()
 
-    // Estado para modo invitado
-    private val _isGuest = MutableStateFlow(false)
-    val isGuest: StateFlow<Boolean> = _isGuest.asStateFlow()
-
-    init {
-        // Combinar los datos del formulario con el perfil actual
-        viewModelScope.launch {
-            combine(
-                _formFields,
-                _profileInfo
-            ) { formFields, profileInfo ->
-                extractProfileInfo(formFields, profileInfo)
-            }.collect { combinedInfo ->
-                _profileInfo.value = combinedInfo
-            }
-        }
-
-        // Actualizar datos desde Firebase Auth (actualiza username, nameSurname y email)
-        viewModelScope.launch {
-            firebaseAuth.currentUser?.let { user ->
-                updateProfileInfoFromFirebase(user)
-            }
-        }
-    }
+    // ------------------------------------------------------------------------
+    // Acciones de sesión
+    // ------------------------------------------------------------------------
 
     /**
-     * Obtiene los datos del usuario desde Firestore mediante DDBBViewModel y actualiza el formulario.
-     * @param email: Correo electrónico del usuario.
-     * @param ddbbViewModel Instancia del ViewModel que maneja la base de datos.
+     * Registro con email/password.
+     *
+     * Se ejecuta en viewModelScope (NO en el scope de la pantalla): al crearse la
+     * cuenta cambia la sesión y la navegación saca la pantalla de composición; si
+     * la corrutina viviera en la pantalla, se cancelaría el registro a medias.
      */
-    fun fetchUserData(email: String, ddbbViewModel: DDBBViewModel) {
-        _isLoading.value = true
+    fun signUp(email: String, password: String, confirmPassword: String) {
+        if (!isRegisterFormValid()) {
+            setMessage("Por favor, completa todos los campos")
+            return
+        }
+        if (password != confirmPassword) {
+            setMessage("Las contraseñas no coinciden")
+            return
+        }
         viewModelScope.launch {
-            // Se obtiene la información real del usuario desde Firestore
-            ddbbViewModel.fetchUserData(email)
-            ddbbViewModel.userData.value?.let { userData ->
-                updateFormField("nameSurname", userData["nameSurname"].orEmpty())
-                updateFormField("username", userData["username"].orEmpty())
-                updateFormField("description", userData["description"].orEmpty())
-                updateFormField("country", userData["country"].orEmpty())
-                updateFormField("email", email)
-            } ?: Log.e("UserViewModel", "No se pudieron obtener datos para el email: $email")
+            _isLoading.value = true
+            sessionRepository.signUp(
+                email = email,
+                password = password,
+                nameSurname = _formFields.value["nameSurname"].orEmpty(),
+                username = _formFields.value["username"].orEmpty()
+            ).onFailure { setMessage(it.toAuthUserMessage()) }
             _isLoading.value = false
         }
     }
 
     /**
-     * Extrae la información del perfil combinando los campos del formulario y la información existente.
+     * Inicio de sesión con email/password. Si va bien, ofrece guardar la
+     * credencial en el gestor de contraseñas del sistema.
      */
-    private fun extractProfileInfo(
-        formFields: Map<String, String>,
-        profileInfo: ProfileInfo
-    ): ProfileInfo {
-        Log.d("UserViewModel", "formFields: $formFields | profileInfo previo: $profileInfo")
-        return ProfileInfo(
-            nameSurname = if (formFields["nameSurname"].isNullOrBlank()) profileInfo.nameSurname else formFields["nameSurname"]!!,
-            username = if (formFields["username"].isNullOrBlank()) profileInfo.username else formFields["username"]!!,
-            description = if (formFields["description"].isNullOrBlank()) profileInfo.description else formFields["description"]!!,
-            country = if (formFields["country"].isNullOrBlank()) profileInfo.country else formFields["country"]!!,
-            email = if (formFields["email"].isNullOrBlank()) profileInfo.email else formFields["email"]!!
-        )
-    }
-
-    /**
-     * Actualiza la información del perfil desde Firebase Auth.
-     */
-    private fun updateProfileInfoFromFirebase(firebaseUser: FirebaseUser) {
-        val googleName = firebaseUser.displayName ?: "Nombre"
-        val googleEmail = firebaseUser.email ?: "Email"
-        updateFormField("username", googleName.replace("\\s".toRegex(), ""))
-        updateFormField("nameSurname", googleName)
-        updateFormField("email", googleEmail)
-    }
-
-    /**
-     * Actualiza un campo específico del formulario.
-     */
-    fun updateFormField(key: String, value: String) {
-        _formFields.value = _formFields.value.toMutableMap().apply {
-            this[key] = value
+    fun signIn(context: Context, email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            setMessage("Por favor, completa todos los campos")
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = sessionRepository.signIn(email, password)
+            if (result.isSuccess) {
+                sessionRepository.offerPasswordSave(context, email, password)
+            } else {
+                setMessage(result.exceptionOrNull()?.toAuthUserMessage() ?: "No se pudo iniciar sesión")
+            }
+            _isLoading.value = false
         }
     }
 
-    /**
-     * Maneja el cambio en los campos del formulario.
-     */
+    /** Inicio de sesión con Google usando el idToken de Credential Manager. */
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            sessionRepository.signInWithGoogle(idToken)
+                .onFailure { setMessage(it.toAuthUserMessage()) }
+            _isLoading.value = false
+        }
+    }
+
+    /** Envía el correo de recuperación de contraseña (el resultado se muestra en `message`). */
+    fun resetPassword(email: String) {
+        if (email.isBlank()) {
+            setMessage("Introduce tu correo electrónico")
+            return
+        }
+        viewModelScope.launch {
+            _isLoading.value = true
+            sessionRepository.resetPassword(email)
+                .onSuccess { setMessage("Te hemos enviado un correo para restablecer la contraseña") }
+                .onFailure { setMessage(it.toAuthUserMessage()) }
+            _isLoading.value = false
+        }
+    }
+
+    /** Entra como invitado (persistido). */
+    suspend fun enterAsGuest() = sessionRepository.enterAsGuest()
+
+    /** Cierra la sesión y limpia el estado local. */
+    suspend fun signOut() {
+        sessionRepository.signOut()
+        clearUserData()
+    }
+
+    // ------------------------------------------------------------------------
+    // Credential Manager
+    // ------------------------------------------------------------------------
+
+    /** Credencial guardada para autocompletar el formulario de login. */
+    suspend fun retrieveSavedPassword(context: Context): SavedPassword? =
+        sessionRepository.retrieveSavedPassword(context)
+
+    // ------------------------------------------------------------------------
+    // Perfil
+    // ------------------------------------------------------------------------
+
+    /** Actualiza campos del perfil del usuario actual (en viewModelScope). */
+    fun updateProfile(fields: Map<String, Any?>, onSuccess: () -> Unit = {}) {
+        val email = currentEmail.value
+        if (email.isNullOrBlank()) {
+            setMessage("No hay sesión iniciada")
+            return
+        }
+        viewModelScope.launch {
+            userRepository.updateProfile(email, fields)
+                .onSuccess {
+                    setMessage("Perfil actualizado")
+                    onSuccess()
+                }
+                .onFailure { setMessage("No se pudo actualizar el perfil") }
+        }
+    }
+
+    /** Actualiza la imagen de perfil del usuario actual (en viewModelScope). */
+    fun updateProfileImage(uri: android.net.Uri) {
+        val email = currentEmail.value
+        if (email.isNullOrBlank()) {
+            setMessage("No hay sesión iniciada")
+            return
+        }
+        viewModelScope.launch {
+            userRepository.updateProfileImage(email, uri)
+                .onFailure { setMessage("No se pudo actualizar la foto de perfil") }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Formulario
+    // ------------------------------------------------------------------------
+
+    fun updateFormField(key: String, value: String) {
+        _formFields.value = _formFields.value.toMutableMap().apply { this[key] = value }
+    }
+
     fun onFormFieldChange(field: String, value: String) = updateFormField(field, value)
 
-    /**
-     * Valida los campos necesarios para el inicio de sesión.
-     */
-    fun loginUser(): Boolean {
-        return if (validateFields(listOf("email", "password"))) true
-        else {
-            setMessage("Por favor, completa todos los campos")
-            false
-        }
+    /** Rellena el formulario de login con credenciales recuperadas. */
+    fun prefillLogin(email: String, password: String) {
+        updateFormField("email", email)
+        updateFormField("password", password)
     }
 
-    /**
-     * Valida los campos necesarios para el registro de un nuevo usuario.
-     */
-    fun registerUser(formFields: Map<String, String>): Boolean {
-        val fields = _formFields.value
-        if (!validateFields(listOf("username", "nameSurname", "email", "password", "confirmPassword"))) {
-            setMessage("Por favor, completa todos los campos")
-            return false
-        }
-        if (fields["password"] != fields["confirmPassword"]) {
-            setMessage("Las contraseñas no coinciden")
-            return false
-        }
-        return true
-    }
-
-    /**
-     * Maneja la solicitud de recuperación de contraseña.
-     */
-    suspend fun forgotPassword(): Boolean {
-        val email = _formFields.value["email"].orEmpty()
-        if (email.isEmpty()) {
-            setMessage("Por favor, ingresa tu correo electrónico")
-            return false
-        }
-        return true
-    }
-
-    /**
-     * Limpia todos los campos del formulario.
-     */
     fun clearFormFields() {
-        _formFields.value = mutableMapOf(
-            "username" to "",
-            "password" to "",
-            "confirmPassword" to "",
-            "country" to "",
-            "email" to "",
-            "nameSurname" to "",
-            "description" to ""
-        )
+        _formFields.value = emptyForm.toMap()
     }
 
-    /**
-     * Valida si los campos especificados están completos.
-     */
-    private fun validateFields(fields: List<String>): Boolean {
-        return fields.all { _formFields.value[it].orEmpty().isNotEmpty() }
-    }
-
-    /**
-     * Limpia el mensaje actual.
-     */
     fun clearMessage() = setMessage("")
 
-    /**
-     * Establece un mensaje en el estado.
-     */
     fun setMessage(msg: String) {
         _message.value = msg
     }
 
-    /**
-     * Limpia los datos del usuario y los mensajes.
-     */
+    /** Limpia los datos del usuario y los mensajes (al cerrar sesión). */
     fun clearUserData() {
         clearFormFields()
         _message.value = ""
+        _profileError.value = null
     }
 
-    /**
-     * Establece el estado de modo invitado.
-     */
-    fun setGuestStatus(isGuest: Boolean) {
-        _isGuest.value = isGuest
-    }
+    private fun isRegisterFormValid(): Boolean =
+        listOf("username", "nameSurname", "email", "password", "confirmPassword")
+            .all { _formFields.value[it].orEmpty().isNotEmpty() }
 }

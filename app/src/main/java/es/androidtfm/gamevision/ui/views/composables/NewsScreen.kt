@@ -38,7 +38,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
@@ -71,12 +70,8 @@ fun NewsScreen(
         val result = newsViewModel.fetchFilteredNews("games")
         newsState.value = result
 
-        // Si hay usuario logueado, se realiza el fetch centralizado de los datos del usuario
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        currentUser?.email?.let { email ->
-            // Actualizamos el UserViewModel pasando también la instancia de ddbbViewModel
-            userViewModel.fetchUserData(email, ddbbViewModel)
-        }
+        // El perfil del usuario ya no se pide aquí: UserViewModel.profile es un
+        // flujo en vivo (SSOT) y se mantiene actualizado por sí solo.
     }
 
     LazyColumn(
@@ -232,15 +227,3 @@ fun NewsLoadingIndicator() {
 /*
  * Vista previa de la pantalla de noticias.
  */
-@Preview(showBackground = true)
-@Composable
-fun NewsScreenPreview() {
-    NewsScreen(
-        isDarkTheme = false,
-        onThemeChange = {},
-        newsViewModel = NewsViewModel(),
-        userViewModel = UserViewModel(),
-        ddbbViewModel = DDBBViewModel(),
-        paddingValues = PaddingValues()
-    )
-}

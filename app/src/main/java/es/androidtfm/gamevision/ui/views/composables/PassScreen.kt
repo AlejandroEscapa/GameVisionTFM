@@ -143,10 +143,9 @@ fun PassScreen(
                     // Botón para enviar instrucciones
                     Button(
                         onClick = {
-                            coroutineScope.launch {
-                                val success = userViewModel.forgotPassword()
-                                if (success) navController.navigate("login")
-                            }
+                            userViewModel.clearMessage()
+                            // El resultado se muestra en la propia pantalla (mensaje)
+                            userViewModel.resetPassword(formFields["email"].orEmpty())
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -213,14 +212,3 @@ private fun LoginHeader(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PassScreenPreview() {
-
-    // Previsualización de la pantalla de recuperación de contraseña
-    PassScreen(
-        isDarkTheme = false,
-        navController = NavController(LocalContext.current),
-        userViewModel = UserViewModel()
-    )
-}

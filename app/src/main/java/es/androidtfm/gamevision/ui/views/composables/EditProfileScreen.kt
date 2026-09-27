@@ -26,13 +26,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -52,7 +52,6 @@ import kotlinx.coroutines.launch
  * @param paddingValues: Valores de relleno para el diseño.
  * @param navController: Controlador de navegación.
  * @param userViewModel: ViewModel para el usuario.
- * @param ddbbViewModel: ViewModel para la base de datos.
  */
 
 @Composable
@@ -60,13 +59,23 @@ fun EditProfileScreen(
     isDarkTheme: Boolean,
     paddingValues: PaddingValues,
     navController: NavController?,
-    userViewModel: UserViewModel,
-    ddbbViewModel: DDBBViewModel
+    userViewModel: UserViewModel
 ) {
-    // Se observa el estado de los campos del formulario en el ViewModel del usuario.
+    // Campos de edición, precargados una vez desde el perfil del SSOT.
+    val profile by userViewModel.profile.collectAsState()
     val loginFields by userViewModel.formFields.collectAsState()
-    // Se crea un scope para lanzar corrutinas.
     val coroutineScope = rememberCoroutineScope()
+
+    // Rellena el formulario con el perfil actual la primera vez que llega el dato.
+    LaunchedEffect(profile) {
+        if (profile.email.isNotBlank() && loginFields["email"].isNullOrBlank()) {
+            userViewModel.updateFormField("nameSurname", profile.nameSurname)
+            userViewModel.updateFormField("username", profile.username)
+            userViewModel.updateFormField("description", profile.description)
+            userViewModel.updateFormField("country", profile.country)
+            userViewModel.updateFormField("email", profile.email)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -78,14 +87,9 @@ fun EditProfileScreen(
         // Se utiliza un componente personalizado que agrupa los campos del perfil.
         ProfileCard(loginFields, userViewModel) { updatedFields ->
             // Al hacer clic en guardar, se lanza una corrutina para actualizar la información del usuario.
-            coroutineScope.launch {
-                // Actualizar la información en la base de datos
-                ddbbViewModel.updateUser(loginFields["email"].orEmpty(), updatedFields)
-                // Antes de navegar hacia atrás, se marca el flag de actualización en la pantalla anterior.
-                navController?.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.set("profileUpdate", true)
-                // Se navega de vuelta a la pantalla de perfil.
+            // El perfil se guarda a través del SSOT y el flujo en vivo refleja el
+            // cambio en el resto de pantallas; al terminar se vuelve atrás.
+            userViewModel.updateProfile(updatedFields) {
                 navController?.popBackStack()
             }
         }
@@ -212,15 +216,3 @@ fun SaveButton(onClick: () -> Unit) {
 /**
  * Vista previa de la pantalla de edición de perfil.
  */
-@Preview(showBackground = true)
-@Composable
-fun EditProfileScreenPreview() {
-    // Nota: En esta vista previa se pasan instancias dummy de los ViewModels.
-    EditProfileScreen(
-        isDarkTheme = false,
-        paddingValues = PaddingValues(),
-        navController = null,
-        userViewModel = UserViewModel(),
-        ddbbViewModel = DDBBViewModel()
-    )
-}

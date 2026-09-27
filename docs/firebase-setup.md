@@ -88,7 +88,32 @@ Para un usuario de **Google la app funciona entera hoy** con las reglas actuales
   expuestos** a cualquiera que descompile el APK. `loginCheck` en cliente es
   trivialmente evitable.
 
-## Cómo desbloquearlo (dos opciones)
+## SOLUCIÓN APLICADA (27/09/2026) — Opción 2: Firebase Authentication
+
+Se migró la autenticación email/password a Firebase Authentication:
+
+- **Registro**: `createUserWithEmailAndPassword` + creación del perfil en
+  Firestore (autenticado → permitido por las reglas). Si el perfil falla, se
+  revierte la cuenta para no dejar usuarios huérfanos.
+- **Login**: `signInWithEmailAndPassword`.
+- **Recuperación**: `sendPasswordResetEmail` (antes era un stub que no enviaba nada).
+- **Los passwords ya no se guardan en Firestore** (campo eliminado de los 9 documentos).
+- **Credential Manager**: ofrece guardar la credencial tras el login y la
+  autocompleta al volver a la pantalla de login.
+- Las reglas de Firestore NO se tocaron: ya asumían este diseño.
+
+### Migración de usuarios existentes
+
+- Cuentas creadas en Auth: `alex@gmail.com`, `fel@gmail.com`, `james@gmail.com`,
+  `tester@gamevision.com` (registrado desde la app).
+- Ya existían en Auth (probablemente vía Google): `alex.escapax@gmail.com`,
+  `javi@gmail.com`, `prueba@gmail.com`, `pruebavideo@gmail.com`.
+- Passwords: los guardados tenían < 6 caracteres (Firebase Auth exige 6), así que
+  se asignó temporalmente **`123412`**. Cualquiera puede cambiarla con
+  "Recuperar contraseña", que ahora sí envía el correo.
+- `aa` y `ee` no son emails válidos: quedan como documentos huérfanos, sin cuenta.
+
+## Bloqueo original (contexto histórico)
 
 ### Opción 1 — Rápida (demo/TFM): permitir escritura en `/users`
 

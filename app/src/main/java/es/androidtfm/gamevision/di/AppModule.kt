@@ -11,7 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import es.androidtfm.gamevision.R
-import es.androidtfm.gamevision.data.repository.UserRepository
+import es.androidtfm.gamevision.datastore.SessionPreferences
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.retrofit.GameApiService
 import es.androidtfm.gamevision.retrofit.NewsApiService
@@ -71,5 +71,6 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(db: FirebaseFirestore): UserRepository = UserRepository(db)
+    fun provideSessionPreferences(@ApplicationContext context: Context): SessionPreferences =
+        SessionPreferences(context)
 }

@@ -65,11 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import es.androidtfm.gamevision.R
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -88,7 +85,6 @@ import java.io.File
  * @param paddingValues Valores de padding para la pantalla.
  * @param navController Controlador de navegación.
  * @param userViewModel ViewModel para manejar los datos del usuario.
- * @param ddbbViewModel ViewModel para manejar la base de datos.
  * @param googleViewModel ViewModel para manejar la autenticación con Google.
  * @param onThemeChange Función para cambiar el tema.
  */
@@ -98,38 +94,14 @@ fun ProfileScreen(
     paddingValues: PaddingValues,
     navController: NavController?, // Se usa para acceder al SavedStateHandle y para la navegación
     userViewModel: UserViewModel,
-    ddbbViewModel: DDBBViewModel,
     googleViewModel: GoogleViewModel,
     onThemeChange: (Boolean) -> Unit
 ) {
-    // Estado que contiene la información del perfil del usuario y el indicador de carga
-    val profileInfo by userViewModel.profileInfo.collectAsState()
+    // Perfil en vivo desde el SSOT (UserViewModel.profile): se actualiza solo
+    // cuando cambia el documento en Firestore, sin refetch manual por pantalla.
+    val profile by userViewModel.profile.collectAsState()
     val isLoading by userViewModel.isLoading.collectAsState()
-
-    // Obtenemos el usuario actual desde Firebase
-    val currentUser = FirebaseAuth.getInstance().currentUser
-
-    // Log para confirmar el email
-    currentUser?.email?.let { email ->
-        Log.d("ProfileScreen", "Email del usuario: $email")
-    } ?: Log.e("ProfileScreen", "currentUser es null o no tiene email.")
-
-    // Utilizamos savedStateHandle para refrescar el perfil tras editar
-    val refreshTrigger = navController
-        ?.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow("profileUpdate", false)
-        ?.collectAsState(initial = false)
-        ?.value ?: false
-
-    // Efecto para refrescar los datos al cambiar el usuario o el trigger de refresco
-    LaunchedEffect(currentUser, refreshTrigger) {
-        currentUser?.email?.let { email ->
-            // Llamada a fetchUserData pasando la instancia de ddbbViewModel
-            userViewModel.fetchUserData(email, ddbbViewModel)
-            navController?.currentBackStackEntry?.savedStateHandle?.set("profileUpdate", false)
-        }
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -203,29 +175,32 @@ fun ProfileScreen(
                             .align(Alignment.CenterHorizontally)
                             .offset(y = (-25).dp)
                     ) {
-                        ProfileImage(profileInfo.email, ddbbViewModel)
+                        ProfileImage(
+                            imageUri = profile.imageUri,
+                            onImagePicked = { uri ->
+                                coroutineScope.launch { userViewModel.updateProfileImage(uri) }
+                            }
+                        )
                     }
 
                     // Sección del encabezado del perfil
                     ProfileHeaderSection(
-                        name = profileInfo.nameSurname,
-                        username = profileInfo.username,
+                        name = profile.nameSurname,
+                        username = profile.username,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
                     // Tarjeta de detalles del perfil
                     ProfileDetailsCard(
-                        description = profileInfo.description,
-                        country = profileInfo.country,
-                        email = profileInfo.email
+                        description = profile.description,
+                        country = profile.country,
+                        email = profile.email
                     )
 
                     // Sección de acciones del perfil (incluye el botón de "Cerrar sesión")
                     ProfileActionsSection(
-                        context = LocalContext.current,
                         navController = navController,
                         userViewModel = userViewModel,
-                        ddbbViewModel = ddbbViewModel,
                         googleViewModel = googleViewModel,
                         modifier = Modifier.padding(top = 24.dp)
                     )
@@ -239,71 +214,52 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileImage(email: String, ddbbViewModel: DDBBViewModel) {
-    // Estado que almacena la URI de la imagen de perfil
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
+fun ProfileImage(
+    imageUri: String?,
+    onImagePicked: (Uri) -> Unit
+) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
-    // Efecto que se ejecuta cuando cambia el email para recuperar la imagen de perfil
-    LaunchedEffect(email) {
-        if (email.isNotEmpty()) {
-            imageUri = ddbbViewModel.recoverProfilePicture(email)
-            Log.d("ProfileImage", "Recuperada imageUri: $imageUri")
-        }
-    }
-
-    // Función para guardar la imagen localmente y devolver su ruta
+    // Guarda localmente la imagen elegida y devuelve su ruta
     fun saveImageLocally(uri: Uri): String {
         val file = File(context.filesDir, "profile_image_${System.currentTimeMillis()}.jpg")
         try {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                file.outputStream().use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                file.outputStream().use { output -> input.copyTo(output) }
             }
-            Log.d("ImageStorage", "Imagen guardada localmente en: ${file.absolutePath}")
         } catch (e: Exception) {
-            Log.e("ImageStorage", "Error al guardar la imagen localmente: ${e.message}")
+            Log.e("ProfileImage", "Error guardando la imagen localmente: ${e.message}")
         }
         return file.absolutePath
     }
 
-    // Lanzador para seleccionar una nueva imagen
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            Log.d("ProfileImage", "Usuario seleccionó nueva imageUri: $it")
-            val localPath = saveImageLocally(it)
-            val localUri = Uri.fromFile(File(localPath))
-            imageUri = localUri
-            coroutineScope.launch {
-                ddbbViewModel.updateUserProfilePicture(email, localUri)
-            }
-        }
+        uri?.let { onImagePicked(Uri.fromFile(File(saveImageLocally(it)))) }
     }
 
-    // Muestra la imagen de perfil o un ícono de edición si no hay imagen disponible
     Box(modifier = Modifier.fillMaxSize()) {
-        imageUri?.let {
+        if (!imageUri.isNullOrBlank()) {
             Image(
-                painter = rememberAsyncImagePainter(it),
-                contentDescription = "Profile",
+                painter = rememberAsyncImagePainter(imageUri),
+                contentDescription = "Foto de perfil",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable { pickImageLauncher.launch("image/*") }
             )
-        } ?: Icon(
-            imageVector = Icons.Filled.Edit,
-            contentDescription = "Edit Icon",
-            tint = Color.White,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(48.dp)
-                .clickable { pickImageLauncher.launch("image/*") }
-        )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.Edit,
+                contentDescription = "Añadir foto de perfil",
+                tint = Color.White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(48.dp)
+                    .clickable { pickImageLauncher.launch("image/*") }
+            )
+        }
     }
 }
 
@@ -404,10 +360,8 @@ private fun ProfileDetailItem(icon: ImageVector, title: String, value: String) {
 
 @Composable
 private fun ProfileActionsSection(
-    context: Context,
     navController: NavController?,
     userViewModel: UserViewModel,
-    ddbbViewModel: DDBBViewModel,
     googleViewModel: GoogleViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -447,14 +401,10 @@ private fun ProfileActionsSection(
         OutlinedButton(
             onClick = {
                 coroutineScope.launch {
-                    ddbbViewModel.logout()
-                    FirebaseAuth.getInstance().signOut()
-                    userViewModel.clearFormFields()
-                    userViewModel.clearUserData()
-                    googleViewModel.logout(
-                        onSuccess = {},
-                        onError = {}
-                    )
+                    // El cierre de sesión pasa por el SSOT: cierra Firebase Auth,
+                    // limpia credenciales de Google y el estado local.
+                    googleViewModel.clearCredentialState()
+                    userViewModel.signOut()
                     navController?.navigate("main") {
                         popUpTo(id = navController.graph.startDestinationId) {
                             inclusive = true
@@ -492,16 +442,3 @@ private fun ProfileLoadingIndicator() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreen(
-        isDarkTheme = false,
-        paddingValues = PaddingValues(),
-        navController = null,
-        userViewModel = UserViewModel(),
-        ddbbViewModel = DDBBViewModel(),
-        googleViewModel = GoogleViewModel(),
-        onThemeChange = {}
-    )
-}

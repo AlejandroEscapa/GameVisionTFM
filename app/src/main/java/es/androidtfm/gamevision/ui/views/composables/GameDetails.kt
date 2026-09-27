@@ -1,6 +1,7 @@
 package es.androidtfm.gamevision.ui.views.composables
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,16 +93,16 @@ fun GameDetails(
         viewModelStoreOwner = navController.getBackStackEntry("searchScreen")
     )
 ) {
-    val formFields by userViewModel.formFields.collectAsState()
     val context = LocalContext.current
     var addMenuExpanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    val currentEmail by userViewModel.currentEmail.collectAsState()
 
-    LaunchedEffect(gameId) {
+    LaunchedEffect(gameId, currentEmail) {
         viewModel.fetchGameDetails(gameId)
-        formFields["email"]?.let { email ->
-            ddbbViewModel.fetchUserData(email)
+        currentEmail?.takeIf { it.isNotBlank() }?.let { email ->
             ddbbViewModel.addGameToHistory(email, gameId.toString())
+                .onFailure { Log.w("GameDetails", "No se pudo registrar el historial: ${it.message}") }
         }
     }
 
@@ -195,14 +196,24 @@ fun GameDetails(
                                         onClick = {
                                             addMenuExpanded = false
                                             coroutineScope.launch {
-                                                game?.id?.let { gameId ->
-                                                    formFields["email"]?.let { email ->
-                                                        ddbbViewModel.addGameToCollection(
-                                                            email,
-                                                            gameId.toString(),
-                                                            collection
+                                                val gameIdValue = game?.id
+                                                val emailValue = currentEmail
+                                                if (gameIdValue != null && !emailValue.isNullOrBlank()) {
+                                                    ddbbViewModel.addGame(
+                                                        emailValue,
+                                                        gameIdValue.toString(),
+                                                        collection
+                                                    ).onSuccess {
+                                                        userViewModel.setMessage("Añadido a la lista")
+                                                    }.onFailure { error ->
+                                                        userViewModel.setMessage(
+                                                            "No se pudo añadir: ${error.message}"
                                                         )
                                                     }
+                                                } else {
+                                                    userViewModel.setMessage(
+                                                        "Inicia sesión para guardar juegos"
+                                                    )
                                                 }
                                             }
                                         }

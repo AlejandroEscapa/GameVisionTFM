@@ -55,7 +55,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.retrofit.Game
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
@@ -96,9 +95,8 @@ fun GameListScreen(
     userViewModel: UserViewModel
 ) {
     val context = LocalContext.current
-    val formFields by userViewModel.formFields.collectAsState()
-    val firebaseUser = FirebaseAuth.getInstance().currentUser
-    val email = formFields["email"] ?: firebaseUser?.email
+    // Identidad desde el SSOT de sesión (única fuente de verdad)
+    val email by userViewModel.currentEmail.collectAsState()
 
     var gameIds by remember { mutableStateOf<List<String>?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -106,34 +104,31 @@ fun GameListScreen(
     var selectedList by rememberSaveable { mutableStateOf("playedlist") }
     val gamesMap = searchViewModel.gamesMap
 
-    // Efecto que se ejecuta cuando cambia el email o la lista seleccionada
+    // Carga los juegos de la lista seleccionada cuando cambia la sesión o la lista.
+    // El perfil ya no se copia aquí: vive en UserViewModel.profile (SSOT).
     LaunchedEffect(email, selectedList) {
-        email?.let { emailData ->
-            // Se refresca la información del usuario
-            ddbbViewModel.fetchUserData(emailData)
-            val userData = ddbbViewModel.userData.value
-
-            // Actualiza la información en el UserViewModel
-            userViewModel.onFormFieldChange("nameSurname", userData?.get("nameSurname") ?: "")
-            userViewModel.onFormFieldChange("username", userData?.get("username") ?: "")
-            userViewModel.onFormFieldChange("description", userData?.get("description") ?: "")
-            userViewModel.onFormFieldChange("country", userData?.get("country") ?: "")
-            userViewModel.onFormFieldChange("email", emailData)
-
-            // Obtiene los juegos del usuario en función de la lista seleccionada
-            val gamesData = ddbbViewModel.getUserGames(emailData, selectedList)
-            val newGameIds = gamesData.mapNotNull { it["gameId"] as? String }
-            // Si la lista es "history", se limita a 20 elementos para rendimiento
-            val limitedGameIds = if (selectedList == "history") newGameIds.take(20) else newGameIds
-
-            // Se obtiene de forma asíncrona los detalles de cada juego
-            limitedGameIds.map { gameId ->
-                async { searchViewModel.fetchAndStoreGameDetails(gameId.toInt()) }
-            }.awaitAll()
-
-            gameIds = limitedGameIds
+        val emailData = email
+        if (emailData.isNullOrBlank()) {
+            gameIds = emptyList()
             isLoading = false
+            return@LaunchedEffect
         }
+        isLoading = true
+        val result = ddbbViewModel.getUserGameIds(emailData, selectedList)
+        val newGameIds = result.getOrElse { error ->
+            userViewModel.setMessage("No se pudieron cargar tus juegos: ${error.message}")
+            emptyList()
+        }
+        // Si la lista es "history", se limita a 20 elementos para rendimiento
+        val limitedGameIds = if (selectedList == "history") newGameIds.take(20) else newGameIds
+
+        // Se obtienen de forma asíncrona los detalles de cada juego
+        limitedGameIds.map { gameId ->
+            async { searchViewModel.fetchAndStoreGameDetails(gameId.toInt()) }
+        }.awaitAll()
+
+        gameIds = limitedGameIds
+        isLoading = false
     }
 
     // Se genera una lista de IDs ordenada según la opción de ordenamiento
@@ -293,8 +288,7 @@ fun GameCard(
     onGameDeleted: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val formFields by userViewModel.formFields.collectAsState()
-    val email = formFields["email"]
+    val email by userViewModel.currentEmail.collectAsState()
 
     // Show loading state if game data isn't available yet (skeleton del design system)
     if (game == null) {
@@ -382,7 +376,9 @@ fun GameCard(
                         onClick = {
                             coroutineScope.launch {
                                 email?.let {
-                                    ddbbViewModel.removeGameFromUser(it, gameId)
+                                    ddbbViewModel.removePlayedGame(it, gameId).onFailure { error ->
+                                        userViewModel.setMessage("No se pudo eliminar: ${error.message}")
+                                    }
                                     onGameDeleted(gameId)
                                 }
                             }

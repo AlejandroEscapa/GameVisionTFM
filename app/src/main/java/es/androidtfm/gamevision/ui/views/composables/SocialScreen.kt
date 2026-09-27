@@ -70,7 +70,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
+import es.androidtfm.gamevision.data.model.ChatMessage
+import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -102,39 +103,44 @@ fun SocialScreen(
     ddbbViewModel: DDBBViewModel = viewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val formFields by userViewModel.formFields.collectAsState()
-    val firebaseUser = FirebaseAuth.getInstance().currentUser
-    val email = formFields["email"] ?: firebaseUser?.email
+    // Identidad desde el SSOT de sesión
+    val email by userViewModel.currentEmail.collectAsState()
 
-    var friendsList by remember { mutableStateOf(emptyList<Map<String, Any>>()) }
-    var messageList by remember { mutableStateOf(emptyList<Map<String, Any>>()) }
+    var friendsList by remember { mutableStateOf(emptyList<Friend>()) }
+    var messageList by remember { mutableStateOf(emptyList<ChatMessage>()) }
     var isLoading by remember { mutableStateOf(true) }
     var comment by remember { mutableStateOf("") }
     val commentMaxLength = 280
     var refreshTrigger by remember { mutableIntStateOf(0) }
 
-    // Efecto para obtener mensajes y amigos cuando cambie el email o se refresque
+    // Carga amigos y mensajes (modelos tipados; los fallos se muestran al usuario)
     LaunchedEffect(email, refreshTrigger) {
-        email?.let { userEmail ->
-            // Obtener lista de amigos del usuario
-            friendsList = ddbbViewModel.getFriendsList(userEmail)
-
-            // Combina mensajes de cada amigo y del propio usuario
-            val allMessages = mutableListOf<Map<String, Any>>().apply {
-                friendsList.forEach { friend ->
-                    val friendEmail = friend["email"].toString()
-                    addAll(ddbbViewModel.getFriendMessages(friendEmail)
-                        .map { it + ("friendEmail" to friendEmail) })
-                }
-                addAll(ddbbViewModel.getFriendMessages(userEmail)
-                    .map { it + ("friendEmail" to userEmail) })
-            }
-            val formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
-            messageList = allMessages.sortedByDescending {
-                LocalDateTime.parse(it["hora"].toString(), formatter)
-            }
+        val userEmail = email
+        if (userEmail.isNullOrBlank()) {
+            friendsList = emptyList()
+            messageList = emptyList()
             isLoading = false
+            return@LaunchedEffect
         }
+        isLoading = true
+
+        val currentFriends = ddbbViewModel.getFriends(userEmail).getOrElse { error ->
+            userViewModel.setMessage("No se pudieron cargar tus amigos: ${error.message}")
+            emptyList()
+        }
+        friendsList = currentFriends
+
+        // Muro: mensajes propios y de cada amigo
+        val allMessages = mutableListOf<ChatMessage>()
+        ddbbViewModel.getMessages(userEmail).onSuccess { allMessages.addAll(it) }
+        currentFriends.forEach { friend ->
+            ddbbViewModel.getMessages(friend.email).onSuccess { allMessages.addAll(it) }
+        }
+        val formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
+        messageList = allMessages.sortedByDescending {
+            runCatching { LocalDateTime.parse(it.time, formatter) }.getOrNull()
+        }
+        isLoading = false
     }
 
     Surface(
@@ -156,11 +162,11 @@ fun SocialScreen(
             ) {
                 items(messageList) { message ->
                     SocialCard(
-                        userEmail = email.toString(),
-                        friendEmail = message["friendEmail"].toString(),
-                        message = message["texto"].toString(),
-                        hora = message["hora"].toString(),
-                        messageID = message["messageID"].toString(),
+                        userEmail = email.orEmpty(),
+                        friendEmail = message.ownerEmail,
+                        message = message.text,
+                        hora = message.time,
+                        messageID = message.id,
                         ddbbViewModel = ddbbViewModel,
                         isDarkMode = isDarkTheme,
                         onMessageDeleted = { refreshTrigger++ }
@@ -179,8 +185,13 @@ fun SocialScreen(
                         )
                         coroutineScope.launch {
                             ddbbViewModel.publishMessage(userEmail, comment, formattedDateTime)
-                            comment = ""
-                            refreshTrigger++
+                                .onSuccess {
+                                    comment = ""
+                                    refreshTrigger++
+                                }
+                                .onFailure {
+                                    userViewModel.setMessage("No se pudo publicar: ${it.message}")
+                                }
                         }
                     }
                 },
@@ -341,7 +352,7 @@ fun SocialCard(
                         onClick = {
                             coroutineScope.launch {
                                 ddbbViewModel.deleteMessage(friendEmail, messageID)
-                                onMessageDeleted()
+                                    .onSuccess { onMessageDeleted() }
                             }
                         },
                         isDarkMode = isDarkMode

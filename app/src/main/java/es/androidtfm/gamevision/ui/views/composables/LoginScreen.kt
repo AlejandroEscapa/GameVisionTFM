@@ -64,13 +64,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.R
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-import java.nio.file.WatchEvent
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -87,7 +84,6 @@ import java.nio.file.WatchEvent
  * @param userViewModel ViewModel para datos de usuario.
  * @param googleViewModel ViewModel para operaciones con Google.
  * @param onGoogleSignInClick Función para iniciar sesión con Google.
- * @param ddbbViewModel ViewModel para operaciones con la base de datos.
  */
 
 @Composable
@@ -97,19 +93,33 @@ fun LoginScreen(
     navconThemeChange: (Boolean) -> Unit,
     userViewModel: UserViewModel,
     googleViewModel: GoogleViewModel,
-    onGoogleSignInClick: () -> Unit,
-    ddbbViewModel: DDBBViewModel
+    onGoogleSignInClick: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Estados del formulario y mensajes
+    // Estado del formulario y mensajes; la sesión y el perfil viven en el SSOT
+    // (UserViewModel.session / UserViewModel.profile)
     val formFields by userViewModel.formFields.collectAsState()
     val message by userViewModel.message.collectAsState()
     val signInState by googleViewModel.signInState.observeAsState()
 
-    // Maneja el estado del inicio de sesión con Google
-    HandleSignInState(signInState, navController, context)
+    // Autocompletado: recupera la credencial guardada en el gestor de contraseñas
+    LaunchedEffect(Unit) {
+        userViewModel.retrieveSavedPassword(context)?.let { saved ->
+            if (formFields["email"].isNullOrBlank()) {
+                userViewModel.prefillLogin(saved.email, saved.password)
+            }
+        }
+    }
+
+    // El error de Google Sign-In se muestra con el mismo canal de mensajes
+    LaunchedEffect(signInState) {
+        val state = signInState
+        if (state is GoogleViewModel.SignInState.Error) {
+            userViewModel.setMessage(state.message)
+        }
+    }
 
     // Diseño principal de la pantalla de inicio de sesión
     Surface(
@@ -132,30 +142,18 @@ fun LoginScreen(
                 onEmailChange = { userViewModel.onFormFieldChange("email", it) },
                 onPasswordChange = { userViewModel.onFormFieldChange("password", it) },
                 onLoginClick = {
-                    if (validateLoginForm(formFields)) {
-                        coroutineScope.launch {
-                            val exist = ddbbViewModel.loginCheck(
-                                formFields["email"].toString(),
-                                formFields["password"].toString()
-                            )
-                            if (!exist) {
-                                userViewModel.setMessage("Usuario o contraseña incorrectos")
-                            } else {
-                                ddbbViewModel.fetchUserData(formFields["email"].toString())
-                                userViewModel.setGuestStatus(false)
-                                navController.navigateToNews()
-                            }
-                        }
-                    }
+                    userViewModel.clearMessage()
+                    // El login corre en el ViewModel (sobrevive a la navegación)
+                    userViewModel.signIn(
+                        context = context,
+                        email = formFields["email"].orEmpty(),
+                        password = formFields["password"].orEmpty()
+                    )
                 },
                 onForgotPasswordClick = { navController.navigate("passrecover") },
                 onGoogleSignInClick = {
                     onGoogleSignInClick()
-                    coroutineScope.launch {
-                        googleViewModel.signIn(context)
-                        userViewModel.setGuestStatus(false)
-                        ddbbViewModel.fetchUserData(formFields["email"].toString())
-                    }
+                    googleViewModel.signIn(context)
                 },
                 onRegisterClick = { navController.navigate("register") }
             )
@@ -416,44 +414,3 @@ private fun LoginForm(
     }
 }
 
-@Composable
-private fun HandleSignInState(
-    signInState: GoogleViewModel.SignInState?, // Estado del inicio de sesión con Google
-    navController: NavController, // Controlador de navegación
-    context: Context // Contexto de la aplicación
-) {
-    // Navega a la pantalla de noticias si el inicio de sesión es exitoso
-    if (signInState is GoogleViewModel.SignInState.Success) {
-        LaunchedEffect(key1 = signInState) {
-            navController.navigateToNews()
-        }
-    }
-}
-
-// Valida si los campos del formulario están completos
-private fun validateLoginForm(formFields: Map<String, String>): Boolean {
-    return formFields["email"].isNullOrEmpty().not() && formFields["password"].isNullOrEmpty().not()
-}
-
-// Navega a la pantalla de noticias
-private fun NavController.navigateToNews() {
-    navigate("news") {
-        popUpTo("login") { inclusive = true }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-
-    // Previsualización de la pantalla de inicio de sesión
-    LoginScreen(
-        isDarkTheme = false,
-        navController = NavController(LocalContext.current),
-        navconThemeChange = {},
-        userViewModel = UserViewModel(),
-        googleViewModel = GoogleViewModel(),
-        onGoogleSignInClick = {},
-        ddbbViewModel = DDBBViewModel()
-    )
-}

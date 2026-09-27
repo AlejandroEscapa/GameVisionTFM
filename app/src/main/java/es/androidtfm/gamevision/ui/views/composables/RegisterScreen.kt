@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.R
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -70,15 +69,13 @@ import kotlinx.coroutines.launch
  * @param isDarkTheme Indica si el tema oscuro está activado.
  * @param navController Controlador de navegación.
  * @param userViewModel ViewModel para manejar los datos del usuario.
- * @param ddbbViewModel ViewModel para manejar la base de datos.
  */
 
 @Composable
 fun RegisterScreen(
     isDarkTheme: Boolean, // Indica si el tema oscuro está activado
     navController: NavController, // Controlador de navegación
-    userViewModel: UserViewModel = UserViewModel(), // ViewModel para manejar los datos del usuario
-    ddbbViewModel: DDBBViewModel = DDBBViewModel() // ViewModel para manejar la base de datos
+    userViewModel: UserViewModel // ViewModel compartido (SSOT)
 ) {
     val context = LocalContext.current
     val registrationMessage by userViewModel.message.collectAsState() // Mensaje de registro
@@ -121,10 +118,15 @@ fun RegisterScreen(
                     userViewModel.onFormFieldChange(field, value)
                 },
                 onRegisterClick = {
-                    coroutineScope.launch {
-                        val success = ddbbViewModel.registerUser(formFields)
-                        if (success) navController.navigate("login")
-                    }
+                    userViewModel.clearMessage()
+                    // El registro corre en el ViewModel: al abrirse la sesión la
+                    // pantalla sale de composición y una corrutina de pantalla se
+                    // cancelaría a mitad del registro.
+                    userViewModel.signUp(
+                        email = formFields["email"].orEmpty(),
+                        password = formFields["password"].orEmpty(),
+                        confirmPassword = formFields["confirmPassword"].orEmpty()
+                    )
                 },
                 onLoginClick = { navController.navigate("login") }
             )
@@ -313,15 +315,4 @@ private fun LoginHeader(
         )
         Spacer(modifier = Modifier.height(10.dp)) // Mismo espacio que en LoginScreen
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-
-    // Previsualización de la pantalla de registro
-    RegisterScreen(
-        isDarkTheme = false,
-        navController = NavController(LocalContext.current)
-    )
 }

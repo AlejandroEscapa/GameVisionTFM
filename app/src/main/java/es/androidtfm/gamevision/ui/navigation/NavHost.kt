@@ -2,6 +2,7 @@ package es.androidtfm.gamevision.ui.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -9,6 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import kotlinx.coroutines.launch
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.ui.views.composables.EditProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.FriendsList
@@ -49,6 +51,8 @@ fun NavHost(
     searchViewModel: SearchViewModel
 ) {
     val isDarkTheme by themeDataStore.isDarkTheme.collectAsState(initial = false)
+    // Scope para el alta de invitado (suspend) desde un callback no composable
+    val guestScope = rememberCoroutineScope()
 
     NavHost(
         navController = navController,
@@ -62,7 +66,7 @@ fun NavHost(
                 navController = navController,
                 isGuest = isGuest,
                 onGuestStatusChange = { guestStatus ->
-                    userViewModel.setGuestStatus(guestStatus)
+                    if (guestStatus) guestScope.launch { userViewModel.enterAsGuest() }
                 }
             )
         }
@@ -75,8 +79,7 @@ fun NavHost(
                 navconThemeChange = onThemeChange,
                 userViewModel = userViewModel,
                 googleViewModel = googleViewModel,
-                onGoogleSignInClick = onGoogleSignInClick,
-                ddbbViewModel = ddbbViewModel
+                onGoogleSignInClick = onGoogleSignInClick
             )
         }
 
@@ -109,7 +112,6 @@ fun NavHost(
                     paddingValues = paddingValues,
                     navController = navController,
                     userViewModel = userViewModel,
-                    ddbbViewModel = ddbbViewModel,
                     googleViewModel = googleViewModel
                 )
             }
@@ -157,8 +159,7 @@ fun NavHost(
             RegisterScreen(
                 isDarkTheme = isDarkTheme,
                 navController = navController,
-                userViewModel = userViewModel,
-                ddbbViewModel = ddbbViewModel
+                userViewModel = userViewModel
             )
         }
 
@@ -167,7 +168,7 @@ fun NavHost(
             PassScreen(
                 isDarkTheme = isDarkTheme,
                 navController = navController,
-                userViewModel = UserViewModel() // Si es posible, utiliza el mismo userViewModel
+                userViewModel = userViewModel // SSOT compartido
             )
         }
 
@@ -177,8 +178,7 @@ fun NavHost(
                 isDarkTheme = isDarkTheme,
                 paddingValues = PaddingValues(),
                 navController = navController,
-                userViewModel = userViewModel,
-                ddbbViewModel = ddbbViewModel
+                userViewModel = userViewModel
             )
         }
 
@@ -192,8 +192,7 @@ fun NavHost(
                     isDarkTheme = isDarkTheme,
                     paddingValues = paddingValues,
                     navController = navController,
-                    userViewModel = userViewModel,
-                    ddbbViewModel = ddbbViewModel
+                    userViewModel = userViewModel
                 )
             }
         }

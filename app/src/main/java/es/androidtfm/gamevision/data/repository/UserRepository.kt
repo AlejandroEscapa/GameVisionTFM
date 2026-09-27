@@ -3,20 +3,28 @@ package es.androidtfm.gamevision.data.repository
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import es.androidtfm.gamevision.data.model.ChatMessage
+import es.androidtfm.gamevision.data.model.Friend
+import es.androidtfm.gamevision.data.model.UserProfile
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 27/09/2026 (extracción desde DDBBViewModel)
- * Descripción: capa de acceso a datos de usuario en Firestore.
+ * Fecha: 27/09/2026 (reescritura: Frente 2 — SSOT y propagación de errores)
+ * Descripción: acceso a datos en Firestore.
+ *
+ * Reglas de esta capa:
+ *  - TODOS los métodos devuelven Result: nunca se traga un error en silencio.
+ *  - El perfil se expone como Flow en vivo (addSnapshotListener) para que la UI
+ *    tenga una única fuente de verdad y se actualice sola.
+ *  - El password NO existe aquí: vive en Firebase Authentication.
  */
 
-/**
- * Repositorio de usuarios: encapsula todo el acceso a Firestore.
- * Los ViewModels delegan aquí y quedan libres de dependencias de Firebase directas.
- */
 @Singleton
 class UserRepository @Inject constructor(
     private val db: FirebaseFirestore
@@ -27,318 +35,169 @@ class UserRepository @Inject constructor(
         private const val USERS_COLLECTION = "users"
         private const val FRIENDS_COLLECTION = "friends"
         private const val HISTORY_COLLECTION = "history"
+        private const val PLAYED_COLLECTION = "playedlist"
+        private const val MESSAGES_COLLECTION = "messages"
     }
 
+    private fun userDoc(email: String) = db.collection(USERS_COLLECTION).document(email)
+
+    // ------------------------------------------------------------------------
+    // Perfil
+    // ------------------------------------------------------------------------
+
     /**
-     * Registra un nuevo usuario en Firestore.
+     * Flujo en vivo del perfil: única fuente de verdad de los datos de usuario.
+     * Se actualiza automáticamente ante cualquier cambio en Firestore.
      */
-    suspend fun registerUser(formFields: Map<String, String>): Boolean {
-        val email = formFields["email"].orEmpty()
-        if (email.isNotEmpty() && !checkEmailExists(email)) {
-            val user = hashMapOf<String, String?>(
-                "nameSurname" to formFields["nameSurname"],
-                "username" to formFields["username"],
-                "password" to formFields["password"],
-                "description" to null,
-                "country" to null
+    fun observeProfile(email: String): Flow<Result<UserProfile>> = callbackFlow {
+        if (email.isBlank()) {
+            trySend(Result.success(UserProfile()))
+            close()
+            return@callbackFlow
+        }
+        val registration = userDoc(email).addSnapshotListener { snapshot, error ->
+            when {
+                error != null -> trySend(Result.failure(error))
+                snapshot != null && snapshot.exists() ->
+                    trySend(Result.success(UserProfile.fromMap(email, snapshot.data)))
+                else -> trySend(Result.success(UserProfile(email = email)))
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /** Lectura puntual del perfil. */
+    suspend fun getProfile(email: String): Result<UserProfile> = runCatching {
+        val document = userDoc(email).get().await()
+        UserProfile.fromMap(email, document.data)
+    }.onFailure { Log.e(TAG, "Error obteniendo perfil de $email: ${it.message}") }
+
+    /** Crea el documento de perfil (sin password). */
+    suspend fun createProfile(profile: UserProfile): Result<Unit> = runCatching {
+        userDoc(profile.email).set(
+            mapOf(
+                "nameSurname" to profile.nameSurname,
+                "username" to profile.username,
+                "description" to profile.description,
+                "country" to profile.country
             )
-            addUser(email, user)
-            return true
-        }
-        return false
-    }
+        ).await()
+        Unit
+    }.onFailure { Log.e(TAG, "Error creando perfil ${profile.email}: ${it.message}") }
 
-    /**
-     * Actualiza los datos del usuario en Firestore.
-     */
-    suspend fun updateUser(email: String, updatedFields: HashMap<String, String?>) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .update(updatedFields.filterValues { it != null })
-                .await()
-            Log.d(TAG, "Usuario actualizado: $email")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error actualizando usuario: ${e.message}")
-        }
-    }
+    /** Actualiza campos del perfil. */
+    suspend fun updateProfile(email: String, fields: Map<String, Any?>): Result<Unit> = runCatching {
+        val cleaned = fields.filterValues { it != null }
+        if (cleaned.isEmpty()) return@runCatching Unit
+        userDoc(email).update(cleaned).await()
+        Unit
+    }.onFailure { Log.e(TAG, "Error actualizando perfil $email: ${it.message}") }
 
-    /**
-     * Recupera la URI de la imagen de perfil.
-     */
-    suspend fun recoverProfilePicture(email: String): Uri? {
-        return try {
-            val document = db.collection(USERS_COLLECTION)
-                .document(email)
-                .get()
-                .await()
-            document.getString("imageUri")?.let { Uri.parse(it) }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error recuperando imagen de perfil: ${e.message}")
-            null
-        }
-    }
+    /** Actualiza la imagen de perfil. */
+    suspend fun updateProfileImage(email: String, imageUri: Uri): Result<Unit> = runCatching {
+        userDoc(email).update("imageUri", imageUri.toString()).await()
+        Unit
+    }.onFailure { Log.e(TAG, "Error actualizando imagen de $email: ${it.message}") }
 
-    /**
-     * Actualiza la imagen de perfil del usuario en Firestore.
-     */
-    suspend fun updateUserProfilePicture(email: String, imageUri: Uri) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .update("imageUri", imageUri.toString())
-                .await()
-            Log.d(TAG, "Imagen de perfil actualizada para: $email")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error actualizando imagen de perfil: ${e.message}")
-        }
-    }
+    /** Comprueba si existe un perfil (usado al añadir amigos). */
+    suspend fun profileExists(email: String): Result<Boolean> = runCatching {
+        userDoc(email).get().await().exists()
+    }.onFailure { Log.e(TAG, "Error comprobando existencia de $email: ${it.message}") }
 
-    /**
-     * Verifica las credenciales de inicio de sesión.
-     */
-    suspend fun loginCheck(email: String, password: String): Boolean {
-        return try {
-            val document = db.collection(USERS_COLLECTION)
-                .document(email)
-                .get()
-                .await()
-            document.exists() && document.getString("password") == password
-        } catch (e: Exception) {
-            Log.e(TAG, "Error en login: ${e.message}")
-            false
-        }
-    }
+    // ------------------------------------------------------------------------
+    // Juegos
+    // ------------------------------------------------------------------------
 
-    /**
-     * Añade un juego a una colección específica del usuario.
-     */
-    suspend fun addGameToCollection(email: String, gameId: String, targetCollection: String) {
-        if (email.isEmpty()) {
-            Log.w(TAG, "Intento de añadir juego sin usuario autenticado")
-            return
-        }
-        try {
-            val gameData = hashMapOf("gameId" to gameId)
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection(targetCollection)
-                .document(gameId)
-                .set(gameData)
-                .await()
-            Log.d(TAG, "Juego añadido a $targetCollection: $gameId")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error añadiendo juego: ${e.message}")
-        }
-    }
+    /** Añade un juego a una colección del usuario (playedlist, wishlist, history). */
+    suspend fun addGame(email: String, gameId: String, targetCollection: String): Result<Unit> =
+        runCatching {
+            require(email.isNotEmpty()) { "Usuario no autenticado" }
+            userDoc(email).collection(targetCollection).document(gameId)
+                .set(hashMapOf("gameId" to gameId)).await()
+            Unit
+        }.onFailure { Log.e(TAG, "Error añadiendo juego a $targetCollection: ${it.message}") }
 
-    /**
-     * Añade un juego al historial del usuario.
-     */
-    suspend fun addGameToHistory(email: String, gameId: String) {
-        addGameToCollection(email, gameId, HISTORY_COLLECTION)
-    }
+    suspend fun addGameToHistory(email: String, gameId: String): Result<Unit> =
+        addGame(email, gameId, HISTORY_COLLECTION)
 
-    /**
-     * Elimina un juego de la colección "playedlist" del usuario.
-     */
-    suspend fun removeGameFromUser(email: String, gameId: String) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection("playedlist")
-                .document(gameId)
-                .delete()
-                .await()
-            Log.d(TAG, "Juego eliminado: $email, $gameId")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error eliminando juego: ${e.message}")
-        }
-    }
+    /** Elimina un juego de la lista de jugados. */
+    suspend fun removePlayedGame(email: String, gameId: String): Result<Unit> = runCatching {
+        require(email.isNotEmpty()) { "Usuario no autenticado" }
+        userDoc(email).collection(PLAYED_COLLECTION).document(gameId).delete().await()
+        Unit
+    }.onFailure { Log.e(TAG, "Error eliminando juego: ${it.message}") }
 
-    /**
-     * Obtiene una lista de juegos de una colección específica del usuario.
-     */
-    suspend fun getUserGames(email: String, collectionName: String): List<Map<String, Any>> {
-        return try {
-            val querySnapshot = db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection(collectionName)
-                .get()
-                .await()
-            querySnapshot.documents.mapNotNull { it.data }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error obteniendo juegos: ${e.message}")
-            emptyList()
-        }
-    }
+    /** Ids de los juegos de una colección del usuario. */
+    suspend fun getUserGameIds(email: String, collectionName: String): Result<List<String>> =
+        runCatching {
+            val snapshot = userDoc(email).collection(collectionName).get().await()
+            snapshot.documents.map { it.getString("gameId") ?: it.id }
+        }.onFailure { Log.e(TAG, "Error obteniendo juegos: ${it.message}") }
 
-    /**
-     * Añade un amigo a la lista de amigos del usuario.
-     */
-    suspend fun addFriend(email: String, friendEmail: String) {
-        try {
-            val friendRef = db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection(FRIENDS_COLLECTION)
-                .document(friendEmail)
-            val friendSnapshot = friendRef.get().await()
-            if (friendSnapshot.exists()) {
-                Log.w(TAG, "El amigo ya existe en la lista de amigos.")
-                return
-            }
-            friendRef.set(emptyMap<String, Any>()).await()
-            Log.d(TAG, "Amigo añadido correctamente.")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error añadiendo amigo: ${e.message}")
-        }
-    }
+    // ------------------------------------------------------------------------
+    // Amigos
+    // ------------------------------------------------------------------------
 
-    /**
-     * Elimina un amigo de la lista de amigos del usuario.
-     */
-    fun removeFriend(email: String, friendEmail: String) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection(FRIENDS_COLLECTION)
-                .document(friendEmail)
-                .delete()
-            Log.d(TAG, "Amigo eliminado: $friendEmail")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error eliminando amigo: ${e.message}")
+    /** Añade un amigo (idempotente: si ya existe devuelve éxito sin duplicar). */
+    suspend fun addFriend(email: String, friendEmail: String): Result<Unit> = runCatching {
+        require(email.isNotEmpty()) { "Usuario no autenticado" }
+        val ref = userDoc(email).collection(FRIENDS_COLLECTION).document(friendEmail)
+        if (!ref.get().await().exists()) {
+            ref.set(emptyMap<String, Any>()).await()
         }
-    }
+        Unit
+    }.onFailure { Log.e(TAG, "Error añadiendo amigo: ${it.message}") }
 
-    /**
-     * Obtiene la lista de amigos con correo y nombre de usuario.
-     */
-    suspend fun getFriendsList(email: String): List<Map<String, Any>> {
-        return try {
-            val querySnapshot = db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection(FRIENDS_COLLECTION)
-                .get()
-                .await()
-            val friendsList = mutableListOf<Map<String, Any>>()
-            querySnapshot.documents.forEach { document ->
-                val friendEmail = document.id
-                val friendData = getUser(friendEmail)
-                val friendUsername = friendData?.get("username") ?: "No username"
-                friendsList.add(mapOf("email" to friendEmail, "username" to friendUsername))
-            }
-            Log.d(TAG, "Friends: $friendsList")
-            friendsList
-        } catch (e: Exception) {
-            Log.e(TAG, "Error obteniendo amigos: ${e.message}")
-            emptyList()
-        }
-    }
+    /** Elimina un amigo. */
+    suspend fun removeFriend(email: String, friendEmail: String): Result<Unit> = runCatching {
+        require(email.isNotEmpty()) { "Usuario no autenticado" }
+        userDoc(email).collection(FRIENDS_COLLECTION).document(friendEmail).delete().await()
+        Unit
+    }.onFailure { Log.e(TAG, "Error eliminando amigo: ${it.message}") }
 
-    /**
-     * Publica un mensaje para el usuario.
-     */
-    suspend fun publishMessage(email: String, message: String, hora: String) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection("messages")
-                .add(
-                    mapOf(
-                        "texto" to message,
-                        "hora" to hora
-                    )
-                )
-                .await()
-            Log.d(TAG, "Mensaje publicado correctamente para el usuario: $email")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error al publicar el mensaje: ${e.message}")
+    /** Lista de amigos con su nombre de usuario. */
+    suspend fun getFriends(email: String): Result<List<Friend>> = runCatching {
+        val snapshot = userDoc(email).collection(FRIENDS_COLLECTION).get().await()
+        snapshot.documents.map { friendDoc ->
+            val profile = getProfile(friendDoc.id).getOrNull()
+            Friend(
+                email = friendDoc.id,
+                username = profile?.username?.takeIf { it.isNotBlank() } ?: "Sin nombre"
+            )
         }
-    }
+    }.onFailure { Log.e(TAG, "Error obteniendo amigos: ${it.message}") }
 
-    /**
-     * Elimina un mensaje del usuario.
-     */
-    suspend fun deleteMessage(email: String, messageId: String) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection("messages")
-                .document(messageId)
-                .delete()
-                .await()
-            Log.d(TAG, "Mensaje eliminado: $messageId")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error al eliminar el mensaje: ${e.message}")
-        }
-    }
+    // ------------------------------------------------------------------------
+    // Mensajes
+    // ------------------------------------------------------------------------
 
-    /**
-     * Obtiene los mensajes de la colección "messages" del usuario.
-     */
-    suspend fun getFriendMessages(email: String): List<Map<String, Any>> {
-        return try {
-            val querySnapshot = db.collection(USERS_COLLECTION)
-                .document(email)
-                .collection("messages")
-                .get()
-                .await()
-            if (querySnapshot.isEmpty) return emptyList()
-            querySnapshot.documents.mapNotNull { document ->
-                document.data?.toMutableMap()?.apply {
-                    this["messageID"] = document.id
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error obteniendo mensajes: ${e.message}")
-            emptyList()
-        }
-    }
+    /** Publica un mensaje en el muro del usuario. */
+    suspend fun publishMessage(email: String, message: String, time: String): Result<Unit> =
+        runCatching {
+            require(email.isNotEmpty()) { "Usuario no autenticado" }
+            userDoc(email).collection(MESSAGES_COLLECTION)
+                .add(mapOf("texto" to message, "hora" to time)).await()
+            Unit
+        }.onFailure { Log.e(TAG, "Error publicando mensaje: ${it.message}") }
 
-    /**
-     * Obtiene los datos del usuario desde Firestore y los convierte en un HashMap.
-     */
-    suspend fun getUser(email: String): HashMap<String, String>? {
-        return try {
-            val document = db.collection(USERS_COLLECTION)
-                .document(email)
-                .get()
-                .await()
-            document.data?.mapValues { it.value.toString() } as? HashMap<String, String>
-        } catch (e: Exception) {
-            Log.e(TAG, "Error obteniendo usuario: ${e.message}")
-            null
-        }
-    }
+    /** Elimina un mensaje del usuario. */
+    suspend fun deleteMessage(email: String, messageId: String): Result<Unit> = runCatching {
+        require(email.isNotEmpty()) { "Usuario no autenticado" }
+        userDoc(email).collection(MESSAGES_COLLECTION).document(messageId).delete().await()
+        Unit
+    }.onFailure { Log.e(TAG, "Error eliminando mensaje: ${it.message}") }
 
-    /**
-     * Añade un nuevo usuario a Firestore.
-     */
-    private suspend fun addUser(email: String, user: HashMap<String, String?>) {
-        try {
-            db.collection(USERS_COLLECTION)
-                .document(email)
-                .set(user)
-                .await()
-            Log.d(TAG, "Usuario registrado: $email")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error registrando usuario: ${e.message}")
+    /** Mensajes del muro de un usuario. */
+    suspend fun getMessages(email: String): Result<List<ChatMessage>> = runCatching {
+        if (email.isBlank()) return@runCatching emptyList()
+        val snapshot = userDoc(email).collection(MESSAGES_COLLECTION).get().await()
+        snapshot.documents.map { document ->
+            ChatMessage(
+                id = document.id,
+                text = document.getString("texto").orEmpty(),
+                time = document.getString("hora").orEmpty(),
+                ownerEmail = email
+            )
         }
-    }
-
-    /**
-     * Verifica si el correo electrónico ya existe en Firestore.
-     */
-    suspend fun checkEmailExists(email: String): Boolean {
-        return try {
-            val document = db.collection(USERS_COLLECTION)
-                .document(email)
-                .get()
-                .await()
-            document.exists()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error verificando email: ${e.message}")
-            false
-        }
-    }
+    }.onFailure { Log.e(TAG, "Error obteniendo mensajes: ${it.message}") }
 }

@@ -33,7 +33,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
+import es.androidtfm.gamevision.data.session.SessionState
 import dagger.hilt.android.AndroidEntryPoint
 import es.androidtfm.gamevision.ui.navigation.NavHost
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
@@ -51,10 +51,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // Inicializar Google Sign-In (Credential Manager) en el ViewModel
-        val webClientId = getString(R.string.default_web_client_id)
-        googleViewModel.initializeGoogleSignIn(this, webClientId)
 
         // Observar el estado del inicio de sesión de Google
         googleViewModel.signInState.observe(this) { state ->
@@ -108,7 +104,7 @@ fun MainScreen(
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
     val navController = rememberNavController()
     val themeDataStore = themeViewModel.themeDataStore
-    // Observar estado de invitado
+    // Estado de invitado (derivado del SSOT de sesión)
     val isGuest by userViewModel.isGuest.collectAsState()
 
     var isNavHostInitialized by remember { mutableStateOf(false) }
@@ -154,14 +150,13 @@ fun MainScreen(
         }
     }
 
-    // Navegación automática: Si hay usuario autenticado y no es invitado, se navega a "news"
-    LaunchedEffect(isNavHostInitialized) {
-        if (isNavHostInitialized) {
-            val currentUser = FirebaseAuth.getInstance().currentUser
-            if (currentUser != null && !isGuest) {
-                navController.navigate("news") {
-                    popUpTo("main") { inclusive = true }
-                }
+    // Navegación automática guiada por el SSOT de sesión: al iniciar sesión (o al
+    // reabrir la app con sesión activa) se entra en la pantalla principal.
+    val session by userViewModel.session.collectAsState()
+    LaunchedEffect(isNavHostInitialized, session) {
+        if (isNavHostInitialized && session is SessionState.LoggedIn) {
+            navController.navigate("news") {
+                popUpTo("main") { inclusive = true }
             }
         }
     }

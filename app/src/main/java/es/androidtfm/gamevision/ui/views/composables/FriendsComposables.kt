@@ -46,8 +46,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.data.model.Friend
+import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -76,12 +77,10 @@ fun FriendsList(
     userViewModel: UserViewModel,
     ddbbViewModel: DDBBViewModel
 ) {
-    // Intentar obtener el email desde el UserViewModel; de no estar disponible, usar FirebaseAuth como respaldo
-    val formFields by userViewModel.formFields.collectAsState()
-    val firebaseUser = FirebaseAuth.getInstance().currentUser
-    val email = formFields["email"] ?: firebaseUser?.email
+    // Identidad desde el SSOT de sesión
+    val email by userViewModel.currentEmail.collectAsState()
 
-    var friendsList by remember { mutableStateOf(emptyList<Map<String, Any>>()) }
+    var friendsList by remember { mutableStateOf(emptyList<Friend>()) }
     var searchField by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
     var showNoFriendFound by remember { mutableStateOf(false) }
@@ -89,10 +88,17 @@ fun FriendsList(
 
     // Efecto para cargar la lista de amigos cuando cambia el email
     LaunchedEffect(email) {
-        email?.let {
-            friendsList = ddbbViewModel.getFriendsList(it)
+        val userEmail = email
+        if (userEmail.isNullOrBlank()) {
+            friendsList = emptyList()
             isLoading = false
+            return@LaunchedEffect
         }
+        friendsList = ddbbViewModel.getFriends(userEmail).getOrElse { error ->
+            userViewModel.setMessage("No se pudieron cargar tus amigos: ${error.message}")
+            emptyList()
+        }
+        isLoading = false
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -133,12 +139,13 @@ fun FriendsList(
                         }
                     }
                     // Lista de amigos
+                    val currentEmail = email
                     items(friendsList) { friend ->
-                        if (email != null) {
+                        if (currentEmail != null) {
                             FriendItem(
                                 friend = friend,
-                                email,
-                                ddbbViewModel
+                                email = currentEmail,
+                                ddbbViewModel = ddbbViewModel
                             ) { updatedFriendsList ->
                                 friendsList = updatedFriendsList
                             }
@@ -167,65 +174,74 @@ fun FriendsList(
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
             }
-            // Campo de búsqueda para agregar amigos
-            TextField(
-                value = searchField,
-                onValueChange = {
-                    searchField = it
-                    showNoFriendFound = false
-                },
-                placeholder = { Text("Introduce el email de tu amigo...") },
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(4.dp, RoundedCornerShape(24.dp)),
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                if (ddbbViewModel.checkEmailExists(searchField)) {
-                                    ddbbViewModel.addFriend(email.toString(), searchField)
-                                    friendsList = ddbbViewModel.getFriendsList(email.toString())
-                                    showNoFriendFound = false
-                                } else {
-                                    showNoFriendFound = true
-                                }
+            // Buscador + acción de añadir. El botón es explícito (un icono dentro
+            // del campo no resultaba fiable al pulsarlo y además era poco claro).
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextField(
+                    value = searchField,
+                    onValueChange = {
+                        searchField = it
+                        showNoFriendFound = false
+                    },
+                    placeholder = { Text("Email de tu amigo...") },
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .shadow(4.dp, RoundedCornerShape(24.dp)),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
+                    singleLine = true,
+                )
+                GVButton(
+                    text = "Añadir",
+                    onClick = {
+                        coroutineScope.launch {
+                            val friendEmail = searchField.trim()
+                            if (ddbbViewModel.profileExists(friendEmail).getOrDefault(false)) {
+                                ddbbViewModel.addFriend(email.orEmpty(), friendEmail)
+                                    .onSuccess {
+                                        friendsList = ddbbViewModel.getFriends(email.orEmpty())
+                                            .getOrDefault(emptyList())
+                                        searchField = ""
+                                        showNoFriendFound = false
+                                        userViewModel.setMessage("Amigo añadido")
+                                    }
+                                    .onFailure {
+                                        userViewModel.setMessage("No se pudo añadir: ${it.message}")
+                                    }
+                            } else {
+                                showNoFriendFound = true
                             }
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Buscar",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
                     }
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                singleLine = true,
-            )
+                )
+            }
         }
     }
 }
 
 @Composable
 fun FriendItem(
-    friend: Map<String, Any>, // Datos del amigo
+    friend: Friend, // Datos del amigo
     email: String, // Correo electrónico del usuario actual
     ddbbViewModel: DDBBViewModel, // ViewModel para manejar la base de datos
-    onFriendRemoved: (List<Map<String, Any>>) -> Unit // Callback para actualizar la lista
+    onFriendRemoved: (List<Friend>) -> Unit // Callback para actualizar la lista
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val username = friend["username"] as? String ?: "No username" // Nombre de usuario del amigo
-    val friendEmail = friend["email"] as? String ?: "No email" // Correo electrónico del amigo
+    val username = friend.username
+    val friendEmail = friend.email
 
     // Tarjeta que representa a un amigo en la lista
     Card(
@@ -285,7 +301,8 @@ fun FriendItem(
                 onClick = {
                     coroutineScope.launch {
                         ddbbViewModel.removeFriend(email, friendEmail)
-                        val updatedFriendsList = ddbbViewModel.getFriendsList(email)
+                        val updatedFriendsList = ddbbViewModel.getFriends(email)
+                            .getOrDefault(emptyList())
                         onFriendRemoved(updatedFriendsList)
                     }
                 },
@@ -303,15 +320,3 @@ fun FriendItem(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun FriendsListPreview() {
-    val context = LocalContext.current
-    FriendsList(
-        isDarkTheme = false,
-        paddingValues = PaddingValues(),
-        navController = remember { NavController(context) },
-        userViewModel = UserViewModel(), // Instancia ficticia para el preview
-        ddbbViewModel = DDBBViewModel() // Instancia ficticia para el preview
-    )
-}

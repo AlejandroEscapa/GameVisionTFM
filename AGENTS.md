@@ -69,9 +69,15 @@ app/src/main/java/es/androidtfm/gamevision/
 ├── di/
 │   └── AppModule.kt                Singletons: Firestore, Auth, APIs Retrofit,
 │                                   CredentialManager, webClientId, ThemeDataStore,
-│                                   CoroutineScope de aplicación
-├── data/repository/
-│   └── UserRepository.kt           TODO el acceso a Firestore (344 líneas)
+│                                   SessionPreferences, CoroutineScope de aplicación
+├── data/
+│   ├── model/                      Modelos de dominio: UserProfile, Friend, ChatMessage
+│   ├── session/
+│   │   ├── SessionState.kt         Anonymous | Guest | LoggedIn(uid, email)
+│   │   ├── SessionRepository.kt    SSOT DE SESIÓN + Firebase Auth + Credential Manager
+│   │   └── SavedPassword.kt        Credencial recuperada del gestor de contraseñas
+│   └── repository/
+│       └── UserRepository.kt       TODO el acceso a Firestore; devuelve Result
 ├── datastore/
 │   └── DataStoreSettings.kt        ThemeDataStore (tema claro/oscuro, Preferences)
 ├── retrofit/
@@ -96,9 +102,19 @@ app/src/main/java/es/androidtfm/gamevision/
 └── res/                            drawable (logos vectoriales), values, xml (backup rules)
 ```
 
-**Flujo de datos:** Pantalla (Composable) → ViewModel (StateFlow/LiveData) →
-UserRepository (Firestore) / RetrofitInstance (red). Sin use-cases ni Flow de
-dominio: es una app de un solo módulo, la complejidad extra no está justificada.
+**Flujo de datos (SSOT):** Pantalla (Composable) → ViewModel (StateFlow) →
+repositorios. La identidad tiene UNA sola fuente:
+`SessionRepository.sessionState` (respaldada por Firebase Authentication).
+El perfil tiene UNA sola fuente: `UserViewModel.profile`, un flujo EN VIVO del
+documento de Firestore (`addSnapshotListener`) que se re-suscribe al cambiar de
+usuario y actualiza todas las pantallas sin refetch manual.
+
+Reglas de la capa de datos:
+- Todos los métodos del repositorio devuelven `Result`: nunca se traga un error.
+- Las operaciones de sesión/perfil corren en `viewModelScope`, NUNCA en el
+  scope de la pantalla (al abrirse la sesión la pantalla sale de composición y
+  una corrutina suya se cancelaría a mitad de operación).
+- `formFields` es SOLO estado de entrada del formulario, jamás identidad.
 
 ## 5. Rutas de navegación (NavHost.kt)
 

@@ -1,28 +1,23 @@
 package es.androidtfm.gamevision.viewmodel
 
-import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import es.androidtfm.gamevision.data.model.ChatMessage
+import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.repository.UserRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 16/02/2025
+ * Fecha: 27/09/2026 (Frente 2/3 — Result en toda la capa de datos)
  * Descripción:
- */
-
-/**
- * ViewModel para la base de datos
  *
- * Expone el estado (datos de usuario, carga) y delega el acceso a datos en
- * [UserRepository]. El valor por defecto del repositorio mantiene la
- * construcción manual (previews/tests) sin Hilt.
+ * Fachada de los datos de juego, amigos y mensajes del usuario. El perfil y la
+ * identidad ya NO están aquí: viven en UserViewModel (SSOT).
+ *
+ * Todos los métodos devuelven Result, así que la UI puede informar de los
+ * fallos en vez de fallar en silencio como antes.
  */
 
 @HiltViewModel
@@ -30,134 +25,44 @@ class DDBBViewModel @Inject constructor(
     private val repository: UserRepository
 ) : ViewModel() {
 
-    /**
-     * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
-     */
+    /** Constructor sin argumentos para previews y usos manuales. */
     constructor() : this(UserRepository(FirebaseFirestore.getInstance()))
 
-    companion object {
-        private const val TAG = "DDBBViewModel"
-    }
+    // ---- Juegos ----
 
-    // Flujos de estado para los datos del usuario y el indicador de carga
-    private val _userData = MutableStateFlow<HashMap<String, String>?>(null)
-    val userData: StateFlow<HashMap<String, String>?> = _userData
+    suspend fun addGame(email: String, gameId: String, targetCollection: String): Result<Unit> =
+        repository.addGame(email, gameId, targetCollection)
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    /**
-     * Obtiene los datos del usuario desde Firestore.
-     */
-    suspend fun fetchUserData(email: String) {
-        _isLoading.value = true
-        _userData.value = repository.getUser(email)
-        _isLoading.value = false
-    }
-
-    /**
-     * Registra un nuevo usuario en Firestore.
-     */
-    suspend fun registerUser(formFields: Map<String, String>): Boolean =
-        repository.registerUser(formFields)
-
-    /**
-     * Actualiza los datos del usuario en Firestore.
-     */
-    suspend fun updateUser(email: String, updatedFields: HashMap<String, String?>) =
-        repository.updateUser(email, updatedFields)
-
-    /**
-     * Recupera la URI de la imagen de perfil.
-     */
-    suspend fun recoverProfilePicture(email: String): Uri? =
-        repository.recoverProfilePicture(email)
-
-    /**
-     * Actualiza la imagen de perfil del usuario en Firestore.
-     */
-    suspend fun updateUserProfilePicture(email: String, imageUri: Uri) =
-        repository.updateUserProfilePicture(email, imageUri)
-
-    /**
-     * Verifica las credenciales de inicio de sesión.
-     */
-    suspend fun loginCheck(email: String, password: String): Boolean =
-        repository.loginCheck(email, password)
-
-    /**
-     * Añade un juego a una colección específica del usuario.
-     */
-    suspend fun addGameToCollection(email: String, gameId: String, targetCollection: String) =
-        repository.addGameToCollection(email, gameId, targetCollection)
-
-    /**
-     * Añade un juego al historial del usuario.
-     */
-    suspend fun addGameToHistory(email: String, gameId: String) =
+    suspend fun addGameToHistory(email: String, gameId: String): Result<Unit> =
         repository.addGameToHistory(email, gameId)
 
-    /**
-     * Elimina un juego de la colección "playedlist" del usuario.
-     */
-    suspend fun removeGameFromUser(email: String, gameId: String) =
-        repository.removeGameFromUser(email, gameId)
+    suspend fun removePlayedGame(email: String, gameId: String): Result<Unit> =
+        repository.removePlayedGame(email, gameId)
 
-    /**
-     * Obtiene una lista de juegos de una colección específica del usuario.
-     */
-    suspend fun getUserGames(email: String, collectionName: String): List<Map<String, Any>> =
-        repository.getUserGames(email, collectionName)
+    suspend fun getUserGameIds(email: String, collectionName: String): Result<List<String>> =
+        repository.getUserGameIds(email, collectionName)
 
-    /**
-     * Añade un amigo a la lista de amigos del usuario.
-     */
-    suspend fun addFriend(email: String, friendEmail: String) =
+    // ---- Amigos ----
+
+    suspend fun addFriend(email: String, friendEmail: String): Result<Unit> =
         repository.addFriend(email, friendEmail)
 
-    /**
-     * Elimina un amigo de la lista de amigos del usuario.
-     */
-    fun removeFriend(email: String, friendEmail: String) =
+    suspend fun removeFriend(email: String, friendEmail: String): Result<Unit> =
         repository.removeFriend(email, friendEmail)
 
-    /**
-     * Obtiene la lista de amigos con correo y nombre de usuario.
-     */
-    suspend fun getFriendsList(email: String): List<Map<String, Any>> =
-        repository.getFriendsList(email)
+    suspend fun getFriends(email: String): Result<List<Friend>> = repository.getFriends(email)
 
-    /**
-     * Publica un mensaje para el usuario.
-     */
-    suspend fun publishMessage(email: String, message: String, hora: String) =
-        repository.publishMessage(email, message, hora)
+    /** true si existe un perfil con ese email (para añadir amigos). */
+    suspend fun profileExists(email: String): Result<Boolean> = repository.profileExists(email)
 
-    /**
-     * Elimina un mensaje del usuario.
-     */
-    suspend fun deleteMessage(email: String, messageId: String) =
+    // ---- Mensajes ----
+
+    suspend fun publishMessage(email: String, message: String, time: String): Result<Unit> =
+        repository.publishMessage(email, message, time)
+
+    suspend fun deleteMessage(email: String, messageId: String): Result<Unit> =
         repository.deleteMessage(email, messageId)
 
-    /**
-     * Obtiene los mensajes de la colección "messages" del usuario.
-     */
-    suspend fun getFriendMessages(email: String): List<Map<String, Any>> =
-        repository.getFriendMessages(email)
-
-    /**
-     * Verifica si el correo electrónico ya existe en Firestore.
-     */
-    suspend fun checkEmailExists(email: String): Boolean =
-        repository.checkEmailExists(email)
-
-    /**
-     * Cierra la sesión del usuario.
-     */
-    suspend fun logout() {
-        _userData.value = null
-        _isLoading.value = false
-        FirebaseAuth.getInstance().signOut()
-        Log.d(TAG, "Sesión cerrada y datos del usuario eliminados")
-    }
+    suspend fun getMessages(email: String): Result<List<ChatMessage>> =
+        repository.getMessages(email)
 }
