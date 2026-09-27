@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.compose.ui.text.google.fonts)
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.material3)
+    implementation(libs.compose.adaptive.navigation.suite)
     implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.runtime)
     implementation(libs.compose.activity)

@@ -160,8 +160,26 @@ protagonista.
   gradientes decorativos, elevación por tono de superficie, un solo spot de
   color por pantalla. `SharedTransitionLayout` envuelve el NavHost en
   `MainActivity`; claves de shared element: `"cover-{gameId}"`.
-- **Pendiente**: validación en dispositivo (shared elements, shimmer) y
-  Fase 4 adaptativa (Nav3 list-detail, rail) — condicionada a emulador.
+- **Pendiente**: Fase 4 restante: list-detail con Navigation 3 (`ListDetailSceneStrategy`)
+  — nav3 1.2.0 estable existe y su metadato es compatible en principio; migración
+  atómica de las 12 rutas a NavKeys (ver skill `navigation-3`). El área de
+  navegación adaptativa (barra↔rail, `AppScaffold`) ya está implementada y
+  validada en emulador.
+
+## 8bis. Validación en emulador (27/09/2026)
+
+Emulador `Pixel_9` (API 36). La app corre sin crashes; NewsAPI y RAWG fluyen con
+datos reales; tests instrumentados en verde. **Hallazgos corregidos en runtime:**
+- Los roles `secondaryContainer` y `surfaceContainer*` que no se definían en
+  `GVTheme` heredaban el tono LAVANDA del baseline M3 (barra de navegación y
+  campos de texto). Regla: al tocar el tema, definir SIEMPRE la familia de
+  superficies completa.
+- La API de `NavigationSuiteScaffold` cambió en 1.4.0: el contenido ya no
+  recibe `PaddingValues`; `AppScaffold` usa doble camino (Scaffold+barra en
+  compacto, suite+rail en ancho medio/expandido).
+- Arranque del emulador: la imagen android-36 venía sin `encryptionkey.img`
+  (se copió de android-36.1); si el AVD falla con "failed to create encrypt
+  partition", revisar eso.
 
 ## 9. Próxima frontera (acordado con el propietario)
 
