@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,6 +71,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
+import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -192,10 +192,9 @@ fun SocialScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(50.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    repeat(4) { GameRowSkeleton() }
+                }
             }
         }
     }

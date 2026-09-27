@@ -142,9 +142,31 @@ con 5 (Home, Search, gamelist, Social, Profile). Back hacia `main` con popUpTo.
 9. Commits convencionales (`build:`, `refactor:`, `feat:`, `test:`, `docs:`,
    `fix:`) en español o inglés, con cuerpo explicando el porqué.
 
-## 8. Próxima frontera (acordado con el propietario)
+## 8. Design system (fase UI 2026)
 
-Modernización de la UI (más profesional) trabajando sobre `ui/views/composables/`
-y `ui/theme/`. Skills locales disponibles en `.zcode/skills/` (styles,
-navigation-3, adaptive, migrate-xml-views-to-jetpack-compose, etc.).
+**`DESIGN.md` es la fuente única de verdad visual** (leerlo antes de tocar UI).
+Dirección elegida y registrada en `docs/ui-redesign-2026-proposals.md`:
+*design-system-first cinematográfico con identidad editorial* — monocromo cálido
++ spot verde ácido (#C8F135), Space Grotesk variable (Google Fonts provider,
+certs en `res/values/font_certs.xml`), física de muelles, portadas como
+protagonista.
+
+- **`ui/designsystem/`**: `GameVisionTheme` (marca + Material You opt-in),
+  `GVTypography`, `GVShapes`, `GVMotion`, `GVSharedTransition`
+  (shared elements por CompositionLocals, no-op seguro en previews) y
+  componentes: GameCard, GameCover, NewsCard, RatingBadge, FriendAvatar,
+  GVSkeleton, EmptyState, GVButton, GVChip — todos con `@Preview`.
+- **Reglas UI**: cero spinners (solo skeletons), cero Material 2, cero
+  gradientes decorativos, elevación por tono de superficie, un solo spot de
+  color por pantalla. `SharedTransitionLayout` envuelve el NavHost en
+  `MainActivity`; claves de shared element: `"cover-{gameId}"`.
+- **Pendiente**: validación en dispositivo (shared elements, shimmer) y
+  Fase 4 adaptativa (Nav3 list-detail, rail) — condicionada a emulador.
+
+## 9. Próxima frontera (acordado con el propietario)
+
+La capa de datos y el design system están listos; el trabajo de UI continúa
+sobre `ui/views/composables/` consumiendo el design system (pendiente
+descomponer a fondo SearchScreen y SocialScreen). Skills locales en
+`.zcode/skills/` (styles, navigation-3, adaptive, etc.).
 Skills instaladas solo a nivel de proyecto, nunca global.

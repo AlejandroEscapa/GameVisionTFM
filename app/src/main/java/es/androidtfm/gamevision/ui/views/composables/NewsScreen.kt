@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.retrofit.Article
+import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -218,10 +218,8 @@ fun NewsLoadingIndicator() {
             .padding(top = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(48.dp)
-        )
+        GVSkeleton(Modifier.fillMaxWidth().padding(horizontal = 16.dp), height = 180.dp)
+        GVSkeleton(Modifier.fillMaxWidth().padding(horizontal = 16.dp), height = 14.dp)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Cargando noticias...",

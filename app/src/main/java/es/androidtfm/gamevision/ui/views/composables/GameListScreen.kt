@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -47,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,9 +55,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
+import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -203,39 +204,31 @@ fun GameListScreen(
 }
 
 /**
- * Indicador de carga para la pantalla de juegos.
+ * Indicador de carga para la pantalla de juegos (skeleton del design system).
  */
 @Composable
 fun LoadingIndicator() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(48.dp),
-            strokeWidth = 4.dp,
-            color = MaterialTheme.colorScheme.primary
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        repeat(4) { GameRowSkeleton() }
     }
 }
 
 /**
- * Estado vacío de la lista de juegos.
+ * Estado vacío de la lista de juegos (componente del design system).
  */
 @Composable
 fun GameListEmptyState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = Icons.Default.Clear,
-                contentDescription = "Sin juegos",
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "No tienes juegos añadidos aún",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        EmptyState(
+            title = "No tienes juegos añadidos aún",
+            hint = "Busca un juego y añádelo a tu lista",
+            icon = Icons.Default.Clear
+        )
     }
 }
 
@@ -257,6 +250,7 @@ fun GameList(
     ) {
         items(gameIds) { gameId ->
             val game = gamesMap[gameId.toInt()]
+            Box(Modifier.animateItem()) {
             GameCard(
                 navController = navController,
                 game = game,
@@ -267,6 +261,7 @@ fun GameList(
                 userViewModel = userViewModel,
                 onGameDeleted = onGameDeleted
             )
+            }
         }
     }
 }
@@ -281,7 +276,7 @@ fun HeaderTitle(selectedList: String) {
     }
     Text(
         text = title,
-        style = MaterialTheme.typography.headlineLarge,
+        style = MaterialTheme.typography.displayLarge,
         textAlign = TextAlign.Start
     )
 }
@@ -301,20 +296,13 @@ fun GameCard(
     val formFields by userViewModel.formFields.collectAsState()
     val email = formFields["email"]
 
-    // Show loading state if game data isn’t available yet
+    // Show loading state if game data isn't available yet (skeleton del design system)
     if (game == null) {
-        Box(
+        GameRowSkeleton(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
-                .height(200.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(32.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+        )
         return
     }
 
@@ -328,14 +316,14 @@ fun GameCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background image
-            AsyncImage(
-                model = game.backgroundImage,
+            // Background image (shared element: vuela al detalle)
+            GameCover(
+                imageUrl = game.backgroundImage,
+                title = game.name,
                 contentDescription = "Imagen del juego",
-                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(16.dp))
+                    .gvSharedElement(key = "cover-${game.id}")
             )
             // Bottom panel with game details
             Column(

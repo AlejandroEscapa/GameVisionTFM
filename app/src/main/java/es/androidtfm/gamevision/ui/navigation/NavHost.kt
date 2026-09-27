@@ -14,6 +14,7 @@ import es.androidtfm.gamevision.ui.views.composables.EditProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.FriendsList
 import es.androidtfm.gamevision.ui.views.composables.GameDetails
 import es.androidtfm.gamevision.ui.views.composables.GameListScreen
+import es.androidtfm.gamevision.ui.designsystem.GVSharedElementProvider
 import es.androidtfm.gamevision.ui.views.composables.HomeScreen
 import es.androidtfm.gamevision.ui.views.composables.LoginScreen
 import es.androidtfm.gamevision.ui.views.composables.NewsScreen
@@ -120,6 +121,7 @@ fun NavHost(
                 navController = navController,
                 userViewModel = userViewModel
             ) { paddingValues ->
+                GVSharedElementProvider(animatedVisibilityScope = this@composable) {
                 GameListScreen(
                     navController = navController,
                     isDarkTheme = isDarkTheme,
@@ -129,6 +131,7 @@ fun NavHost(
                     searchViewModel = searchViewModel,
                     userViewModel = userViewModel
                 )
+                }
             }
         }
 
@@ -138,12 +141,14 @@ fun NavHost(
                 navController = navController,
                 userViewModel = userViewModel
             ) { paddingValues ->
+                GVSharedElementProvider(animatedVisibilityScope = this@composable) {
                 SearchScreen(
                     navController = navController,
                     isDarkTheme = isDarkTheme,
                     viewModel = searchViewModel,
                     paddingValues = paddingValues
                 )
+                }
             }
         }
 
@@ -210,6 +215,7 @@ fun NavHost(
                 navController = navController,
                 userViewModel = userViewModel
             ) { paddingValues ->
+                GVSharedElementProvider(animatedVisibilityScope = this@composable) {
                 gameId?.let {
                     GameDetails(
                         navController = navController,
@@ -220,6 +226,7 @@ fun NavHost(
                         ddbbViewModel = ddbbViewModel,
                         userViewModel = userViewModel
                     )
+                }
                 }
             }
         }

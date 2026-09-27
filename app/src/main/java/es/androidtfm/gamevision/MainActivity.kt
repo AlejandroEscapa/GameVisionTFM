@@ -23,7 +23,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import es.androidtfm.gamevision.ui.designsystem.LocalSharedTransitionScope
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -123,23 +127,28 @@ fun MainScreen(
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.systemBars)
             ) {
-            // Se invoca el NavGraph compartido, pasando los ViewModels ya instanciados
-            NavHost(
-                navController = navController,
-                themeDataStore = themeDataStore,
-                onThemeChange = { themeViewModel.toggleTheme() },
-                userViewModel = userViewModel,
-                googleViewModel = googleViewModel,
-                newsViewModel = newsViewModel,
-                onGoogleSignInClick = onGoogleSignInClick,
-                ddbbViewModel = ddbbViewModel,
-                isGuest = isGuest,
-                searchViewModel = searchViewModel
-            )
+            // Shared elements habilitados para todo el grafo (la portada vuela al detalle)
+            SharedTransitionLayout {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    // Se invoca el NavGraph compartido, pasando los ViewModels ya instanciados
+                    NavHost(
+                        navController = navController,
+                        themeDataStore = themeDataStore,
+                        onThemeChange = { themeViewModel.toggleTheme() },
+                        userViewModel = userViewModel,
+                        googleViewModel = googleViewModel,
+                        newsViewModel = newsViewModel,
+                        onGoogleSignInClick = onGoogleSignInClick,
+                        ddbbViewModel = ddbbViewModel,
+                        isGuest = isGuest,
+                        searchViewModel = searchViewModel
+                    )
+                }
 
-            // Se controla la inicialización del NavHost
-            LaunchedEffect(navController) {
-                isNavHostInitialized = true
+                // Se controla la inicialización del NavHost
+                LaunchedEffect(navController) {
+                    isNavHostInitialized = true
+                }
             }
             }
         }

@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -50,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -60,8 +58,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.designsystem.components.GameGridSkeleton
+import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 
 /*
@@ -139,11 +139,7 @@ fun SearchScreen(
 
                 // Indicador de carga mientras se obtienen los datos
                 if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 30.dp)
-                    )
+                    GameGridSkeleton(modifier = Modifier.padding(top = 16.dp))
                 }
 
                 // Muestra un mensaje de error en caso de producirse alguno
@@ -269,14 +265,13 @@ fun GameCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen de fondo del juego
-            AsyncImage(
-                model = game.backgroundImage,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            // Imagen de fondo del juego (shared element: vuela al detalle)
+            GameCover(
+                imageUrl = game.backgroundImage,
+                title = game.name,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(16.dp))
+                    .gvSharedElement(key = "cover-${game.id}")
             )
 
             // Panel inferior semitransparente con detalles del juego

@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -49,14 +48,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
+import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -227,37 +227,53 @@ fun GameContent(game: Game?) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            AsyncImage(
-                model = game?.backgroundImage,
+            GameCover(
+                imageUrl = game?.backgroundImage,
+                title = game?.name ?: "??",
                 contentDescription = "Imagen del juego",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = rememberVectorPainter(Icons.Default.Star),
-                error = rememberVectorPainter(Icons.Default.Clear)
+                    .height(320.dp)
+                    .gvSharedElement(key = "cover-${game?.id ?: 0}")
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(320.dp)
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                            startY = 100f,
-                            endY = 250f
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f)),
+                            startY = 120f,
+                            endY = 320f
                         )
                     )
             )
-            Text(
-                text = game?.name ?: "Nombre no disponible",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
-            )
+            ) {
+                Text(
+                    text = game?.name ?: "Nombre no disponible",
+                    style = MaterialTheme.typography.displayLarge,
+                    color = Color.White
+                )
+                game?.released?.takeIf { it.isNotEmpty() }?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
+            game?.rating?.takeIf { it > 0 }?.let {
+                RatingBadge(
+                    rating = String.format(java.util.Locale.US, "%.1f", it),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                )
+            }
         }
 
         Card(
@@ -338,17 +354,17 @@ fun MetaDataRow(icon: ImageVector, label: String, value: String, extraPadding: B
  */
 @Composable
 private fun FullScreenLoader() {
-    Box(
+    // Skeleton que replica el layout del detalle (hero + tarjeta de metadatos)
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
+            .padding(16.dp, 5.dp, 16.dp, 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(48.dp),
-            strokeWidth = 4.dp,
-            color = MaterialTheme.colorScheme.primary
-        )
+        GVSkeleton(Modifier.fillMaxWidth(), height = 320.dp)
+        GVSkeleton(Modifier.fillMaxWidth(), height = 14.dp)
+        GVSkeleton(Modifier.fillMaxWidth(0.7f), height = 14.dp)
+        GVSkeleton(Modifier.fillMaxWidth(), height = 14.dp)
     }
 }
 

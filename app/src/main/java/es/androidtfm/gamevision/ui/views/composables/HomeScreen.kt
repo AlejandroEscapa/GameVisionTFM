@@ -2,6 +2,8 @@ package es.androidtfm.gamevision.ui.views.composables
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -163,7 +164,12 @@ fun LoadingScreen() {
             .fillMaxSize()
             .wrapContentSize(Alignment.Center)
     ) {
-        CircularProgressIndicator()
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            repeat(3) { GameRowSkeleton() }
+        }
     }
 }
 

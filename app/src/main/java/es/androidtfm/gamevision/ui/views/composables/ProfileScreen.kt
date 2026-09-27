@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,7 +35,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -68,6 +68,7 @@ import coil3.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import es.androidtfm.gamevision.R
+import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -477,18 +478,17 @@ private fun ProfileActionsSection(
 
 @Composable
 private fun ProfileLoadingIndicator() {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .padding(top = 50.dp)
-                .size(48.dp),
-            strokeWidth = 3.dp,
-            color = MaterialTheme.colorScheme.primary
-        )
+        GVSkeleton(shape = CircleShape, width = 140.dp, height = 140.dp)
+        GVSkeleton(width = 160.dp, height = 18.dp)
+        GVSkeleton(Modifier.fillMaxWidth(), height = 120.dp)
+        GVSkeleton(Modifier.fillMaxWidth(), height = 48.dp)
     }
 }
 
