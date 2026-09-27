@@ -1,120 +1,136 @@
 package es.androidtfm.gamevision.retrofit
 
-
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /*
  * Autor: Alejandro Olivares Escapa
  * Fecha: 19/01/2025
- * Descripción: 
+ * Descripción: Modelos de la API de RAWG.
+ *
+ * Todos los campos tienen valor por defecto para que el parseo sea tolerante
+ * con respuestas que omiten claves (comportamiento equivalente al de Gson).
  */
 
+@Serializable
 data class ApiResponse(
-    @SerializedName("count") val count: Int,
-    @SerializedName("next") val next: String?,
-    @SerializedName("previous") val previous: String?,
-    @SerializedName("results") val results: List<Game>
+    @SerialName("count") val count: Int = 0,
+    @SerialName("next") val next: String? = null,
+    @SerialName("previous") val previous: String? = null,
+    @SerialName("results") val results: List<Game> = emptyList()
 )
 
+@Serializable
 data class Game(
-    @SerializedName("slug") val slug: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("playtime") val playtime: Int,
-    @SerializedName("platforms") val platforms: List<Platform>,
-    @SerializedName("stores") val stores: List<StoreWrapper>,
-    @SerializedName("released") val released: String,
-    @SerializedName("tba") val tba: Boolean,
-    @SerializedName("background_image") val backgroundImage: String?,
-    @SerializedName("rating") val rating: Double,
-    @SerializedName("rating_top") val ratingTop: Int,
-    @SerializedName("ratings") val ratings: List<Rating>,
-    @SerializedName("ratings_count") val ratingsCount: Int,
-    @SerializedName("reviews_text_count") val reviewsTextCount: Int,
-    @SerializedName("added") val added: Int,
-    @SerializedName("added_by_status") val addedByStatus: AddedByStatus?,
-    @SerializedName("metacritic") val metacritic: Int?,
-    @SerializedName("suggestions_count") val suggestionsCount: Int,
-    @SerializedName("updated") val updated: String,
-    @SerializedName("id") val id: Int,
-    @SerializedName("score") val score: String?,
-    @SerializedName("clip") val clip: String?,
-    @SerializedName("tags") val tags: List<Tag>,
-    @SerializedName("esrb_rating") val esrbRating: EsrbRating?,
-    @SerializedName("user_game") val userGame: String?,
-    @SerializedName("reviews_count") val reviewsCount: Int,
-    @SerializedName("saturated_color") val saturatedColor: String,
-    @SerializedName("dominant_color") val dominantColor: String,
-    @SerializedName("short_screenshots") val shortScreenshots: List<ShortScreenshot>,
-    @SerializedName("parent_platforms") val parentPlatforms: List<ParentPlatformWrapper>,
-    @SerializedName("genres") val genres: List<Genre>
+    @SerialName("slug") val slug: String = "",
+    @SerialName("name") val name: String = "",
+    @SerialName("playtime") val playtime: Int = 0,
+    @SerialName("platforms") val platforms: List<Platform> = emptyList(),
+    @SerialName("stores") val stores: List<StoreWrapper> = emptyList(),
+    @SerialName("released") val released: String = "",
+    @SerialName("tba") val tba: Boolean = false,
+    @SerialName("background_image") val backgroundImage: String? = null,
+    @SerialName("rating") val rating: Double = 0.0,
+    @SerialName("rating_top") val ratingTop: Int = 0,
+    @SerialName("ratings") val ratings: List<Rating> = emptyList(),
+    @SerialName("ratings_count") val ratingsCount: Int = 0,
+    @SerialName("reviews_text_count") val reviewsTextCount: Int = 0,
+    @SerialName("added") val added: Int = 0,
+    @SerialName("added_by_status") val addedByStatus: AddedByStatus? = null,
+    @SerialName("metacritic") val metacritic: Int? = null,
+    @SerialName("suggestions_count") val suggestionsCount: Int = 0,
+    @SerialName("updated") val updated: String = "",
+    @SerialName("id") val id: Int = 0,
+    @SerialName("score") val score: String? = null,
+    @SerialName("clip") val clip: String? = null,
+    @SerialName("tags") val tags: List<Tag> = emptyList(),
+    @SerialName("esrb_rating") val esrbRating: EsrbRating? = null,
+    @SerialName("user_game") val userGame: String? = null,
+    @SerialName("reviews_count") val reviewsCount: Int = 0,
+    @SerialName("saturated_color") val saturatedColor: String = "",
+    @SerialName("dominant_color") val dominantColor: String = "",
+    @SerialName("short_screenshots") val shortScreenshots: List<ShortScreenshot> = emptyList(),
+    @SerialName("parent_platforms") val parentPlatforms: List<ParentPlatformWrapper> = emptyList(),
+    @SerialName("genres") val genres: List<Genre> = emptyList()
 )
+
+@Serializable
 data class Platform(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("slug") val slug: String
+    @SerialName("id") val id: Int = 0,
+    @SerialName("name") val name: String = "",
+    @SerialName("slug") val slug: String = ""
 )
 
+@Serializable
 data class StoreWrapper(
-    @SerializedName("store") val store: Store
+    @SerialName("store") val store: Store = Store()
 )
 
+@Serializable
 data class Store(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("slug") val slug: String
+    @SerialName("id") val id: Int = 0,
+    @SerialName("name") val name: String = "",
+    @SerialName("slug") val slug: String = ""
 )
 
+@Serializable
 data class Rating(
-    @SerializedName("id") val id: Int,
-    @SerializedName("title") val title: String,
-    @SerializedName("count") val count: Int,
-    @SerializedName("percent") val percent: Double
+    @SerialName("id") val id: Int = 0,
+    @SerialName("title") val title: String = "",
+    @SerialName("count") val count: Int = 0,
+    @SerialName("percent") val percent: Double = 0.0
 )
 
+@Serializable
 data class AddedByStatus(
-    @SerializedName("yet") val yet: Int?,
-    @SerializedName("owned") val owned: Int?,
-    @SerializedName("beaten") val beaten: Int?,
-    @SerializedName("toplay") val toplay: Int?,
-    @SerializedName("dropped") val dropped: Int?,
-    @SerializedName("playing") val playing: Int?
+    @SerialName("yet") val yet: Int? = null,
+    @SerialName("owned") val owned: Int? = null,
+    @SerialName("beaten") val beaten: Int? = null,
+    @SerialName("toplay") val toplay: Int? = null,
+    @SerialName("dropped") val dropped: Int? = null,
+    @SerialName("playing") val playing: Int? = null
 )
 
+@Serializable
 data class Tag(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("slug") val slug: String,
-    @SerializedName("language") val language: String,
-    @SerializedName("games_count") val gamesCount: Int,
-    @SerializedName("image_background") val imageBackground: String
+    @SerialName("id") val id: Int = 0,
+    @SerialName("name") val name: String = "",
+    @SerialName("slug") val slug: String = "",
+    @SerialName("language") val language: String = "",
+    @SerialName("games_count") val gamesCount: Int = 0,
+    @SerialName("image_background") val imageBackground: String = ""
 )
 
+@Serializable
 data class EsrbRating(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("slug") val slug: String,
-    @SerializedName("name_en") val nameEn: String?,
-    @SerializedName("name_ru") val nameRu: String?
+    @SerialName("id") val id: Int = 0,
+    @SerialName("name") val name: String = "",
+    @SerialName("slug") val slug: String = "",
+    @SerialName("name_en") val nameEn: String? = null,
+    @SerialName("name_ru") val nameRu: String? = null
 )
 
+@Serializable
 data class ShortScreenshot(
-    @SerializedName("id") val id: Int,
-    @SerializedName("image") val image: String
+    @SerialName("id") val id: Int = 0,
+    @SerialName("image") val image: String = ""
 )
 
+@Serializable
 data class ParentPlatformWrapper(
-    @SerializedName("platform") val platform: ParentPlatform
+    @SerialName("platform") val platform: ParentPlatform = ParentPlatform()
 )
 
+@Serializable
 data class ParentPlatform(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("slug") val slug: String
+    @SerialName("id") val id: Int = 0,
+    @SerialName("name") val name: String = "",
+    @SerialName("slug") val slug: String = ""
 )
 
+@Serializable
 data class Genre(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("slug") val slug: String
+    @SerialName("id") val id: Int = 0,
+    @SerialName("name") val name: String = "",
+    @SerialName("slug") val slug: String = ""
 )

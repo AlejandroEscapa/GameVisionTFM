@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
@@ -121,8 +122,8 @@ dependencies {
 
     // Networking
     implementation(libs.retrofit2.retrofit)
-    implementation(libs.retrofit.converter.gson)
-    implementation(libs.jackson.module.kotlin)
+    implementation(libs.retrofit.converter.kotlinx)
+    implementation(libs.kotlinx.serialization.json)
 
     // Data Storage
     implementation(libs.androidx.datastore.core)

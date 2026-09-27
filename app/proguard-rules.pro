@@ -1,11 +1,8 @@
-# Reglas R8 del proyecto (Fase 4).
+# Reglas R8 del proyecto.
 #
-# Criterio: reglas mínimas y dirigidas. Gson 2.11 y Retrofit 2.11 traen sus
-# consumer rules empaquetadas (TypeToken, Signature, builders) — no duplicarlas.
-
-# DTOs serializados por Gson vía reflexión: sin esto, R8 ofuscaría campos y
-# Gson dejaría de mapear el JSON de las APIs de noticias y juegos.
--keep class es.androidtfm.gamevision.retrofit.** { *; }
+# Criterio: reglas mínimas y dirigidas. Gson ya no está en el classpath
+# (kotlinx.serialization genera los serializadores en tiempo de compilación y
+# trae sus consumer rules); Retrofit 2.12 también trae las suyas.
 
 # Trazabilidad de crashes de release: conservar líneas de código para
 # reobfuscación con mapping.txt.

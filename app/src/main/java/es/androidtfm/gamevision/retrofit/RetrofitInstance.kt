@@ -1,21 +1,24 @@
 package es.androidtfm.gamevision.retrofit
 
-import android.util.Log
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object RetrofitInstance {
     private const val NEWS_URL = "https://newsapi.org/"
     private const val RAWG_URL = "https://api.rawg.io/api/"
 
+    // Parseo tolerante: ignora claves desconocidas y fuerza valores nulos a los defaults
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
     val newsApi: NewsApiService by lazy {
         Retrofit.Builder()
             .baseUrl(NEWS_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(NewsApiService::class.java)
     }
@@ -23,7 +26,7 @@ object RetrofitInstance {
     val gamesApi: GameApiService by lazy {
         Retrofit.Builder()
             .baseUrl(RAWG_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(GameApiService::class.java)
     }
