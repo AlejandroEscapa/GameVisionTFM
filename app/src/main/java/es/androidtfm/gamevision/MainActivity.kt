@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
+import es.androidtfm.gamevision.ui.designsystem.GameVisionTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,8 +32,6 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import es.androidtfm.gamevision.ui.navigation.NavHost
-import es.androidtfm.gamevision.ui.theme.DarkColorPalette
-import es.androidtfm.gamevision.ui.theme.LightColorPalette
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
@@ -103,7 +102,6 @@ fun MainScreen(
     searchViewModel: SearchViewModel
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
-    val colors = if (isDarkTheme) DarkColorPalette else LightColorPalette
     val navController = rememberNavController()
     val themeDataStore = themeViewModel.themeDataStore
     // Observar estado de invitado
@@ -111,7 +109,7 @@ fun MainScreen(
 
     var isNavHostInitialized by remember { mutableStateOf(false) }
 
-    MaterialTheme(colorScheme = colors) {
+    GameVisionTheme(darkTheme = isDarkTheme) {
         // Apariencia de los iconos de las barras del sistema (edge-to-edge: las barras son transparentes)
         SystemBarAppearance(window, isDarkTheme)
 

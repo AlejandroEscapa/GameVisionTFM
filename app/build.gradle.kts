@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.androidx.animation)
     implementation(libs.androidx.animation.core)
     implementation(libs.compose.ui)
+    implementation(libs.compose.ui.text.google.fonts)
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons.extended)
