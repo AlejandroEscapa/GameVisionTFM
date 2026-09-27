@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import es.androidtfm.gamevision.retrofit.Game
 import es.androidtfm.gamevision.retrofit.GameApiService
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -25,10 +27,16 @@ import retrofit2.HttpException
  * Contiene todos los métodos con los que se interactúa con la API de juegos.
  */
 
-class SearchViewModel(
-    // Inyectable para pruebas; por defecto usa la instancia Retrofit de la aplicación
-    private val gamesApi: GameApiService = RetrofitInstance.gamesApi
+@HiltViewModel
+class SearchViewModel @Inject constructor(
+    // Inyectable para pruebas; Hilt provee la instancia Retrofit de la aplicación
+    private val gamesApi: GameApiService
 ) : ViewModel() {
+
+    /**
+     * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
+     */
+    constructor() : this(RetrofitInstance.gamesApi)
 
     // Estados para la búsqueda de juegos
     private val _games = MutableStateFlow<List<Game>>(emptyList())

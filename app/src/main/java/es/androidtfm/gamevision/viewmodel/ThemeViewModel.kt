@@ -3,12 +3,14 @@ package es.androidtfm.gamevision.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -22,15 +24,16 @@ import kotlinx.coroutines.launch
  * Se encarga de manejar el estado del tema (claro/oscuro) y proporcionar métodos para alternarlo.
  */
 
-class ThemeViewModel(
+@HiltViewModel
+class ThemeViewModel @Inject constructor(
     application: Application,
-    // Inyectable para pruebas; por defecto usa el DataStore de la aplicación
-    val themeDataStore: ThemeDataStore = ThemeDataStore(application),
-    // Scope inyectable para pruebas; por defecto usa el viewModelScope
-    externalScope: CoroutineScope? = null
+    // DataStore inyectable para pruebas
+    val themeDataStore: ThemeDataStore,
+    // Scope inyectable (Hilt lo provee como singleton de aplicación)
+    externalScope: CoroutineScope
 ) : AndroidViewModel(application) {
 
-    private val scope: CoroutineScope = externalScope ?: viewModelScope
+    private val scope: CoroutineScope = externalScope
 
     // Exponemos el estado del tema como un `StateFlow`
     val isDarkTheme: StateFlow<Boolean> = themeDataStore.isDarkTheme.stateIn(

@@ -29,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 import es.androidtfm.gamevision.ui.navigation.NavHost
 import es.androidtfm.gamevision.ui.theme.DarkColorPalette
 import es.androidtfm.gamevision.ui.theme.LightColorPalette
@@ -40,6 +41,7 @@ import es.androidtfm.gamevision.viewmodel.ThemeViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val googleViewModel: GoogleViewModel by viewModels()
 
@@ -66,13 +68,12 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            // Se instancian los ViewModels compartidos a nivel de actividad
+            // Se instancian los ViewModels compartidos a nivel de actividad (Hilt los provee)
             val themeViewModel: ThemeViewModel = viewModel()
             val userViewModel: UserViewModel = viewModel()
             val newsViewModel: NewsViewModel = viewModel()
             val ddbbViewModel: DDBBViewModel = viewModel()
-            // Para SearchViewModel se instancia aquí; en producción podrías compartirlo o instanciarlo desde un contenedor de navegación.
-            val searchViewModel = SearchViewModel()
+            val searchViewModel: SearchViewModel = viewModel()
 
             MainScreen(
                 window = window,

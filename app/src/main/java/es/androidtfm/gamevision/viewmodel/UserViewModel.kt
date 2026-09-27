@@ -2,9 +2,11 @@ package es.androidtfm.gamevision.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +36,15 @@ data class ProfileInfo(
     var email: String
 )
 
-class UserViewModel : ViewModel() {
+@HiltViewModel
+class UserViewModel @Inject constructor(
+    private val firebaseAuth: FirebaseAuth
+) : ViewModel() {
+
+    /**
+     * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
+     */
+    constructor() : this(FirebaseAuth.getInstance())
 
     // Estado del formulario con los campos inicializados
     private val _formFields = MutableStateFlow(
@@ -82,7 +92,7 @@ class UserViewModel : ViewModel() {
 
         // Actualizar datos desde Firebase Auth (actualiza username, nameSurname y email)
         viewModelScope.launch {
-            FirebaseAuth.getInstance().currentUser?.let { user ->
+            firebaseAuth.currentUser?.let { user ->
                 updateProfileInfoFromFirebase(user)
             }
         }

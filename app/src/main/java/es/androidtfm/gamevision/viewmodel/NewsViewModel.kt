@@ -1,6 +1,7 @@
 package es.androidtfm.gamevision.viewmodel
 
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import es.androidtfm.gamevision.BuildConfig
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.retrofit.NewsApiService
@@ -8,6 +9,7 @@ import es.androidtfm.gamevision.retrofit.RetrofitInstance
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -21,10 +23,16 @@ import java.util.Locale
  * Contiene todos los metodos con los que se interactua con la API de noticias.
  */
 
-class NewsViewModel(
-    // Inyectable para pruebas; por defecto usa la instancia Retrofit de la aplicación
-    private val newsApi: NewsApiService = RetrofitInstance.newsApi
+@HiltViewModel
+class NewsViewModel @Inject constructor(
+    // Inyectable para pruebas; Hilt provee la instancia Retrofit de la aplicación
+    private val newsApi: NewsApiService
 ) : ViewModel() {
+
+    /**
+     * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
+     */
+    constructor() : this(RetrofitInstance.newsApi)
 
     // Clave de la API para acceder al servicio de noticias (definida en local.properties, fuera del control de versiones)
     private val apiKey = BuildConfig.NEWS_API_KEY
