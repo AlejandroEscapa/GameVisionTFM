@@ -451,7 +451,6 @@ private fun ProfileActionsSection(
                     userViewModel.clearFormFields()
                     userViewModel.clearUserData()
                     googleViewModel.logout(
-                        context = context,
                         onSuccess = {},
                         onError = {}
                     )

@@ -1,7 +1,5 @@
 package es.androidtfm.gamevision.ui.navigation
 
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,7 +42,6 @@ fun NavHost(
     userViewModel: UserViewModel,
     googleViewModel: GoogleViewModel,
     newsViewModel: NewsViewModel,
-    googleSignInLauncher: ActivityResultLauncher<IntentSenderRequest>?,
     onGoogleSignInClick: () -> Unit,
     ddbbViewModel: DDBBViewModel,
     isGuest: Boolean,
@@ -77,7 +74,6 @@ fun NavHost(
                 navconThemeChange = onThemeChange,
                 userViewModel = userViewModel,
                 googleViewModel = googleViewModel,
-                googleSignInLauncher = googleSignInLauncher,
                 onGoogleSignInClick = onGoogleSignInClick,
                 ddbbViewModel = ddbbViewModel
             )

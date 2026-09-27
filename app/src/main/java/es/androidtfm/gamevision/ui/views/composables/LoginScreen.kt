@@ -1,9 +1,6 @@
 package es.androidtfm.gamevision.ui.views.composables
 
 import android.content.Context
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -89,7 +86,6 @@ import java.nio.file.WatchEvent
  * @param navconThemeChange Función para cambiar el tema.
  * @param userViewModel ViewModel para datos de usuario.
  * @param googleViewModel ViewModel para operaciones con Google.
- * @param googleSignInLauncher Launcher para iniciar sesión con Google.
  * @param onGoogleSignInClick Función para iniciar sesión con Google.
  * @param ddbbViewModel ViewModel para operaciones con la base de datos.
  */
@@ -101,7 +97,6 @@ fun LoginScreen(
     navconThemeChange: (Boolean) -> Unit,
     userViewModel: UserViewModel,
     googleViewModel: GoogleViewModel,
-    googleSignInLauncher: ActivityResultLauncher<IntentSenderRequest>?,
     onGoogleSignInClick: () -> Unit,
     ddbbViewModel: DDBBViewModel
 ) {
@@ -156,21 +151,11 @@ fun LoginScreen(
                 onForgotPasswordClick = { navController.navigate("passrecover") },
                 onGoogleSignInClick = {
                     onGoogleSignInClick()
-                    googleViewModel.signIn(
-                        onSuccess = { intentSender ->
-                            googleSignInLauncher?.launch(
-                                IntentSenderRequest.Builder(intentSender).build()
-                            )
-                            userViewModel.setGuestStatus(false)
-
-                            coroutineScope.launch {
-                                ddbbViewModel.fetchUserData(formFields["email"].toString())
-                            }
-                        },
-                        onError = { errorMessage ->
-                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    coroutineScope.launch {
+                        googleViewModel.signIn(context)
+                        userViewModel.setGuestStatus(false)
+                        ddbbViewModel.fetchUserData(formFields["email"].toString())
+                    }
                 },
                 onRegisterClick = { navController.navigate("register") }
             )
@@ -468,7 +453,6 @@ fun LoginScreenPreview() {
         navconThemeChange = {},
         userViewModel = UserViewModel(),
         googleViewModel = GoogleViewModel(),
-        googleSignInLauncher = null,
         onGoogleSignInClick = {},
         ddbbViewModel = DDBBViewModel()
     )

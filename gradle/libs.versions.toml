@@ -22,6 +22,10 @@ coil = "3.3.0"
 # DI
 hiltVersion = "2.59.2"
 
+# Credential Manager (Jetpack)
+credentials = "1.6.0"
+googleid = "1.1.1"
+
 # Firebase
 firebaseBom = "34.19.0"
 
@@ -43,7 +47,6 @@ coroutinesTest = "1.11.0"
 turbine = "1.2.1"
 
 # Google Services
-playServicesAuth = "22.0.0"
 
 
 [libraries]
@@ -94,6 +97,9 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 # Dependency Injection
 dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltVersion" }
 dagger-hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltVersion" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+androidx-credentials-play-services = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 
 # Lifecycle
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -110,7 +116,6 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 
 [plugins]

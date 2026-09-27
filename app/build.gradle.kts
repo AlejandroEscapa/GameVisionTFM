@@ -89,7 +89,9 @@ dependencies {
 
     // Dependency Injection
     implementation(libs.dagger.hilt.android)
-    implementation(libs.play.services.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
+    implementation(libs.googleid)
     implementation(libs.runtime.livedata)
     implementation(libs.firebase.firestore)
     ksp(libs.dagger.hilt.compiler)

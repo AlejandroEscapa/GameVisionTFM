@@ -7,9 +7,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +28,6 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.FirebaseAuth
 import es.androidtfm.gamevision.ui.navigation.NavHost
 import es.androidtfm.gamevision.ui.theme.DarkColorPalette
@@ -45,30 +41,15 @@ import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var googleSignInLauncher: ActivityResultLauncher<IntentSenderRequest>
     private val googleViewModel: GoogleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Inicializar Google Sign-In en el ViewModel
-        val oneTapClient = Identity.getSignInClient(this)
+        // Inicializar Google Sign-In (Credential Manager) en el ViewModel
         val webClientId = getString(R.string.default_web_client_id)
-        googleViewModel.initializeGoogleSignIn(oneTapClient, webClientId)
-
-        // Inicializar el ActivityResultLauncher para Google Sign-In
-        googleSignInLauncher = registerForActivityResult(
-            ActivityResultContracts.StartIntentSenderForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val data = result.data
-                googleViewModel.handleSignInResult(data)
-            } else {
-                Log.e("MainActivity", "Google Sign-In cancelado o fallido")
-                Toast.makeText(this, "Google Sign-In cancelado o fallido", Toast.LENGTH_SHORT).show()
-            }
-        }
+        googleViewModel.initializeGoogleSignIn(this, webClientId)
 
         // Observar el estado del inicio de sesión de Google
         googleViewModel.signInState.observe(this) { state ->
@@ -99,31 +80,13 @@ class MainActivity : ComponentActivity() {
                 userViewModel = userViewModel,
                 googleViewModel = googleViewModel,
                 newsViewModel = newsViewModel,
-                googleSignInLauncher = googleSignInLauncher,
                 onGoogleSignInClick = {
-                    lifecycleScope.launch { initiateGoogleSignIn() }
+                    lifecycleScope.launch { googleViewModel.signIn(this@MainActivity) }
                 },
                 ddbbViewModel = ddbbViewModel,
                 searchViewModel = searchViewModel // Si NewsScreen u otras pantallas lo requieren
             )
         }
-    }
-
-    // Función para iniciar el flujo de Google Sign-In
-    private suspend fun initiateGoogleSignIn() {
-        googleViewModel.signIn(
-            onSuccess = { intentSender ->
-                try {
-                    val intentSenderRequest = IntentSenderRequest.Builder(intentSender).build()
-                    googleSignInLauncher.launch(intentSenderRequest)
-                } catch (e: Exception) {
-                    Log.e("GoogleSignIn", "Error al lanzar el intent: ${e.message}")
-                }
-            },
-            onError = { errorMessage ->
-                Log.e("GoogleSignIn", "Error en signIn(): $errorMessage")
-            }
-        )
     }
 }
 
@@ -134,7 +97,6 @@ fun MainScreen(
     userViewModel: UserViewModel,
     googleViewModel: GoogleViewModel,
     newsViewModel: NewsViewModel,
-    googleSignInLauncher: ActivityResultLauncher<IntentSenderRequest>,
     onGoogleSignInClick: () -> Unit,
     ddbbViewModel: DDBBViewModel,
     searchViewModel: SearchViewModel
@@ -170,7 +132,6 @@ fun MainScreen(
                 userViewModel = userViewModel,
                 googleViewModel = googleViewModel,
                 newsViewModel = newsViewModel,
-                googleSignInLauncher = googleSignInLauncher,
                 onGoogleSignInClick = onGoogleSignInClick,
                 ddbbViewModel = ddbbViewModel,
                 isGuest = isGuest,
