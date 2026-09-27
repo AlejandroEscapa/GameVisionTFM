@@ -16,3 +16,6 @@ local.properties
 
 # ZCode local tooling
 .zcode/
+
+# Firebase config (secrets, never commit)
+app/google-services.json
