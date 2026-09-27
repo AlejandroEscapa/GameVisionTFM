@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// ============================================================================
+// GameVision TFM — reglas de Firestore
+//
+// ATENCIÓN: la app usa autenticación PROPIA (guarda el password en el
+// documento del usuario en Firestore) en lugar de Firebase Authentication.
+// Por eso necesita acceso NO autenticado a /users. Esto significa que
+// cualquiera que extraiga la API key del APK puede leer y escribir la base
+// de datos. Es aceptable para una demo/TFM, NO para producción.
+//
+// Para producción: migrar a Firebase Authentication (email/password) y usar
+// reglas basadas en request.auth.uid (ver docs/firebase-setup.md).
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{email} {
+      allow read, write: if true;
+
+      // Subcolecciones por usuario: history, messages, playedlist, wishlist, friends
+      match /{document=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // El resto de la base queda cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
