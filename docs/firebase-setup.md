@@ -24,47 +24,69 @@ users/{email}/                    ← documento por email del usuario
     └── wishlist/{gameId}
 ```
 
-## Diagnóstico verificado (27/09/2026)
+## Investigación a fondo (27/09/2026) — matriz completa de reglas
 
-Probado con la API REST de Firestore y con la app en el emulador:
+Probado con la API REST de Firestore (sin autenticar y con sesión de Firebase
+Auth) y con la app en el emulador:
 
-| Operación | Resultado |
-|---|---|
-| GET `/users/{email}` (documento) | ✅ 200 |
-| LIST `/users` | ✅ 200 |
-| LIST `/users/{email}/playedlist` (subcolección) | ❌ 403 PERMISSION_DENIED |
-| WRITE sin autenticar | ❌ 403 PERMISSION_DENIED |
-| WRITE con sesión de Firebase Auth | ✅ 200 |
+| Operación | Sin auth | Con auth |
+|---|---|---|
+| GET `/users/{email}` | ✅ 200 | – |
+| LIST `/users` | ✅ 200 | ✅ 200 |
+| LIST `/users/{email}/playedlist` | ❌ 403 | ✅ 200 |
+| WRITE `/users/{email}` | ❌ 403 | ✅ 200 |
 
-Es decir, las reglas actuales permiten **leer** documentos y listar `users`, pero
-**deniegan listar las subcolecciones** (`history`, `playedlist`, `wishlist`,
-`messages`, `friends`) y **deniegan escribir sin autenticar**.
+**Conclusión decisiva: las reglas NO son el fallo.** Están bien diseñadas para un
+app basada en Firebase Authentication: lectura pública de perfiles (para poder
+buscar amigos por email), y escritura + subcolecciones solo para usuarios
+autenticados. El problema es que **el login email/password nunca autentica**, así
+que esos usuarios son tratados como anónimos: no pueden escribir ni leer sus
+propias listas.
 
-### Consecuencias reales (todas reproducidas)
+### La app tiene DOS sistemas de autenticación que no concuerdan
 
-1. **El registro desde la app no puede funcionar.** La app no autentica con
-   Firebase Auth en email/password, así que su escritura llega sin credenciales
-   → 403. (Verificado en logcat: `Error registrando usuario: PERMISSION_DENIED`.)
-2. **El login tampoco**, para los usuarios que ya existían, porque sus documentos
-   **no tienen campo `password`** (verificado en `alex.escapax@gmail.com`: solo
-   nameSurname, username, description, country, imageUri). `loginCheck()` compara
-   `document.getString("password") == password` → siempre `false`.
-3. **6 pantallas dependen de `FirebaseAuth.getInstance().currentUser`, que es
-   `null`** para los usuarios de email/password (solo lo rellena Google Sign-In):
-   `MainActivity`, `NewsScreen`, `ProfileScreen`, `GameListScreen`,
-   `SocialScreen`, `FriendsComposables`. Verificado en logcat:
-   `ProfileScreen: currentUser es null o no tiene email.` Por eso el perfil sale
-   vacío y las pantallas no cargan datos.
-4. **La lista de juegos no puede cargar** aunque el login funcione: leer la
-   subcolección `playedlist` da 403 (verificado en logcat:
-   `Error obteniendo juegos: PERMISSION_DENIED`).
+1. **Email/password — propio, sobre Firestore**: guarda el password en claro en
+   el documento, `loginCheck()` compara en cliente y **no crea sesión de Firebase
+   Auth**. Es el camino incompleto.
+2. **Google Sign-In — Firebase Auth**: `signInWithCredential` crea sesión real →
+   `currentUser` no nulo.
 
-### Usuario de prueba creado
+### Estado por funcionalidad
 
-`users/alex@gmail.com` con `password: 1234` (nameSurname, username, description,
-country), creado con una sesión REST autenticada porque el registro de la app
-no puede escribir. **Login verificado en el emulador**: entra y navega
-(barra inferior con 5 items). El perfil aparece vacío por el punto 3.
+| Funcionalidad | Email/password | Google |
+|---|---|---|
+| Login | ✅ si el doc tiene `password` | ✅ |
+| Registro | ❌ 403 al escribir (y la app **miente** diciendo que fue bien) | ✅ |
+| Perfil | ❌ vacío (`currentUser` null, sin respaldo) | ✅ |
+| News (fetch de usuario) | ❌ no se llama | ✅ |
+| Auto-login al reabrir | ❌ no hay sesión persistida | ✅ |
+| Lista de juegos / wishlist / historial | ❌ 403 al listar subcolecciones | ✅ |
+| Amigos / mensajes | ❌ 403 | ✅ |
+| Editar perfil / añadir juego / amigo / publicar | ❌ 403 | ✅ |
+| Recuperar contraseña | ❌ **stub: no envía nada** | ✅ (vía Auth) |
+
+Para un usuario de **Google la app funciona entera hoy** con las reglas actuales.
+
+### Bugs de la app encontrados (independientes de las reglas)
+
+1. **Fallo silencioso en el registro**: `addUser()` captura la excepción y solo
+   la loguea; `registerUser()` devuelve `true` igualmente → la UI navega al login
+   como si hubiera funcionado y luego el login falla sin explicación. Es
+   exactamente el síntoma reportado.
+2. **Recuperar contraseña es un stub**: `forgotPassword()` solo valida que el
+   email no esté vacío y devuelve `true`; no envía ningún correo.
+3. **`description`/`country` = null se muestran como el texto "null"**: el
+   registro escribe `null` y la lectura hace `it.value.toString()`.
+4. `removeFriend()` no es `suspend` y hace `.delete()` sin `await()`: errores
+   tragados.
+
+### Seguridad (crítico, verificado)
+
+- **La colección `users` es legible SIN autenticar**: leí
+  `alex.escapax@gmail.com` solo con la API key (que viaja dentro del APK).
+- Por tanto **todos los passwords en claro y los datos personales están
+  expuestos** a cualquiera que descompile el APK. `loginCheck` en cliente es
+  trivialmente evitable.
 
 ## Cómo desbloquearlo (dos opciones)
 
