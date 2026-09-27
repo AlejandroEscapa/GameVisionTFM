@@ -1,6 +1,6 @@
 # Fase 0 — Cimientos de datos
 
-**Estado:** ⬜ Pendiente · **Estimación:** 1 semana · **Depende de:** — · **Bloquea a:** F1
+**Estado:** 🔵 Aprobada (27/09/2026) · **Estimación:** 1 semana · **Depende de:** — · **Bloquea a:** F1
 
 ## Objetivo
 
@@ -28,11 +28,11 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
 | D0.1 | **Proveedor de catálogo** | ✅ **CERRADA** (27/09/2026): seguir con **RAWG** ahora, con el adapter por delante, y **migrar parcialmente a IGDB más adelante** (marcado abajo). Motivo: RAWG ya funciona, su licencia comercial es más simple (gratis hasta ~100k usuarios/mes) y el coste de IGDB hoy es trabajo de OAuth2 sin beneficio inmediato | ✅ |
-| D0.2 | **Datos de los usuarios actuales** | (a) Migrar las 3 listas a la biblioteca nueva · (b) Empezar limpio y borrar | **(a) migrar**: son 9 usuarios reales del TFM y demuestra migración de datos (bien para el tribunal) | ⬜ |
-| D0.3 | **Alcance de la caché** | (a) Sólo fichas vistas · (b) Fichas + búsquedas populares · (c) Todo el catálogo | **(a) y luego (b)**: cachear fichas vistas arregla el 90 % del problema con coste mínimo | ⬜ |
-| D0.4 | **Cloud Functions ahora o después** | (a) Añadir ya · (b) Posponer a F2/F3 | **(b) posponer**: Firebase gratis no las necesita para F0/F1 y añaden complejidad de despliegue | ⬜ |
+| D0.2 | **Datos de los usuarios actuales** | ✅ **CERRADA** (27/09/2026): **migrar** las 3 listas a la biblioteca nueva **y limpiar los documentos basura** (`aa`, `ee`, que no son emails válidos) | ✅ |
+| D0.3 | **Alcance de la caché** | ✅ **CERRADA** (27/09/2026): **fichas visitadas + búsquedas recientes** (descarta cachear todo el catálogo: RAWG no lo permite y no cabe en el dispositivo) | ✅ |
+| D0.4 | **Cloud Functions ahora o después** | ✅ **CERRADA** (27/09/2026): **posponer a F2**, cuando la búsqueda de usuarios y el feed las necesiten de verdad | ✅ |
 | D0.5 | **Modelo de amigos** | (a) Dejar el actual (simétrico, por email) · (b) Rediseñar a "seguir" (asimétrico) | **Debatir en F2**, no en F0: aquí sólo se decide si el modelo actual bloquea algo (no lo hace) | ⬜ |
-| D0.6 | **Duración de los juegos** | (a) Scraper de HowLongToBeat (sin API oficial) · (b) Campo propio en caché rellenado a mano/IGDB | **(b) en F0** (estructura), **(a) en F1** si el scraping resulta estable: es scraping de un tercero y puede romperse | ⬜ |
+| D0.6 | **Duración de los juegos** | 🟡 **PARCIAL** (27/09/2026): el **campo existirá** en el modelo de datos en F0 (no bloquea nada); **la fuente de los datos queda PENDIENTE DE DECIDIR** por el propietario y **debe cerrarse antes de la tarea T1.11 de F1** | 🟡 |
 
 > **Cómo se cierra una decisión:** se escribe la opción elegida, la fecha y una línea de
 > porqué en el "Registro de decisiones" del final. Mientras haya una decisión sin cerrar,
@@ -129,6 +129,17 @@ trabajo futuro con condiciones de disparo claras. Lo que habría que hacer cuand
 **Lo que NO cambia:** ni una pantalla. Ese es precisamente el valor de hacer el adapter
 en F0: la migración futura es añadir una clase y cambiar una línea de inyección.
 
+## Decisiones cerradas (resumen)
+
+| # | Decisión |
+|---|---|
+| D0.1 | RAWG ahora + adapter; IGDB marcado para el futuro |
+| D0.2 | Migrar los datos existentes y limpiar los documentos basura |
+| D0.3 | Caché: fichas visitadas + búsquedas recientes |
+| D0.4 | Cloud Functions se posponen a F2 |
+| D0.5 | Modelo social: se decide en F2 |
+| D0.6 | Estructura de duración sí (F0); **fuente pendiente de decidir** (bloquea T1.11) |
+
 ## Riesgos
 
 | Riesgo | Mitigación |
@@ -153,6 +164,17 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
   hay beneficio inmediato en asumir el OAuth2 de Twitch. La migración parcial a IGDB queda
   documentada arriba con sus condiciones de disparo y su estimación (~media jornada),
   y se hará sin tocar ninguna pantalla gracias al adapter.
+- **D0.2 — Migrar y limpiar (27/09/2026)** — se migran las listas de los usuarios reales al
+  modelo nuevo (demuestra migración de datos, defendible ante tribunal) y se borran `aa` y
+  `ee`, que no son emails válidos y nunca podrán entrar.
+- **D0.3 — Fichas visitadas + búsquedas recientes (27/09/2026)** — cubre el uso real, hace
+  útil el modo sin conexión y no ataca los términos de uso de RAWG (nada de volcado masivo).
+- **D0.4 — Cloud Functions a F2 (27/09/2026)** — F0 y F1 se resuelven en el cliente; menos
+  piezas que desplegar y depurar ahora.
 - **D0.5 — Diferida a F2 (27/09/2026)** — el modelo de amigos (simétrico vs seguir) se
   decide en la fase social, que es donde tiene consecuencias. No bloquea F0.
+- **D0.6 — Estructura sí, fuente pendiente (27/09/2026)** — el campo de duración se crea en
+  el modelo; **el propietario decidirá más adelante de dónde salen los datos** (scraper de
+  HowLongToBeat, dato manual, IGDB u otra vía). Marca de bloqueo: **T1.11 no puede empezar
+  sin esta decisión**. Se deja anotado también en el README del roadmap.
 

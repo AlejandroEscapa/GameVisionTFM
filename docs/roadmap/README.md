@@ -34,7 +34,7 @@
 
 | Fase | Título | Estimación | Estado | Depende de |
 |---|---|---|---|---|
-| [F0](fase-0-cimientos-datos.md) | Cimientos de datos | 1 semana | ⬜ Pendiente | — |
+| [F0](fase-0-cimientos-datos.md) | Cimientos de datos | 1 semana | 🟢 En ejecución | — |
 | [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | ⬜ Pendiente | F0 |
 | [F2](fase-2-social.md) | Social | 1 semana | ⬜ Pendiente | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | ⬜ Pendiente | F1 |
@@ -50,6 +50,14 @@
    de improvisar: primero se debate, luego se toca el código.
 5. Todo lo aprendido se anota en el "Registro de decisiones" de la fase (para que la
    siguiente sesión no vuelva a debatir lo mismo).
+
+## Decisiones pendientes (marcadas, no bloquean lo actual)
+
+| Decisión | Cuándo hay que cerrarla | Estado |
+|---|---|---|
+| **Fuente de la duración de los juegos** (scraper de HowLongToBeat, dato manual, IGDB…) | **Antes de T1.11 (F1)** | Pendiente del propietario |
+| Integración parcial con IGDB | Cuando se cumpla una condición de disparo (ver F0) | Marcada para el futuro |
+| Modelo social: amigos vs seguir | Al empezar F2 | Diferida a F2 |
 
 ## Riesgo transversal (vigila todas las fases)
 
