@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Reglas de backup automático para dispositivos con API &lt; 31.
-   Se excluyen los datos sensibles o reconstruibles: la caché de Firestore contiene
-   datos del usuario; DataStore se recrea al primer arranque.
+   Reglas de backup automático para dispositivos con API &lt; 31 (configuración
+   muerta con minSdk 33, se mantiene por si baja el minSdk).
+   Nota: en full-backup-content el dominio "database" no admite subdirectorios;
+   la caché de Firestore se excluye vía data_extraction_rules.xml en API 31+.
 -->
 <full-backup-content>
     <exclude domain="file" path="datastore/" />
-    <exclude domain="database" path="firestore/" />
     <exclude domain="file" path="firestore/" />
 </full-backup-content>

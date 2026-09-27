@@ -1,21 +1,13 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# Reglas R8 del proyecto (Fase 4).
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Criterio: reglas mínimas y dirigidas. Gson 2.11 y Retrofit 2.11 traen sus
+# consumer rules empaquetadas (TypeToken, Signature, builders) — no duplicarlas.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# DTOs serializados por Gson vía reflexión: sin esto, R8 ofuscaría campos y
+# Gson dejaría de mapear el JSON de las APIs de noticias y juegos.
+-keep class es.androidtfm.gamevision.retrofit.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Trazabilidad de crashes de release: conservar líneas de código para
+# reobfuscación con mapping.txt.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
