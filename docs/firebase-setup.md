@@ -1,5 +1,8 @@
 # Configuración de Firebase — GameVision
 
+> Para la estrategia de producto (funciones, mercado, roadmap) ver
+> [product-vision-2026.md](product-vision-2026.md).
+
 > Estado a 27/09/2026. Proyecto real: **`gamevision-tfm-b1b4d`** (número 241921328888).
 
 ## Lo que ya está configurado (verificado)
