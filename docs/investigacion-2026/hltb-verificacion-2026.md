@@ -80,3 +80,27 @@
    - Si los tres valores son 0 → «sin datos»; edición manual siempre disponible.
    - El mismo flujo entrega datos extra aprovechables en el futuro (popularidad, nº de listas, nota
      media de reseñas): no se usan en F1, pero quedan anotados.
+
+## Ampliación descubierta (29/09/2026): la ficha completa en un fetch
+
+La página de un juego (`https://howlongtobeat.com/game/{id}`) sirve **embebido en el HTML el registro
+completo del juego** en JSON — **un solo fetch por juego** para todo lo siguiente:
+
+- **Tiempos por estilo** (Historia · +Extras · Completista · Todos), cada uno con: valor,
+  nº de votos y `_avg` / `_med` / `_l` (rushed) / `_h` (leisure). Además: `comp_speed*` y
+  `comp_speed100*` (speedruns), `invested_co*` (co-op), `invested_mp*` (multijugador).
+- **Flags**: `comp_lvl_sp/spd/co/mp/combine/platform` (¿tiene modo X?).
+- **Ficha**: `profile_dev` / `profile_pub` (desarrollador y editorial), `profile_genre`,
+  `profile_platform`, `profile_summary`, `release_world/na/eu/jp`, `rating_esrb/pegi/cero`,
+  `profile_steam` / `profile_steam_alt` (Steam App IDs), `profile_ign`, `game_alias`,
+  `game_parent`, `related` / `relationships` (juegos relacionados).
+- **Comunidad**: `count_comp`, `count_backlog`, `count_playing`, `count_retired`, `count_replay`,
+  `count_review`, `review_score`, `count_discussion`, `stat_follows`.
+
+**Ejemplo (Elden Ring, tabla de su web que cuadra con el JSON):** Main Story — media 60h 12m ·
+mediana 60h · rushed 36h 31m · leisure 87h 3m (1,8K votos); Completionist — media 142h 25m ·
+mediana 130h · rushed 92h 36m · leisure 322h 13m (3,9K votos).
+
+**Notas de implementación:** parsear el JSON embebido (localizar `"game_id":<id>` y emparejar
+llaves); mismo esquema de campos que la búsqueda (subconjunto). Existe también `/api/v1/games` que
+exige cabecera `Authorization` (401 sin ella) — observado, no usable sin credenciales.

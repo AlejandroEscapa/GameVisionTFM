@@ -29,7 +29,7 @@ como diferenciación directa.
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
 | D1.1 | **Definición exacta de los estados** | (a) Completado = ver créditos, Dominado = 100 % · (b) Nuestra propia definición | ✅ **CERRADA (28/09/2026): Completado = ver créditos; «Coleccionado» (antes «Dominado») = todos los logros / 100 %** | ✅ |
-| D1.2 | **¿Nota y reseña obligatorias al registrar?** | (a) Todo opcional · (b) Nota obligatoria · (c) Nota obligatoria sólo al completar | **(a) opcional al registrar, (c) sugerida al completar**: no bloquear nunca el registro rápido (GG gana por registrar en 10 s) | ⬜ |
+| D1.2 | **¿Nota y reseña obligatorias al registrar?** | (a) Todo opcional · (b) Nota obligatoria · (c) Nota obligatoria sólo al completar | ✅ **CERRADA (29/09/2026): (c) en versión NO bloqueante — nada impide registrar; al marcar Completado/Coleccionado se sugiere la nota en un toque (saltable); reseña siempre opcional** | ✅ |
 | D1.3 | **Escala de nota** | (a) 5 estrellas con medias · (b) 10 puntos · (c) Ambas | ✅ **CERRADA (28/09/2026; revisada el mismo día): escala 0,5–5,0 con medias estrellas**, alineada con el formato de RAWG. Ver ADR-0003 (supersede al ADR-0002) | ✅ |
 | D1.4 | **Duración del juego: fuente** | (a) Scraper HowLongToBeat · (b) Sólo campo propio · (c) No incluirla | ✅ **CERRADA (29/09/2026): (a) scraper ligero de HLTB con caché + respaldo manual** — verificado en vivo con 5 casos de prueba y caso «sin datos»; cruces externos OK. Ver [verificación](../investigacion-2026/hltb-verificacion-2026.md). IGDB queda como candidato futuro (TTB oficial) | ✅ |
 | D1.5 | **Estadísticas: ¿cliente o servidor?** | (a) Calcular en el cliente · (b) Cloud Function | **(a) en F1**: con los datos del propio usuario es rápido y evita dependencia de Functions; (b) cuando F3 necesite agregados | ⬜ |
@@ -109,6 +109,9 @@ usuario de prueba con datos variados.
   manual. **Verificado en vivo** con 5 casos (protocolo y valores en
   [`docs/investigacion-2026/hltb-verificacion-2026.md`](../investigacion-2026/hltb-verificacion-2026.md));
   caso «sin datos» (juego no lanzado) verificado; re-ejecutable con `node tools/hltb-check.mjs`.
+- **D1.2 — Registro sin fricción con nota sugerida (29/09/2026)** — El registro nunca se bloquea
+  (CA1.1 manda); al pasar a «Completado»/«Coleccionado» se ofrece puntuar en un toque (se puede
+  saltar); la reseña es siempre opcional.
 
 ## 💡 Ideas registradas (28/09/2026)
 
@@ -119,3 +122,15 @@ usuario de prueba con datos variados.
 - **Comunidad de logros (F2)** — feed estilo foro y porcentaje de jugadores por logro.
   ⚠️ Requiere **fuente de datos de logros por plataforma (Steam/PSN/Xbox)**; RAWG/IGDB no la ofrecen
   — análisis pendiente antes de planificarlo (ver ideas de fase-2).
+
+## 💡 Propuestas de ampliación de la ficha del juego (29/09/2026 — pendientes de selección)
+
+Datos ya disponibles en el flujo HLTB verificado (ver informe). Bloques propuestos:
+
+- **Duración rica (evolución de T1.11):** media + **mediana** + rango **rushed↔leisure** + nº de
+  votos por estilo, y **speedrun** cuando exista.
+- **Bloque «Comunidad»:** completado / backlog / jugando / retirado + nota media de reseñas +
+  rejugadores (todo viene en el mismo fetch).
+- **Ficha técnica extra:** desarrollador, editorial, clasificación por edad (PEGI/ESRB) y enlaces
+  externos (Steam/IGN) — rellena huecos de RAWG.
+- **Relacionados (opcional):** fila de «juegos relacionados» en la ficha.
