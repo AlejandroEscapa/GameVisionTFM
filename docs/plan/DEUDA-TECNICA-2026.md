@@ -75,7 +75,7 @@
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-R1** | Release sin firmar (falta keystore) | Crear keystore, `signingConfig`, verificar `assembleRelease` + instalación. **Prerrequisito de F5** |
+| **D-R1** | Release sin firmar | ✅ **Hecho (29/09)**: keystore RSA-4096 + firma; `assembleRelease` verificado con apksigner e instalado/arrancado en emulador. Ver [`release-signing.md`](../release-signing.md) |
 
 ---
 
@@ -130,11 +130,12 @@ alpha y **no sube el Kotlin integrado**; Coil 3.6.3/googleid 1.2.1 fallan con me
 [ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md).
 **Disparador:** AGP ≥9.5 estable con Kotlin ≥2.4 (AGP 10.0 previsto fin de 2026) → ejecutar checklist del ADR.
 
-### Bloque 4 — Release y firma (≈media sesión)
-**Incluye:** D-R1.
-**Criterio de cierre:** `assembleRelease` firmado instalado y arrancado en emulador; keystore
-fuera del repo (local.properties / gestor de secretos).
-**Evidencia:** artefacto + captura.
+### Bloque 4 — Release y firma ✅ (29/09/2026)
+**Resultado:** keystore RSA-4096 creado en `.secrets/` (fuera del repo); `assembleRelease` firmado,
+**verificado con apksigner** (SHA-256 coincide con el keystore) e **instalado + arrancado en el
+emulador**. Guía completa: [`docs/release-signing.md`](../release-signing.md).
+Pendientes menores: copia del keystore/credenciales en gestor de secretos + añadir el SHA-1 de
+release en Firebase (Google Sign-In en builds release).
 
 ### Diferidos con disparador (no se tocan ahora)
 | Deuda | Disparador |

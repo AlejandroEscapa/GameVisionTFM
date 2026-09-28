@@ -73,4 +73,4 @@ Crashlytics) se planifica en F1 y se completa antes del lanzamiento.
 | Dependencia de RAWG | 🔴 Crítica | Adapter en curso (F0) |
 | Sin dispositivo/emulador para validar runtime | 🟠 Alta | **Emulador `Pixel_9` (API 36) operativo** ✅ |
 | Secretos fuera del repo (Firebase, API keys, keystore) | 🟠 Alta | `local.properties` + `google-services.json` locales |
-| Release sin firmar | 🟡 Media | Keystore pendiente de crear en `local.properties` |
+| Release sin firmar | 🟢 Resuelto | Keystore creado y release firmado verificado (29/09); pendiente: backup de credenciales + SHA-1 en Firebase |
