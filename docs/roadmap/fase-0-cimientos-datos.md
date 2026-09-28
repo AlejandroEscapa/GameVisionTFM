@@ -187,4 +187,9 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
   el modelo; **el propietario decidirá más adelante de dónde salen los datos** (scraper de
   HowLongToBeat, dato manual, IGDB u otra vía). Marca de bloqueo: **T1.11 no puede empezar
   sin esta decisión**. Se deja anotado también en el README del roadmap.
+- **F0-B — propuesta de modelo aprobada (28/09/2026)** — clave `uid` (el email pasa a campo),
+  histórico local en el dispositivo, estadísticas agregadas (`stats/summary`) y migración de listas
+  (`playedlist`→`jugando`, `wishlist`→`deseado`, `favorites`→flag `favorite`; `history` se descarta).
+  Implementación en 3 bloques: B1 datos → B2 adopción → B3 migración.
+  Ver [propuesta](../plan/F0B-propuesta-modelo-datos.md).
 

@@ -2,7 +2,7 @@
 
 - **ADR:** 0002
 - **Título:** La valoración de juegos usa una escala numérica entera de 1 a 10
-- **Estado:** Aceptado
+- **Estado:** Superseded por [ADR-0003](0003-escala-medias-estrellas.md) (escala con medias estrellas)
 - **Fecha:** 2026-09-28
 - **Decisores:** Alejandro Olivares Escapa
 - **Fase relacionada:** F1 (El corazón del tracker) — resuelve la decisión D1.3

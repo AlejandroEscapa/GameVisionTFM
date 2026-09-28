@@ -1,6 +1,6 @@
 # F0-B — Propuesta: modelo de datos de la biblioteca, preparado para escalar
 
-> **Estado:** PROPUESTA — pendiente de aprobación · 28/09/2026
+> **Estado:** ✅ APROBADA (28/09/2026) — ver §12 (registro de decisiones y plan de ejecución). Implementación en curso.
 > **Base:** tres investigaciones técnicas hechas el 28/09/2026 sobre la documentación oficial de Firestore
 > (modelado de datos · costes/cuotas/agregación · reglas/identidad/operación). Material crudo en
 > [`docs/investigacion-2026/fuentes-tecnicas/`](../investigacion-2026/fuentes-tecnicas/).
@@ -274,3 +274,25 @@ Con tu OK: implemento (T0.6–T0.10), ejecuto la migración (T0.11) y registramo
   offline exacto de batches/transacciones (documentado, pero sin cita verbatim capturada).
 - **Pendiente/baja**: detalle verbatim de la facturación de listeners en tiempo real; validar ubicación
   y precios **el día del cálculo** en la consola y en la página oficial de precios.
+
+---
+
+## 12. Registro de aprobación (28/09/2026)
+
+| # | Decisión | Resultado |
+|---|---|---|
+| **D-F0B-1** | Clave de usuario `users/{uid}` (email como campo) | ✅ Aprobado |
+| **D-F0B-2** | El "Historial" pasa a local en el dispositivo | ✅ Aprobado |
+| **D-F0B-3** | Migración: `playedlist` → estado `jugando`; `wishlist` → `deseado`; `favorites` → `favorite: true`; `history` → descartado | ✅ Aprobado (revisable antes de ejecutar) |
+| **D-F0B-4** | Campos e índices | ✅ Delegado al agente: §2–§3 tal cual; los índices compuestos se añaden a `firestore.indexes.json` junto con las pantallas que los usan |
+
+**Escala de nota:** confirmada **0,5–5,0 en pasos de 0,5** (medias estrellas). Registrada en
+[ADR-0003](../metodologia/adr/0003-escala-medias-estrellas.md), que supersede al ADR-0002.
+
+### Plan de ejecución
+
+| Bloque | Contenido | Estado |
+|---|---|---|
+| **B1** | Capa de datos: modelos + `LibraryRepository` (Result, lotes, incrementos) + tests de lógica pura | 🟢 En curso (código en `data/library/`; 29 tests verdes) |
+| **B2** | Adopción: sesión `uid` + ViewModels/pantallas (listas leídas del modelo nuevo; menú "Añadir" escribe la ficha) + reglas de seguridad (en el mismo paso, para no romper la app actual) + índices | ⬜ |
+| **B3** | Migración: backup → mapa email→uid → migración de listas → limpieza `aa`/`ee` → verificación CA0.4 | ⬜ |
