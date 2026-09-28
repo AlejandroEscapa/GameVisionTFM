@@ -178,7 +178,7 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 - **29/09/2026 (madrugada, 3ª parte)** — **Bloque 3 APLICADO y cerrado**: Kotlin 2.4.20 (KGP externo)
   + Coil 3.6.3 + googleid 1.2.1 vía `android.builtInKotlin=false` + `android.newDsl=false`;
   verificación completa en verde (30 unitarios + 7 instrumentados + release firmado). Detalle en
-  «Actualización» de ADR-0004. Pendiente: push + CI de esta rama.
+  «Actualización» de ADR-0004. **Push hecho y CI VERDE** (run del 29/09, ambos jobs).
 - **29/09/2026 (madrugada, 2ª parte)** — **Bloque 4 cerrado** (release firmado: keystore + firma +
   verificación apksigner + instalado/arrancado en emulador). **Ramas limpiadas**: `ui-redesign-2026`
   y `upgrade-2026` borradas (local y remoto); queda solo `master`. **Push hecho** y **CI VERDE**
