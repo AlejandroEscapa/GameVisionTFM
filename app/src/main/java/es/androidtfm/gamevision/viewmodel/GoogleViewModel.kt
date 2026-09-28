@@ -37,7 +37,7 @@ import javax.inject.Named
 class GoogleViewModel @Inject constructor(
     private val credentialManager: CredentialManager,
     private val sessionRepository: SessionRepository,
-    @Named("webClientId") private val webClientId: String
+    @param:Named("webClientId") private val webClientId: String
 ) : ViewModel() {
 
     companion object {

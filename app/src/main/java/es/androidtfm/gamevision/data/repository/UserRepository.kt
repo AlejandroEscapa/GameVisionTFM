@@ -23,6 +23,7 @@ import javax.inject.Singleton
  *  - El perfil se expone como Flow en vivo (addSnapshotListener) para que la UI
  *    tenga una única fuente de verdad y se actualice sola.
  *  - El password NO existe aquí: vive en Firebase Authentication.
+ *  - Los juegos ya NO viven aquí: la biblioteca está en LibraryRepository (F0-B).
  */
 
 @Singleton
@@ -34,8 +35,6 @@ class UserRepository @Inject constructor(
         private const val TAG = "UserRepository"
         private const val USERS_COLLECTION = "users"
         private const val FRIENDS_COLLECTION = "friends"
-        private const val HISTORY_COLLECTION = "history"
-        private const val PLAYED_COLLECTION = "playedlist"
         private const val MESSAGES_COLLECTION = "messages"
     }
 
@@ -103,36 +102,6 @@ class UserRepository @Inject constructor(
     suspend fun profileExists(email: String): Result<Boolean> = runCatching {
         userDoc(email).get().await().exists()
     }.onFailure { Log.e(TAG, "Error comprobando existencia de $email: ${it.message}") }
-
-    // ------------------------------------------------------------------------
-    // Juegos
-    // ------------------------------------------------------------------------
-
-    /** Añade un juego a una colección del usuario (playedlist, wishlist, history). */
-    suspend fun addGame(email: String, gameId: String, targetCollection: String): Result<Unit> =
-        runCatching {
-            require(email.isNotEmpty()) { "Usuario no autenticado" }
-            userDoc(email).collection(targetCollection).document(gameId)
-                .set(hashMapOf("gameId" to gameId)).await()
-            Unit
-        }.onFailure { Log.e(TAG, "Error añadiendo juego a $targetCollection: ${it.message}") }
-
-    suspend fun addGameToHistory(email: String, gameId: String): Result<Unit> =
-        addGame(email, gameId, HISTORY_COLLECTION)
-
-    /** Elimina un juego de la lista de jugados. */
-    suspend fun removePlayedGame(email: String, gameId: String): Result<Unit> = runCatching {
-        require(email.isNotEmpty()) { "Usuario no autenticado" }
-        userDoc(email).collection(PLAYED_COLLECTION).document(gameId).delete().await()
-        Unit
-    }.onFailure { Log.e(TAG, "Error eliminando juego: ${it.message}") }
-
-    /** Ids de los juegos de una colección del usuario. */
-    suspend fun getUserGameIds(email: String, collectionName: String): Result<List<String>> =
-        runCatching {
-            val snapshot = userDoc(email).collection(collectionName).get().await()
-            snapshot.documents.map { it.getString("gameId") ?: it.id }
-        }.onFailure { Log.e(TAG, "Error obteniendo juegos: ${it.message}") }
 
     // ------------------------------------------------------------------------
     // Amigos

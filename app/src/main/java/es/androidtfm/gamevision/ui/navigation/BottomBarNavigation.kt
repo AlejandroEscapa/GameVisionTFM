@@ -17,7 +17,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,7 +28,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
 /*
@@ -45,6 +46,7 @@ data class BottomNavItem(
     val label: String
 )
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun AppScaffold(
     navController: NavController,
@@ -68,9 +70,11 @@ fun AppScaffold(
         )
     }
 
-    val isCompactWidth =
-        currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass ==
-            WindowWidthSizeClass.COMPACT
+    // API adaptativa V2 (material3-adaptive 1.3 + window-core 1.5): ancho compacto =
+    // por debajo del breakpoint medio (soporta además L y XL como no compacto).
+    val isCompactWidth = !currentWindowAdaptiveInfoV2()
+        .windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
     if (isCompactWidth) {
         // Teléfono: barra inferior (comportamiento verificado)

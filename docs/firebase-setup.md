@@ -3,7 +3,22 @@
 > Para la estrategia de producto (funciones, mercado, roadmap) ver
 > [product-vision-2026.md](product-vision-2026.md).
 
-> Estado a 27/09/2026. Proyecto real: **`gamevision-tfm-b1b4d`** (número 241921328888).
+> Proyecto real: **`gamevision-tfm-b1b4d`** (número 241921328888).
+
+## Estado actual (28/09/2026) — leer primero
+
+- **Autenticación:** Firebase Authentication (email/password + Google). El password NUNCA se guarda en Firestore.
+- **Datos (F0-B):** la biblioteca vive por **UID**: `users/{uid}/{library|logs|sessions|stats}`.
+  El perfil y lo social siguen por email (`users/{email}`) de forma transitoria hasta B3/F2.
+- **Reglas:** desplegadas el 28/09/2026 (seguras, por persona/uid). Fuente de verdad:
+  [`firebase/firestore.rules`](../firebase/firestore.rules). Test sistemático (incluidos negativos):
+  [`firebase-tests/`](../firebase-tests/README.md) con el Emulator Suite.
+- **Clave de API:** restringida — las llamadas REST directas desde un PC ya no funcionan (la app sí).
+  Para inspeccionar datos, usar la consola de Firebase o `gcloud`.
+- **Deuda y próximos pasos:** [plan de deuda](plan/DEUDA-TECNICA-2026.md).
+
+> Todo lo que sigue es el **historial** (configuración inicial y migración del 27/09/2026);
+> sigue siendo útil como registro, pero algunas secciones describen el estado anterior a lo de arriba.
 
 ## Lo que ya está configurado (verificado)
 
@@ -17,14 +32,19 @@
 ## Estructura de la base de datos
 
 ```
-users/{email}/                    ← documento por email del usuario
-    nameSurname, username, description, country,
-    password (solo en usuarios registrados desde la app),
-    imageUri
-    ├── history/{gameId}
-    ├── messages/{msgId}
-    ├── playedlist/{gameId}
-    └── wishlist/{gameId}
+users/{uid}/                      ← biblioteca (F0-B, 28/09/2026)
+    ├── library/{gameId}          estado, nota, reseña, favorito, instantánea…
+    ├── logs/{logId}              partidas (rejugadas)
+    ├── sessions/{sessionId}      diario (fecha, minutos)
+    └── stats/summary             contadores agregados
+
+users/{email}/                    ← perfil y social (transitorio hasta B3/F2)
+    nameSurname, username, description, country, imageUri
+    ├── friends/{friendEmail}
+    └── messages/{msgId}
+
+(las listas antiguas playedlist/wishlist/favorites/history quedan cerradas
+ y se borran en B3 — ver plan de deuda)
 ```
 
 ## Investigación a fondo (27/09/2026) — matriz completa de reglas
@@ -103,7 +123,7 @@ Se migró la autenticación email/password a Firebase Authentication:
 - **Los passwords ya no se guardan en Firestore** (campo eliminado de los 9 documentos).
 - **Credential Manager**: ofrece guardar la credencial tras el login y la
   autocompleta al volver a la pantalla de login.
-- Las reglas de Firestore NO se tocaron: ya asumían este diseño.
+- Las reglas de Firestore NO se tocaron: ya asumían este diseño. *(Actualizado 28/09/2026: las reglas SÍ se actualizaron después — ver «Estado actual» arriba.)*
 
 ### Migración de usuarios existentes
 
@@ -143,8 +163,12 @@ Es un cambio de arquitectura de autenticación (aprox. una sesión de trabajo).
 
 ## Comandos útiles
 
+> ⚠️ La clave de API quedó **restringida** (28/09/2026): los `curl` directos desde un PC ya
+> no funcionan. Para tests de reglas: `cd firebase-tests && npm install && npm test`.
+> Para desplegar: `npx firebase-tools deploy --only firestore:rules,firestore:indexes`.
+
 ```bash
-# Verificar lectura/escritura desde fuera de la app
+# (Histórico) Verificar lectura/escritura desde fuera de la app — ya no funciona
 KEY=AIzaSyCwN3dsDzSF7qg0zRKiuuQSNHC3zKBrJMo
 curl "https://firestore.googleapis.com/v1/projects/gamevision-tfm-b1b4d/databases/(default)/documents/users/EMAIL?key=$KEY"
 ```
