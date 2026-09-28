@@ -39,22 +39,21 @@ hardcodeadas en build files).
 | Componente | Versión |
 |---|---|
 | Gradle | 9.6.0 |
-| AGP | 9.4.1 (Kotlin **integrado/built-in**, sin plugin kotlin-android) |
-| Kotlin (compilador integrado) | 2.2.10 — plugins compose y serialization en 2.2.10 |
-| KSP | 2.3.6 (KSP2) |
+| AGP | 9.4.1 (con **KGP externo** + palancas de transición — ver nota) |
+| Kotlin | **2.4.20** (KGP externo; plugins compose y serialization 2.4.20) |
+| KSP | 2.3.12 (KSP2) |
 | Compose BOM | 2026.09.00 (Compose 1.12.1, Material3 1.4.0) |
 | compileSdk / targetSdk / minSdk | 37 / 36 / 33 |
 | Java | 17 (compilación con JDK 21 del JBR) |
-| Hilt | 2.59.2 · Room 2.8.5 · Retrofit 2.12.0 · Coil 3.3.0 · credentials 1.6.0 · googleid 1.1.1 |
+| Hilt | 2.60.1 · Room 2.8.5 · Retrofit 2.12.0 · Coil 3.6.3 · credentials 1.6.0 · googleid 1.2.1 |
 
-**Restricción dura que no se debe redescubrir por prueba y error:** el compilador
-Kotlin integrado de AGP 9.4.1 lee metadatos solo hasta Kotlin **2.3.0**. Cualquier
-librería compilada con Kotlin 2.4 rompe la compilación
-("Incompatible classes were found in dependencies"). Por eso:
-- `Coil` está en **3.3.0** (3.5+/3.6.x usan Kotlin 2.4).
-- `googleid` está en **1.1.1** (1.2.1 usa Kotlin 2.4).
-- `kotlinx-serialization-json` 1.11.0 **sí** es compatible.
-- Cuando Google publique un AGP con Kotlin integrado ≥ 2.3/2.4, subir Coil y googleid.
+**Transición de toolchain (ADR-0004, 29/09/2026):** el proyecto compila con **KGP externo
+(Kotlin 2.4.20)** y las palancas `android.builtInKotlin=false` + `android.newDsl=false`
+(modo DSL legacy; ambas se ELIMINAN en AGP 10). Coil y googleid ya están desbloqueados.
+- El aviso `Deprecated 'org.jetbrains.kotlin.android' plugin usage` es esperado en transición.
+- Los avisos `DEPRECATED_DSL` se silencian con `android.sync.suppressAgpWarnings=DEPRECATED_DSL`.
+- **Retorno a built-in:** cuando haya AGP estable con Kotlin integrado ≥2.4, quitar las dos
+  palancas + el plugin KGP y re-verificar (checklist en ADR-0004).
 
 **Dagger KSP** no acepta parámetros con valor por defecto en constructores `@Inject`
 ("should contain exactly one @Inject constructor"): los ViewModels usan constructor

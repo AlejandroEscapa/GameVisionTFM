@@ -66,7 +66,7 @@
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-T1** | Kotlin 2.2.10 vs 2.4.x; Coil/googleid congelados por el límite de metadatos del Kotlin integrado | 🟡 Spike hecho (28/09): AGP 9.5 sigue alpha y no sube Kotlin; Coil/googleid bloqueados. **Disparador:** AGP ≥9.5 estable con Kotlin ≥2.4 — ver [ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md) |
+| **D-T1** | Kotlin 2.2.10 vs 2.4.x; Coil/googleid congelados | ✅ **Cerrado (29/09)**: Kotlin 2.4.20 (KGP externo) + Coil 3.6.3 + googleid 1.2.1 vía palancas de transición; verificado (30+7+release). Retorno a built-in cuando AGP ≥9.5/10 — checklist en [ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md) |
 | **D-T2** | Hilt 2.59.2 vs 2.60.1 | ✅ Subido a 2.60.1 (+ KSP 2.3.12) el 28/09, verificado con build y tests |
 | **D-T3** | Nav2 vs Nav3 | **Diferido con disparador**: cuando F4 necesite lista-detalle/tablet |
 | **D-T4** | Sin Baseline Profiles | **Diferido**: F4, con runtime estable |
@@ -125,13 +125,13 @@ negativos); tests instrumentados ejecutados por primera vez: **7/7 verdes** (inc
   el **segundo run quedó VERDE** (build+tests y reglas):
   https://github.com/AlejandroEscapa/GameVisionTFM/actions/runs/36491049211
 
-### Bloque 3 — Toolchain Kotlin (+Hilt) 🟡 (spike completado; micro-mejoras aplicadas; salto bloqueado)
-**Spike (28/09, 3 builds de prueba):** AGP estable más reciente = 9.4.1 (ya la usamos); 9.5 sigue en
-alpha y **no sube el Kotlin integrado**; Coil 3.6.3/googleid 1.2.1 fallan con metadatos 2.4.0 vs
-2.2.0 esperado → **salto bloqueado aguas arriba**. Micro-mejoras válidas aplicadas: **Hilt 2.60.1** y
-**KSP 2.3.12** (build + 30 tests + instrumentados). Decisión y checklist completos:
-[ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md).
-**Disparador:** AGP ≥9.5 estable con Kotlin ≥2.4 (AGP 10.0 previsto fin de 2026) → ejecutar checklist del ADR.
+### Bloque 3 — Toolchain Kotlin (+Hilt) ✅ (cerrado 29/09/2026)
+**Resultado:** Kotlin **2.4.20** (KGP externo), **Coil 3.6.3** y **googleid 1.2.1** aplicados con
+las palancas de transición `android.builtInKotlin=false` + `android.newDsl=false`
+(ver «Actualización» de [ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md)). Verificado:
+30 unitarios + 7 instrumentados + `assembleRelease` firmado — todo verde. Micro-mejoras previas
+(Hilt 2.60.1, KSP 2.3.12) incluidas.
+**Deuda de retorno:** quitar las dos palancas + KGP cuando haya AGP estable con Kotlin integrado ≥2.4.
 
 ### Bloque 4 — Release y firma ✅ (29/09/2026)
 **Resultado:** keystore RSA-4096 creado en `.secrets/` (fuera del repo); `assembleRelease` firmado,
@@ -171,6 +171,14 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 - **29/09/2026 (madrugada)** — **B3 ejecutado** (backup JSON + limpieza de 12 subcolecciones y
   `aa`/`ee`, verificación ✅). **`master` actualizado** por fast-forward (decisión del propietario).
   Push/CI pospuesto a petición del propietario. **Bloque 0 cerrado.**
+- **29/09/2026 (madrugada, 2ª parte)** — **Bloque 4 cerrado** (release firmado: keystore + firma +
+  verificación apksigner + instalado/arrancado en emulador). **Ramas limpiadas**: `ui-redesign-2026`
+  y `upgrade-2026` borradas (local y remoto); queda solo `master`. **Push hecho** y **CI VERDE**
+  (segundo run; el primero falló por dos causas ya corregidas).
+- **29/09/2026 (madrugada, 3ª parte)** — **Bloque 3 APLICADO y cerrado**: Kotlin 2.4.20 (KGP externo)
+  + Coil 3.6.3 + googleid 1.2.1 vía `android.builtInKotlin=false` + `android.newDsl=false`;
+  verificación completa en verde (30 unitarios + 7 instrumentados + release firmado). Detalle en
+  «Actualización» de ADR-0004. Pendiente: push + CI de esta rama.
 - **29/09/2026 (madrugada, 2ª parte)** — **Bloque 4 cerrado** (release firmado: keystore + firma +
   verificación apksigner + instalado/arrancado en emulador). **Ramas limpiadas**: `ui-redesign-2026`
   y `upgrade-2026` borradas (local y remoto); queda solo `master`. **Push hecho** y **CI VERDE**

@@ -2,7 +2,7 @@
 
 - **ADR:** 0004
 - **Título:** Estrategia de actualización del toolchain tras el spike de AGP/Kotlin (28/09/2026)
-- **Estado:** Aceptado (implementación parcial el mismo día; salto completo con disparador)
+- **Estado:** Aceptado → **Aplicado (29/09/2026)** vía palancas de transición (ver «Actualización» al final)
 - **Fecha:** 2026-09-28
 - **Decisores:** agente (spike y propuesta) · propietario (puede revertir los micro-bumps)
 - **Fase relacionada:** deuda técnica, Bloque 3
@@ -78,3 +78,24 @@ roadmap **AGP 10.0 previsto para finales de 2026**.
 - Fuentes consultadas (28/09/2026): metadatos Maven de AGP, Kotlin, KSP, Coil, Hilt y googleid;
   páginas de `developer.android.com` sobre versiones de Kotlin compatibles con AGP/D8/R8 y la
   migración a built-in Kotlin.
+
+---
+
+## Actualización (29/09/2026) — APLICADO vía palancas de transición
+
+El mismo día del spike se encontró y verificó la vía completa:
+
+- **Descubrimiento clave:** además de `android.builtInKotlin=false`, hace falta
+  **`android.newDsl=false`** — sin él, el KGP externo falla al aplicar
+  (`ApplicationExtensionImpl cannot be cast to BaseExtension`; probado también con el orden
+  inverso de plugins y con KGP 2.4.20).
+- **Cambios aplicados:** KGP externo **Kotlin 2.4.20** (`org.jetbrains.kotlin.android`),
+  plugins compose/serialization 2.4.20, **Coil 3.6.3**, **googleid 1.2.1**,
+  `googleCredential.uniqueId` (deprecación resuelta), avisos DEPRECATED_DSL suprimidos con
+  `android.sync.suppressAgpWarnings=DEPRECATED_DSL`.
+- **Verificación:** 30 tests unitarios + 7 instrumentados en emulador + `assembleRelease`
+  firmado con R8 — **todo verde**. Único aviso restante: `Deprecated 'org.jetbrains.kotlin.android'
+  plugin usage` (esperado en transición).
+- **Deuda de retorno:** ambas palancas se eliminan en AGP 10. Cuando haya un AGP estable con
+  Kotlin integrado ≥2.4, ejecutar el retorno a built-in: quitar las 2 palancas + el plugin KGP,
+  ajustar versiones y re-verificar (mismo circuito de verificación de arriba).
