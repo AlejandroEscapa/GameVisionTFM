@@ -1,8 +1,9 @@
 [versions]
 # Toolchain
 agp = "9.4.1"
-kotlinCompose = "2.2.10"
-kotlinSerialization = "2.2.10"
+kotlin = "2.4.20"
+kotlinCompose = "2.4.20"
+kotlinSerialization = "2.4.20"
 ksp = "2.3.12"
 googleServices = "4.5.0"
 
@@ -18,14 +19,14 @@ iconsExtended = "1.7.8"
 navigationCompose = "2.10.2"
 
 # UI & Media
-coil = "3.3.0"
+coil = "3.6.3"
 
 # DI
 hiltVersion = "2.60.1"
 
 # Credential Manager (Jetpack)
 credentials = "1.6.0"
-googleid = "1.1.1"
+googleid = "1.2.1"
 
 # Firebase
 firebaseBom = "34.19.0"
@@ -123,6 +124,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinCompose" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltVersion" }

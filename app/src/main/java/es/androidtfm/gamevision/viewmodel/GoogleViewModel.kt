@@ -101,7 +101,7 @@ class GoogleViewModel @Inject constructor(
 
             sessionRepository.signInWithGoogle(googleCredential.idToken)
                 .onSuccess {
-                    _signInState.value = SignInState.Success(googleCredential.id)
+                    _signInState.value = SignInState.Success(googleCredential.uniqueId)
                     Log.d(TAG, "Sesión de Google iniciada correctamente")
                 }
                 .onFailure {
