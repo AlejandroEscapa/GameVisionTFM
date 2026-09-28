@@ -1,6 +1,6 @@
 # Fase 0 — Cimientos de datos
 
-**Estado:** 🔵 Aprobada (27/09/2026) · **Estimación:** 1 semana · **Depende de:** — · **Bloquea a:** F1
+**Estado:** 🟢 En ejecución (27/09/2026, actualizado 28/09/2026) · **Estimación:** 1 semana · **Depende de:** — · **Bloquea a:** F1
 
 ## Objetivo
 
@@ -43,11 +43,13 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 ## Tareas
 
 ### A. Desacoplar el catálogo (riesgo RAWG)
-- [ ] T0.1 Crear la interfaz de dominio `GameCatalog` (buscar, detalle) en la capa de datos
-- [ ] T0.2 Implementar `RawgGameCatalog` envolviendo lo actual (sin cambiar comportamiento)
-- [ ] T0.3 Mapear las respuestas al modelo de dominio (dejar de usar DTOs de RAWG en la UI)
-- [ ] T0.4 Añadir caché local con Room para fichas y búsquedas
-- [ ] T0.5 Modo degradado: si la red/RAWG falla, mostrar lo cacheado con aviso claro
+- [x] T0.1 Crear la interfaz de dominio `GameCatalog` (buscar, detalle) en la capa de datos
+- [x] T0.2 Implementar `RawgGameCatalog` envolviendo lo actual (sin cambiar comportamiento)
+- [x] T0.3 Mapear las respuestas al modelo de dominio (dejar de usar DTOs de RAWG en la UI)
+- [x] T0.4 Añadir caché local con Room para fichas y búsquedas
+- [~] T0.5 Modo degradado: si la red/RAWG falla, mostrar lo cacheado. **Hecho en la capa de datos**
+      (`CachedGameCatalog` sirve lo cacheado); **pendiente el aviso claro en la UI** (indicador de
+      "sin conexión, mostrando datos guardados").
 
 ### B. Modelo de datos de la biblioteca
 - [ ] T0.6 Definir `library/{gameId}`: estado, nota, favorito, plataforma, fecha de alta
@@ -62,6 +64,10 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       de que la imagen es una ruta local que no viaja entre dispositivos)
 - [ ] T0.13 Firebase Cloud Messaging: dependencia, permiso `POST_NOTIFICATIONS` y token
 - [ ] T0.14 Habilitar persistencia offline de Firestore
+- [x] T0.15 **Modo degradado en Noticias** (bug offline encontrado el 28/09/2026): sin red,
+      `fetchFilteredNews` lanzaba `UnknownHostException` y **crasheaba la app**. Arreglado:
+      el ViewModel captura el fallo y la pantalla muestra un estado de error con "Reintentar".
+      Verificado en emulador en modo avión (sin crash).
 
 ---
 

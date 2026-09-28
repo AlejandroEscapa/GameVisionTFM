@@ -67,6 +67,12 @@ android {
         buildConfig = true
     }
 
+    // Los tests unitarios (JVM) pueden llamar a APIs de Android como Log sin que
+    // revienten: devuelven valores por defecto en lugar de lanzar (F0).
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     // Claves de API leídas de local.properties (fuera del control de versiones; nunca hardcodear en el código fuente)
     buildTypes.all {
         buildConfigField("String", "NEWS_API_KEY", "\"${localProps.getProperty("newsApiKey", "")}\"")

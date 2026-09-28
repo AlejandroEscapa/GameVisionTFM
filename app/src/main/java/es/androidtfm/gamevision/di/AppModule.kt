@@ -3,6 +3,7 @@ package es.androidtfm.gamevision.di
 import android.app.Application
 import android.content.Context
 import androidx.credentials.CredentialManager
+import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -11,7 +12,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import es.androidtfm.gamevision.R
+import es.androidtfm.gamevision.data.catalog.CachedGameCatalog
 import es.androidtfm.gamevision.data.catalog.GameCatalog
+import es.androidtfm.gamevision.data.catalog.local.CatalogDatabase
+import es.androidtfm.gamevision.data.catalog.local.GameDao
 import es.androidtfm.gamevision.data.catalog.rawg.RawgGameCatalog
 import es.androidtfm.gamevision.datastore.SessionPreferences
 import es.androidtfm.gamevision.datastore.ThemeDataStore
@@ -44,12 +48,29 @@ object AppModule {
     fun provideGamesApi(): GameApiService = RetrofitInstance.gamesApi
 
     /**
-     * Catálogo de juegos. Hoy RAWG; cambiar a IGDB (o añadir uno secundario) es
-     * cambiar esta línea — ninguna pantalla ni ViewModel toca DTOs del proveedor.
+     * Base de datos Room de la caché de catálogo (F0/T0.4). Alcance acotado:
+     * fichas visitadas + búsquedas recientes (decisión D0.3).
      */
     @Provides
     @Singleton
-    fun provideGameCatalog(gamesApi: GameApiService): GameCatalog = RawgGameCatalog(gamesApi)
+    fun provideCatalogDatabase(@ApplicationContext context: Context): CatalogDatabase =
+        Room.databaseBuilder(context, CatalogDatabase::class.java, "catalog.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideGameDao(database: CatalogDatabase): GameDao = database.gameDao()
+
+    /**
+     * Catálogo de juegos. Hoy RAWG envuelto en caché local con modo degradado
+     * (F0/T0.4-T0.5); cambiar a IGDB es cambiar la implementación de dentro —
+     * ninguna pantalla ni ViewModel toca DTOs del proveedor.
+     */
+    @Provides
+    @Singleton
+    fun provideGameCatalog(gamesApi: GameApiService, gameDao: GameDao): GameCatalog =
+        CachedGameCatalog(RawgGameCatalog(gamesApi), gameDao)
 
     @Provides
     @Singleton

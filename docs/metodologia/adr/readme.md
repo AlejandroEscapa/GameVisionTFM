@@ -11,6 +11,7 @@
 |---|---|---|---|
 | [0000](0000-plantilla.md) | Plantilla | — | — |
 | [0001](0001-adapter-catalogo-rawg.md) | Adapter de catálogo: RAWG ahora, IGDB preparado | Aceptado | 2026-09-27 |
+| [0002](0002-escala-valoracion.md) | Escala de valoración: 1–10 entero | Aceptado | 2026-09-28 |
 
 ## Cuándo crear un ADR
 

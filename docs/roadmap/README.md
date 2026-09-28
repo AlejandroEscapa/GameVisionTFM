@@ -58,7 +58,10 @@
 
 | Decisión | Cuándo hay que cerrarla | Estado |
 |---|---|---|
-| **Fuente de la duración de los juegos** (scraper de HowLongToBeat, dato manual, IGDB…) | **Antes de T1.11 (F1)** | Pendiente del propietario |
+| **Fuente de la duración de los juegos** (scraper de HowLongToBeat, dato manual, IGDB…) | **Antes de T1.11 (F1)** | Pendiente del propietario (a debatir) |
+| **Modelo de monetización** (gratis + premium barato + micromecenazgo) | Antes de F5 (Publicación) | Pendiente (a debatir ampliamente) |
+| **Tipo de cuenta de Play** (personal vs organización) | Al preparar F5 | Aplazada: "cuando acabemos la app" |
+| **Actualización de Kotlin** (2.2.10 → 2.4.x) | Antes de la release / cuando el tooling lo exija | Diferida: "cuando sea oportuno" |
 | Integración parcial con IGDB | Cuando se cumpla una condición de disparo (ver F0) | Marcada para el futuro |
 | Modelo social: amigos vs seguir | Al empezar F2 | Diferida a F2 |
 

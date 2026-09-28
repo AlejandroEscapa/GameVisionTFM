@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -63,12 +64,15 @@ fun NewsScreen(
     // Estado para la lista de artículos
     val newsState = remember { mutableStateOf<List<Article>>(emptyList()) }
     val context = LocalContext.current
+    // Modo degradado: si la carga falla (p. ej. sin conexión) se muestra un aviso
+    val loadFailed = newsViewModel.loadFailed.collectAsState().value
+    // Clave para relanzar la carga desde el botón de reintento
+    val retryKey = remember { mutableStateOf(0) }
 
-    // Al iniciar la pantalla se obtienen las noticias y se realiza el fetch del usuario
-    LaunchedEffect(Unit) {
-        // Fetch de noticias filtradas
-        val result = newsViewModel.fetchFilteredNews("games")
-        newsState.value = result
+    // Al iniciar la pantalla se obtienen las noticias; también al pulsar "Reintentar".
+    LaunchedEffect(retryKey.value) {
+        // El ViewModel ya no lanza: devuelve lista vacía y marca loadFailed si falla.
+        newsState.value = newsViewModel.fetchFilteredNews("games")
 
         // El perfil del usuario ya no se pide aquí: UserViewModel.profile es un
         // flujo en vivo (SSOT) y se mantiene actualizado por sí solo.
@@ -101,7 +105,7 @@ fun NewsScreen(
                 )
             }
         }
-        // Se muestran los artículos o un indicador de carga
+        // Se muestran los artículos, un aviso de error sin conexión o el estado de carga
         if (newsState.value.isNotEmpty()) {
             items(newsState.value) { article ->
                 ArticleCard(
@@ -113,6 +117,8 @@ fun NewsScreen(
                     isDarkMode = isDarkTheme
                 )
             }
+        } else if (loadFailed) {
+            item { NewsErrorState(onRetry = { retryKey.value++ }) }
         } else {
             item {
                 NewsLoadingIndicator()
@@ -220,6 +226,39 @@ fun NewsLoadingIndicator() {
             text = "Cargando noticias...",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+    }
+}
+
+/*
+ * Composable que muestra un aviso cuando no se pudieron cargar las noticias
+ * (modo degradado, F0) con un botón para reintentar.
+ */
+@Composable
+fun NewsErrorState(onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 50.dp, start = 24.dp, end = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "No se pudieron cargar las noticias",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Comprueba tu conexión a internet e inténtalo de nuevo.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        es.androidtfm.gamevision.ui.designsystem.components.GVButton(
+            text = "Reintentar",
+            onClick = onRetry
         )
     }
 }

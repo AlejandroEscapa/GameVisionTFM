@@ -30,7 +30,7 @@ como diferenciación directa.
 |---|---|---|---|---|
 | D1.1 | **Definición exacta de los estados** | (a) Completado = ver créditos, Dominado = 100 % · (b) Nuestra propia definición | **(a)**: el sector ya usa ese vocabulario y evita discusión con el usuario | ⬜ |
 | D1.2 | **¿Nota y reseña obligatorias al registrar?** | (a) Todo opcional · (b) Nota obligatoria · (c) Nota obligatoria sólo al completar | **(a) opcional al registrar, (c) sugerida al completar**: no bloquear nunca el registro rápido (GG gana por registrar en 10 s) | ⬜ |
-| D1.3 | **Escala de nota** | (a) 5 estrellas con medias · (b) 10 puntos · (c) Ambas | **(a)**: es el estándar del sector (Backloggd, Letterboxd) y se compara mejor | ⬜ |
+| D1.3 | **Escala de nota** | (a) 5 estrellas con medias · (b) 10 puntos · (c) Ambas | ✅ **CERRADA (28/09/2026): escala 1–10 entera** (más clásica y representativa; el análisis competitivo 2026 recomienda granularidad fina para juegos). Ver ADR-0002 | ✅ |
 | D1.4 | **Duración del juego: fuente** | (a) Scraper HowLongToBeat · (b) Sólo campo propio · (c) No incluirla | **(a) con caché y fallback a (b)**: es *la* pregunta práctica y hoy obliga al usuario a abrir otra app | ⬜ |
 | D1.5 | **Estadísticas: ¿cliente o servidor?** | (a) Calcular en el cliente · (b) Cloud Function | **(a) en F1**: con los datos del propio usuario es rápido y evita dependencia de Functions; (b) cuando F3 necesite agregados | ⬜ |
 | D1.6 | **¿El diario es automático o manual?** | (a) Manual (el usuario apunta) · (b) Automático (al cambiar de estado) | **(a) manual, con atajos**: el diario es un acto de voluntad (como Letterboxd) y su valor está en que el usuario lo escribe | ⬜ |
@@ -97,4 +97,8 @@ usuario de prueba con datos variados.
 
 ## Registro de decisiones
 
-_(vacío: pendiente de debate)_
+- **D1.3 — Escala de nota 1–10 (28/09/2026)** — Decidido por el propietario tras el cierre del
+  análisis competitivo: se usa **escala numérica entera de 1 a 10**. Motivo: es más clásica y
+  representativa, y da la granularidad que los juegos necesitan. Cierra el conflicto con la
+  recomendación inicial (5 estrellas). Ver **ADR-0002** (`docs/metodologia/adr/0002-escala-valoracion.md`).
+  *Nota de implementación:* los campos `rating` del modelo deben migrar de 5 estrellas a 1–10.

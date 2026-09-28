@@ -1,11 +1,14 @@
 package es.androidtfm.gamevision.viewmodel
 
 import androidx.lifecycle.ViewModel
+import android.util.Log
 import dagger.hilt.android.lifecycle.HiltViewModel
 import es.androidtfm.gamevision.BuildConfig
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.retrofit.NewsApiService
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -29,6 +32,10 @@ class NewsViewModel @Inject constructor(
     private val newsApi: NewsApiService
 ) : ViewModel() {
 
+    private companion object {
+        const val TAG = "NewsViewModel"
+    }
+
     /**
      * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
      */
@@ -38,21 +45,37 @@ class NewsViewModel @Inject constructor(
     private val apiKey = BuildConfig.NEWS_API_KEY
 
     /**
+     * Indica si la última carga falló (p. ej. sin conexión). La UI lo usa para
+     * mostrar un aviso en lugar de quedarse cargando para siempre (F0/modo degradado).
+     */
+    private val _loadFailed = MutableStateFlow(false)
+    val loadFailed: StateFlow<Boolean> = _loadFailed
+
+    /**
      * Obtiene noticias filtradas según una consulta.
      * @param query: Término de búsqueda para filtrar las noticias.
-     * @return Lista de artículos filtrados y ordenados.
+     * @return Lista de artículos filtrados y ordenados. Lista vacía si falla la red.
      */
-    suspend fun fetchFilteredNews(query: String): List<Article> {
-        // Llamada a la API para obtener las noticias
-        val response = newsApi.getEverything(query, apiKey)
-
-        // Filtra las noticias que no contienen "[Removed]" en el título o no tienen imagen
-        return response.articles.filter {
-            !it.title.contains("[Removed]", ignoreCase = true)
-                    && !it.urlToImage.isNullOrEmpty()
-        }.sortedByDescending { it.publishedAt } // Ordena por fecha de publicación en orden descendente
-            .take(25) // Limita el resultado a 25 artículos
-    }
+    suspend fun fetchFilteredNews(query: String): List<Article> =
+        runCatching { newsApi.getEverything(query, apiKey) }
+            .fold(
+                onSuccess = { response ->
+                    _loadFailed.value = false
+                    // Filtra las noticias sin imagen o marcadas como "[Removed]"
+                    response.articles.filter {
+                        !it.title.contains("[Removed]", ignoreCase = true) &&
+                            !it.urlToImage.isNullOrEmpty()
+                    }.sortedByDescending { it.publishedAt } // Ordena por fecha descendente
+                        .take(25) // Limita el resultado a 25 artículos
+                },
+                onFailure = { error ->
+                    // Modo degradado: sin red no se cae la app; se marca el fallo y
+                    // se devuelve lista vacía para que la UI avise al usuario.
+                    Log.w(TAG, "No se pudieron cargar las noticias: ${error.message}")
+                    _loadFailed.value = true
+                    emptyList()
+                }
+            )
 
     /**
      * Formatea la fecha de publicación de un artículo.

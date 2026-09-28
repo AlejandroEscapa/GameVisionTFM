@@ -28,6 +28,12 @@ class NewsViewModelTest {
         }
     }
 
+    /** Fake que simula un fallo de red (sin conexión). */
+    private class ThrowingNewsApiService : NewsApiService {
+        override suspend fun getEverything(query: String, apiKey: String): New =
+            throw java.net.UnknownHostException("newsapi.org")
+    }
+
     private fun article(
         title: String,
         publishedAt: String,
@@ -94,6 +100,16 @@ class NewsViewModelTest {
         val result = viewModel.fetchFilteredNews("gaming")
 
         assertEquals(25, result.size)
+    }
+
+    @Test
+    fun `sin conexion devuelve lista vacia y marca loadFailed`() = runTest {
+        val viewModel = NewsViewModel(ThrowingNewsApiService())
+
+        val result = viewModel.fetchFilteredNews("gaming")
+
+        assertTrue(result.isEmpty())
+        assertTrue(viewModel.loadFailed.value)
     }
 
     @Test
