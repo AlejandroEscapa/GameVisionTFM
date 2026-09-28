@@ -26,7 +26,7 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 | Cerrar el adapter de catálogo | `GameCatalog` + `RawgGameCatalog` commiteados, UI sin DTOs de RAWG | ✅ Hecho |
 | Caché local de catálogo (Room) | App muestra fichas visitadas sin red (verificado en modo avión) | ✅ Hecha |
 | Modelo de biblioteca | `library`/`logs`/`sessions` + repositorio y adopción en pantallas | ✅ Hecho (B1/B2, E2E) |
-| Limpieza de datos (B3) | Datos de prueba borrados y usuario nuevo verificado end-to-end | ⬜ |
+| Limpieza de datos (B3) | Datos de prueba borrados (verificación ✅) y E2E con cuenta QA verificado | ✅ Hecho |
 | Foto de perfil en Storage | La imagen viaja entre dispositivos | ⬜ |
 | Offline real | La app abre y funciona sin conexión con lo visitado | ⬜ |
 | Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | 🟢 En curso (Bloques 1–2 hechos; B3 pendiente del propietario) |

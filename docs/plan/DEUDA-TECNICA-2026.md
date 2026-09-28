@@ -38,9 +38,9 @@
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-B3-1** | Datos de prueba antiguos: listas viejas (`playedlist`/`wishlist`/`favorites`/`history`), basura (`aa`, `ee`), cuentas de prueba | Backup → borrado desde consola/Admin (el cliente ya no puede tocar esas rutas, y así debe ser) → verificación con usuario nuevo |
+| **D-B3-1** | Datos de prueba antiguos: listas viejas (`playedlist`/`wishlist`/`favorites`/`history`), basura (`aa`, `ee`), cuentas de prueba | ✅ **Ejecutado (29/09)**: backup JSON + borrado (12 subcolecciones + `aa`/`ee`) con verificación ✅ — [`scripts/b3-limpieza/`](../../scripts/b3-limpieza/README.md) |
 | **D-B3-2** | Métodos muertos de las listas antiguas en `UserRepository` (sin uso tras B2) | ✅ Eliminados (28/09) |
-| **D-B3-3** | Reunificación de ramas: `ui-redesign-2026` vs `master` | Decisión del propietario al cerrar F0; documentar criterio |
+| **D-B3-3** | Reunificación de ramas: `ui-redesign-2026` vs `master` | ✅ **Resuelto (29/09)**: `ui-redesign-2026` fusionada a `master` por fast-forward (decisión del propietario) |
 
 ### 2.3 Código (higiene)
 
@@ -81,7 +81,7 @@
 
 ## 3. Plan por bloques
 
-### Bloque 0 — Seguridad y cierre de F0-B (en curso; ~1 sesión restante)
+### Bloque 0 — Seguridad y cierre de F0-B ✅ (cerrado 29/09/2026)
 **Incluye:** D-S1 ✅ (hecho), **B3** (D-B3-1: backup → borrado → usuario nuevo verificado),
 decisión de ramas (D-B3-3).
 **Criterio de cierre:** datos de prueba fuera; usuario nuevo con flujo completo verificado;
@@ -102,6 +102,10 @@ decisión de ramas escrita.
 **Herramienta lista:** [`scripts/b3-limpieza/`](../../scripts/b3-limpieza/README.md) — dry-run +
 `--commit` con backup JSON previo; solo falta que el propietario deje la clave de servicio.
 
+**Resultado (29/09/2026):** B3 **ejecutado** (backup + 12 subcolecciones + `aa`/`ee`, verificación ✅);
+ramas **fusionadas** (`master` actualizado por fast-forward, decisión del propietario); E2E con la
+cuenta QA ya verificado (28/09). Push/CI pospuesto a petición del propietario (documentado).
+
 ### Bloque 1 — Higiene rápida ✅ (28/09/2026)
 **Incluye:** D-C1 (API adaptativa V2), D-C4 (avisos), D-B3-2 (código muerto), D-S3 (docs Firebase).
 **Resultado:** API adaptativa migrada a `currentWindowAdaptiveInfoV2()` + `isWidthAtLeastBreakpoint`
@@ -116,7 +120,7 @@ tests instrumentados migrados a las APIs v2 de Compose Test); 4 métodos muertos
 (build+tests unitarios; tests de reglas con Emulator Suite) y dummy de `google-services.json` para CI;
 [`firebase-tests/`](../../firebase-tests/README.md) con **17/17 tests de reglas OK** (incluidos los
 negativos); tests instrumentados ejecutados por primera vez: **7/7 verdes** (incluido el smoke nuevo
-`SmokeTest`). Pendiente menor: ver el primer run real de CI en GitHub al hacer push.
+`SmokeTest`). Pendiente menor: ver el primer run real de CI en GitHub al hacer push — **pospuesto por decisión del propietario (29/09); documentado para cuando toque.**
 
 ### Bloque 3 — Toolchain Kotlin (+Hilt) 🟡 (spike completado; micro-mejoras aplicadas; salto bloqueado)
 **Spike (28/09, 3 builds de prueba):** AGP estable más reciente = 9.4.1 (ya la usamos); 9.5 sigue en
@@ -160,3 +164,6 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
   fuera · docs Firebase al día) y **Bloque 2 completado** (CI con 2 jobs · **reglas 17/17** ·
   **instrumentados 7/7**). Bloque 0: guion B3 listo; ramas listas para fast-forward. Único pendiente
   del tramo: ejecutar B3 (propietario) y ver el primer run de CI al hacer push.
+- **29/09/2026 (madrugada)** — **B3 ejecutado** (backup JSON + limpieza de 12 subcolecciones y
+  `aa`/`ee`, verificación ✅). **`master` actualizado** por fast-forward (decisión del propietario).
+  Push/CI pospuesto a petición del propietario. **Bloque 0 cerrado.**

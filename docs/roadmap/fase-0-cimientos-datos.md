@@ -61,7 +61,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] T0.8 Definir `sessions/{sessionId}`: sesión del diario (fecha, minutos) (modelo y repositorio; UI en F1)
 - [x] T0.9 Implementar el repositorio de biblioteca (`LibraryRepository`) devolviendo `Result` (+ adopción en pantallas, verificado E2E en emulador)
 - [x] T0.10 Reglas de Firestore actualizadas — **desplegadas el 28/09/2026 y verificadas**: login, lectura y escritura de biblioteca comprobados con las reglas nuevas activas. Test negativo sistemático: Bloque 2 del [plan de deuda](../plan/DEUDA-TECNICA-2026.md). Índices preparados en `firestore.indexes.json` para el próximo deploy por CLI
-- [ ] T0.11 Migración/limpieza de datos: `playedlist`/`wishlist`/`history` → **revisado 28/09: eran datos de prueba → se borran (backup previo); verificación con usuario de prueba nuevo**
+- [x] T0.11 **Limpieza ejecutada (29/09/2026)**: backup JSON + borrado de `playedlist`/`wishlist`/`history` (5 cuentas de prueba) y docs `aa`/`ee`, con verificación ✅. Herramienta: `scripts/b3-limpieza/`
 
 ### C. Deuda conocida
 - [ ] T0.12 Firebase Storage: subir la foto de perfil y guardar la URL (arregla el bug
@@ -83,8 +83,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       al recuperar la conexión (persistencia offline).
 - [ ] CA0.3 La foto de perfil subida desde el **dispositivo A** se ve al entrar desde el
       **dispositivo B** (o tras borrar datos de la app).
-- [ ] CA0.4 *(actualizado 28/09/2026)* Los datos antiguos eran **de prueba**: no se migran. La verificación
-      pasa a ser **end-to-end con un usuario de prueba nuevo** (registro → biblioteca → sesión → estadísticas).
+- [~] CA0.4 *(actualizado 29/09/2026)* Los datos antiguos eran **de prueba** y se han borrado con backup. Verificación: **parcial** — alta + listas verificadas E2E con la cuenta QA (28/09); el tramo de sesión/estadísticas llegará con F1 y se re-verificará entonces.
 - [ ] CA0.5 Cambiar de proveedor de catálogo no toca ni una pantalla (demostrable:
       sustituir la implementación en el módulo de Hilt compila sin tocar UI).
 - [ ] CA0.6 Tests: los 17 unitarios + 6 instrumentados siguen verdes; nuevos tests para
@@ -199,4 +198,7 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
   (por uid) y se verificaron desde la app (positivos): login, lectura y escritura de biblioteca.
   La comprobación negativa (acceso cruzado denegado) se hará con el Emulator Suite
   ([plan de deuda](../plan/DEUDA-TECNICA-2026.md), Bloque 2).
+- **B3 ejecutado (29/09/2026, madrugada)** — backup automático en `scripts/b3-limpieza/backups/`;
+  borradas 12 subcolecciones antiguas de 5 cuentas de prueba y los documentos `aa`/`ee`; verificación ✅.
+  Perfiles y social intactos (llegan a su rediseño en F2).
 
