@@ -11,6 +11,9 @@
 - **[Cierre del análisis competitivo y de mercado](analisis-competitivo-2026.md)** — competencia,
   matriz de sistemas a adoptar, dolores del usuario, tendencias y economía del sector.
   Decisiones **D-C1…D-C12**.
+- **[Propuesta F0-B: modelo de datos de la biblioteca, listo para escalar](../plan/F0B-propuesta-modelo-datos.md)** —
+  diseño definitivo de las 3 capas (ficha · partida · sesión) con identidad `uid`, estadísticas agregadas,
+  índices, reglas, costes y plan por etapas. **Pendiente de aprobación**.
 - **[Síntesis técnica y de publicación](sintesis-2026.md)** — Play Store, monetización, stack
   Android, diseño, marketing/ASO y métricas/proceso. Decisiones **D-E1…D-E9**.
 
@@ -35,6 +38,14 @@
 | UI/UX de las referencias | [fuentes-competencia/04-ui-ux-referencias.md](fuentes-competencia/04-ui-ux-referencias.md) |
 | Minería de reseñas | [fuentes-competencia/05-mineria-resenas.md](fuentes-competencia/05-mineria-resenas.md) |
 | Modelos de negocio | [fuentes-competencia/06-modelos-negocio.md](fuentes-competencia/06-modelos-negocio.md) |
+
+## Material crudo — técnicas de escalado (Firestore)
+
+| Frente | Documento |
+|---|---|
+| Modelado de datos Firestore para escalar | [fuentes-tecnicas/01-modelado-datos-firestore.md](fuentes-tecnicas/01-modelado-datos-firestore.md) |
+| Costes, cuotas y agregación | [fuentes-tecnicas/02-costes-cuotas-agregacion.md](fuentes-tecnicas/02-costes-cuotas-agregacion.md) |
+| Reglas, identidad y operación | [fuentes-tecnicas/03-reglas-identidad-operacion.md](fuentes-tecnicas/03-reglas-identidad-operacion.md) |
 
 ## Documentos relacionados
 

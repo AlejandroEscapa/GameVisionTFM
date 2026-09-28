@@ -52,6 +52,10 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       "sin conexión, mostrando datos guardados").
 
 ### B. Modelo de datos de la biblioteca
+
+> **Diseño definitivo pendiente de aprobación:** [docs/plan/F0B-propuesta-modelo-datos.md](../plan/F0B-propuesta-modelo-datos.md)
+> — propuesta senior para escalar (uid, stats agregadas, índices, reglas, costes). Se implementa tras el visto bueno.
+
 - [ ] T0.6 Definir `library/{gameId}`: estado, nota, favorito, plataforma, fecha de alta
 - [ ] T0.7 Definir `logs/{logId}`: partida con fecha de inicio/fin, horas, reseña, nota, plataforma
 - [ ] T0.8 Definir `sessions/{sessionId}`: sesión del diario (fecha, minutos)
