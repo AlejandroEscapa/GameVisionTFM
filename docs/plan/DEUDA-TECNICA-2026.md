@@ -120,7 +120,10 @@ tests instrumentados migrados a las APIs v2 de Compose Test); 4 métodos muertos
 (build+tests unitarios; tests de reglas con Emulator Suite) y dummy de `google-services.json` para CI;
 [`firebase-tests/`](../../firebase-tests/README.md) con **17/17 tests de reglas OK** (incluidos los
 negativos); tests instrumentados ejecutados por primera vez: **7/7 verdes** (incluido el smoke nuevo
-`SmokeTest`). Pendiente menor: ver el primer run real de CI en GitHub al hacer push — **pospuesto por decisión del propietario (29/09); documentado para cuando toque.**
+`SmokeTest`). **Resuelto (29/09)**: el primer run real falló por dos causas (bit de ejecución de
+  `gradlew`; JDK <21 en el emulador de reglas) **diagnosticadas con logs y corregidas** (`296241e`);
+  el **segundo run quedó VERDE** (build+tests y reglas):
+  https://github.com/AlejandroEscapa/GameVisionTFM/actions/runs/36491049211
 
 ### Bloque 3 — Toolchain Kotlin (+Hilt) 🟡 (spike completado; micro-mejoras aplicadas; salto bloqueado)
 **Spike (28/09, 3 builds de prueba):** AGP estable más reciente = 9.4.1 (ya la usamos); 9.5 sigue en
@@ -168,3 +171,7 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 - **29/09/2026 (madrugada)** — **B3 ejecutado** (backup JSON + limpieza de 12 subcolecciones y
   `aa`/`ee`, verificación ✅). **`master` actualizado** por fast-forward (decisión del propietario).
   Push/CI pospuesto a petición del propietario. **Bloque 0 cerrado.**
+- **29/09/2026 (madrugada, 2ª parte)** — **Bloque 4 cerrado** (release firmado: keystore + firma +
+  verificación apksigner + instalado/arrancado en emulador). **Ramas limpiadas**: `ui-redesign-2026`
+  y `upgrade-2026` borradas (local y remoto); queda solo `master`. **Push hecho** y **CI VERDE**
+  (segundo run; el primero falló por dos causas ya corregidas).
