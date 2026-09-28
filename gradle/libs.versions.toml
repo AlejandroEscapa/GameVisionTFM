@@ -3,7 +3,7 @@
 agp = "9.4.1"
 kotlinCompose = "2.2.10"
 kotlinSerialization = "2.2.10"
-ksp = "2.3.6"
+ksp = "2.3.12"
 googleServices = "4.5.0"
 
 # Android Core
@@ -21,7 +21,7 @@ navigationCompose = "2.10.2"
 coil = "3.3.0"
 
 # DI
-hiltVersion = "2.59.2"
+hiltVersion = "2.60.1"
 
 # Credential Manager (Jetpack)
 credentials = "1.6.0"
