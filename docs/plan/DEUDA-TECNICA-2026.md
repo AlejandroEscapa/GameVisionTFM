@@ -31,34 +31,34 @@
 | ID | Deuda | Estado |
 |---|---|---|
 | **D-S1** | Reglas de Firestore desplegadas demasiado abiertas (perfil público sin login; cualquier usuario autenticado podía acceder por comodín a los datos de cualquier otro) | ✅ **Resuelto (28/09)**: reglas nuevas publicadas por el propietario y **verificadas desde la app** (login, lectura y escritura de biblioteca). Los flujos sociales quedaron revisados: el borrado del muro ya estaba guardado para mensajes propios |
-| **D-S2** | Verificación **negativa** de las reglas (demostrar que se deniega el acceso cruzado) | ⚠️ Pendiente del sistema de test adecuado: **Emulator Suite** (Bloque 2). Las comprobaciones por REST quedaron bloqueadas al restringirse la clave de API (observado; si no fue intencionado, revisar) |
-| **D-S3** | `docs/firebase-setup.md` puede quedar desactualizado (auth antiguo / reglas viejas) | ⬜ Revisar y refrescar (Bloque 1) |
+| **D-S2** | Verificación **negativa** de las reglas | ✅ **Resuelto (28/09)**: [`firebase-tests/`](../../firebase-tests/README.md) con Emulator Suite — **17/17 OK**, incluidos todos los negativos (acceso cruzado denegado, perfiles protegidos, listas antiguas cerradas) |
+| **D-S3** | `docs/firebase-setup.md` desactualizado | ✅ Refrescado (28/09): «Estado actual» arriba e historial marcado |
 
 ### 2.2 Cierre de F0-B (paso B3)
 
 | ID | Deuda | Notas |
 |---|---|---|
 | **D-B3-1** | Datos de prueba antiguos: listas viejas (`playedlist`/`wishlist`/`favorites`/`history`), basura (`aa`, `ee`), cuentas de prueba | Backup → borrado desde consola/Admin (el cliente ya no puede tocar esas rutas, y así debe ser) → verificación con usuario nuevo |
-| **D-B3-2** | Métodos muertos de las listas antiguas en `UserRepository` (sin uso tras B2) | Eliminar en la misma ventana (Bloque 1) |
+| **D-B3-2** | Métodos muertos de las listas antiguas en `UserRepository` (sin uso tras B2) | ✅ Eliminados (28/09) |
 | **D-B3-3** | Reunificación de ramas: `ui-redesign-2026` vs `master` | Decisión del propietario al cerrar F0; documentar criterio |
 
 ### 2.3 Código (higiene)
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-C1** | API adaptativa deprecada en `BottomBarNavigation` (`WindowWidthSizeClass`, `currentWindowAdaptiveInfo`) | Migrar a la API V2; fix pequeño |
+| **D-C1** | API adaptativa deprecada en `BottomBarNavigation` | ✅ Migrada a la API V2 (`currentWindowAdaptiveInfoV2` + `isWidthAtLeastBreakpoint`) el 28/09 |
 | **D-C2** | `DDBBViewModel` es una fachada legacy (nombre "DDBB"; mezcla biblioteca y social) | Renombrar/partir durante F1 (`LibraryViewModel` + `SocialViewModel`) |
 | **D-C3** | Botón "Me gusta" del timeline es decorativo (no hace nada) | Implementar reacción en F2 (S16) o ocultar hasta entonces |
-| **D-C4** | Avisos de compilación menores (p. ej. KT-73255 en `GoogleViewModel`) | Limpiar en Bloque 1 |
+| **D-C4** | Avisos de compilación menores | ✅ A cero (28/09); incluidos los tests instrumentados migrados a las APIs v2 de Compose Test |
 | **D-C5** | Strings hardcodeados en español (i18n) | **Diferido**: disparador = plantear multiidioma |
 
 ### 2.4 Calidad e infraestructura
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-Q1** | Sin CI: nada comprueba builds/tests en cada push | GitHub Actions: build + tests unitarios (y después, reglas) |
-| **D-Q2** | Reglas de Firestore sin tests automatizados | `@firebase/rules-unit-testing` + Emulator Suite (cierra D-S2) |
-| **D-Q3** | Tests instrumentados (`connectedAndroidTest`) nunca ejecutados | 1–2 smoke tests corriendo en el emulador |
+| **D-Q1** | Sin CI | ✅ Workflow creado (28/09): 2 jobs — build+tests unitarios y tests de reglas |
+| **D-Q2** | Reglas de Firestore sin tests automatizados | ✅ **17/17 OK** en local (28/09); corre también en CI |
+| **D-Q3** | Tests instrumentados nunca ejecutados | ✅ Ejecutados (28/09): **7/7 verdes** en el emulador (incl. smoke nuevo) |
 | **D-Q4** | Changelog manual | Opcional: autogenerar desde commits convencionales |
 | **D-Q5** | Backups de Firestore sin configurar | Se cierra junto a F5 (con alertas de presupuesto y App Check) |
 
@@ -88,17 +88,32 @@ decisión de ramas (D-B3-3).
 decisión de ramas escrita.
 **Evidencia:** consulta de consola + E2E del usuario nuevo.
 
-### Bloque 1 — Higiene rápida (≈1 sesión)
-**Incluye:** D-C1 (API adaptativa V2), D-C4 (avisos), D-B3-2 (código muerto), D-S3 (docs Firebase).
-**Criterio de cierre:** build sin avisos relevantes; cero código muerto de las listas viejas;
-documentación de Firebase al día.
-**Evidencia:** build + tests + diff.
+**Guion B3 (lo ejecuta el propietario — consola/Admin):**
+1. **Backup**: Firestore → Backups (crear uno) o `gcloud firestore export`.
+2. **Borrar listas antiguas** en cada `users/{email}` antiguo: subcolecciones `playedlist`,
+   `wishlist`, `favorites`, `history`; y los documentos basura `aa` y `ee` (raíz de `users`).
+3. **Cuentas de prueba**: revisar Authentication (las `qa.*` se pueden borrar).
+4. **Usuario nuevo**: registro desde la app → añadir juego → favorito → comprobar pestañas.
+5. **Verificación final**: revisar en consola que no quedan `playedlist/wishlist/favorites/history`.
 
-### Bloque 2 — Calidad y CI (≈1–2 sesiones)
+**Ramas (dato para decidir):** `ui-redesign-2026` está **21 commits por delante** de `master` y
+**0 por detrás** → la fusión sería limpia (fast-forward). Recomendación: PR de cierre al terminar F0.
+
+### Bloque 1 — Higiene rápida ✅ (28/09/2026)
+**Incluye:** D-C1 (API adaptativa V2), D-C4 (avisos), D-B3-2 (código muerto), D-S3 (docs Firebase).
+**Resultado:** API adaptativa migrada a `currentWindowAdaptiveInfoV2()` + `isWidthAtLeastBreakpoint`
+(window-core 1.5); **avisos de compilación a cero** (incluida la anotación de GoogleViewModel y los
+tests instrumentados migrados a las APIs v2 de Compose Test); 4 métodos muertos eliminados de
+`UserRepository`; `docs/firebase-setup.md` refrescado.
+**Evidencia:** compilación sin warnings + **30 tests unitarios verdes**.
+
+### Bloque 2 — Calidad y CI ✅ (28/09/2026)
 **Incluye:** D-Q1 (GitHub Actions), D-Q2 (tests de reglas; cierra D-S2), D-Q3 (smoke instrumentado).
-**Criterio de cierre:** CI verde en un PR de prueba; tests de reglas corriendo en local y CI;
-un smoke instrumentado ejecutado con evidencia.
-**Evidencia:** enlace al run de CI + salida de tests.
+**Resultado:** workflow [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) con 2 jobs
+(build+tests unitarios; tests de reglas con Emulator Suite) y dummy de `google-services.json` para CI;
+[`firebase-tests/`](../../firebase-tests/README.md) con **17/17 tests de reglas OK** (incluidos los
+negativos); tests instrumentados ejecutados por primera vez: **7/7 verdes** (incluido el smoke nuevo
+`SmokeTest`). Pendiente menor: ver el primer run real de CI en GitHub al hacer push.
 
 ### Bloque 3 — Toolchain Kotlin (+Hilt) (≈1–2 sesiones; spike primero)
 **Incluye:** D-T1, D-T2. Spike: matriz de versiones compatible (AGP ↔ Kotlin ↔ Coil ↔ googleid),
@@ -137,3 +152,7 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 
 - **28/09/2026** — Plan creado. D-S1 resuelta y verificada (positivos). Bloque 0 en curso.
   Pendiente inmediato: B3 (limpieza) y decisión de ramas.
+- **28/09/2026 (noche)** — **Bloque 1 completado** (API adaptativa V2 · avisos a cero · código muerto
+  fuera · docs Firebase al día) y **Bloque 2 completado** (CI con 2 jobs · **reglas 17/17** ·
+  **instrumentados 7/7**). Bloque 0: guion B3 listo; ramas listas para fast-forward. Único pendiente
+  del tramo: ejecutar B3 (propietario) y ver el primer run de CI al hacer push.

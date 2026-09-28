@@ -1,0 +1,14 @@
+{
+  "name": "gamevision-firebase-tests",
+  "private": true,
+  "type": "module",
+  "description": "Tests de las reglas de Firestore con el Emulator Suite (F0-B).",
+  "scripts": {
+    "test": "cd .. && firebase emulators:exec --only firestore --project demo-gamevision \"node firebase-tests/rules.test.mjs\""
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.32.0"
+  }
+}

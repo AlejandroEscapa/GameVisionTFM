@@ -29,7 +29,7 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 | Limpieza de datos (B3) | Datos de prueba borrados y usuario nuevo verificado end-to-end | ⬜ |
 | Foto de perfil en Storage | La imagen viaja entre dispositivos | ⬜ |
 | Offline real | La app abre y funciona sin conexión con lo visitado | ⬜ |
-| Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | 🟢 En curso (Bloque 0) |
+| Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | 🟢 En curso (Bloques 1–2 hechos; B3 pendiente del propietario) |
 
 ### 🟠 Siguiente (cierre de F1 — El corazón del tracker)
 Estados ricos, valoración con estrellas, reseñas, diario con sesiones, múltiples
