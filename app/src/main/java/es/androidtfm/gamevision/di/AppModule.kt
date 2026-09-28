@@ -11,6 +11,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import es.androidtfm.gamevision.R
+import es.androidtfm.gamevision.data.catalog.GameCatalog
+import es.androidtfm.gamevision.data.catalog.rawg.RawgGameCatalog
 import es.androidtfm.gamevision.datastore.SessionPreferences
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.retrofit.GameApiService
@@ -40,6 +42,14 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGamesApi(): GameApiService = RetrofitInstance.gamesApi
+
+    /**
+     * Catálogo de juegos. Hoy RAWG; cambiar a IGDB (o añadir uno secundario) es
+     * cambiar esta línea — ninguna pantalla ni ViewModel toca DTOs del proveedor.
+     */
+    @Provides
+    @Singleton
+    fun provideGameCatalog(gamesApi: GameApiService): GameCatalog = RawgGameCatalog(gamesApi)
 
     @Provides
     @Singleton

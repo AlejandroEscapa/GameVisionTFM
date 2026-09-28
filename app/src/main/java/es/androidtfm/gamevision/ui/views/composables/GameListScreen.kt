@@ -55,7 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
@@ -230,7 +230,7 @@ fun GameListEmptyState() {
 @Composable
 fun GameList(
     gameIds: List<String>,
-    gamesMap: Map<Int, Game>,
+    gamesMap: Map<Int, CatalogGame>,
     navController: NavController,
     searchViewModel: SearchViewModel,
     context: Context,
@@ -279,7 +279,7 @@ fun HeaderTitle(selectedList: String) {
 @Composable
 fun GameCard(
     navController: NavController,
-    game: Game?,
+    game: CatalogGame?,
     gameId: String,
     searchViewModel: SearchViewModel,
     context: Context,
@@ -312,7 +312,7 @@ fun GameCard(
         Box(modifier = Modifier.fillMaxSize()) {
             // Background image (shared element: vuela al detalle)
             GameCover(
-                imageUrl = game.backgroundImage,
+                imageUrl = game.coverUrl,
                 title = game.name,
                 contentDescription = "Imagen del juego",
                 modifier = Modifier
@@ -364,7 +364,7 @@ fun GameCard(
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                         append("Géneros: ")
                                     }
-                                    append(game.genres.joinToString(", ") { it.name })
+                                    append(game.genres.joinToString(", "))
                                 },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

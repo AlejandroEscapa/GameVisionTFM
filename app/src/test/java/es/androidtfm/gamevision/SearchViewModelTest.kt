@@ -1,8 +1,7 @@
 package es.androidtfm.gamevision
 
-import es.androidtfm.gamevision.retrofit.ApiResponse
-import es.androidtfm.gamevision.retrofit.Game
-import es.androidtfm.gamevision.retrofit.GameApiService
+import es.androidtfm.gamevision.data.catalog.CatalogGame
+import es.androidtfm.gamevision.data.catalog.GameCatalog
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,62 +18,38 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Tests unitarios de SearchViewModel usando un fake de GameApiService (sin red ni mocking).
+ * Tests unitarios de SearchViewModel sobre el catálogo de dominio.
+ *
+ * Se usa un fake de `GameCatalog`, así que estos tests NO conocen a RAWG: si algún
+ * día se migra a IGDB, siguen valiendo tal cual (ese es el valor del adapter, F0).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
 
     private val mainDispatcher = UnconfinedTestDispatcher()
 
-    private class FakeGameApiService(
-        private val searchResponse: ApiResponse = ApiResponse(0, null, null, emptyList()),
-        private val game: Game? = null,
-        private val failSearch: Boolean = false
-    ) : GameApiService {
-        var lastSearchQuery: String? = null
+    private class FakeGameCatalog(
+        private val searchResult: Result<List<CatalogGame>> = Result.success(emptyList()),
+        private val detailsResult: Result<CatalogGame?> = Result.success(null)
+    ) : GameCatalog {
+        var lastQuery: String? = null
             private set
 
-        override suspend fun searchGames(search: String, key: String): ApiResponse {
-            lastSearchQuery = search
-            if (failSearch) throw RuntimeException("network down")
-            return searchResponse
+        override suspend fun search(query: String): Result<List<CatalogGame>> {
+            lastQuery = query
+            return searchResult
         }
 
-        override suspend fun getGameDetails(gameId: Int, key: String): Game =
-            game ?: throw RuntimeException("not found")
+        override suspend fun getDetails(gameId: Int): Result<CatalogGame?> = detailsResult
     }
 
-    private fun testGame(id: Int, name: String) = Game(
-        slug = "slug-$id",
-        name = name,
-        playtime = 10,
-        platforms = emptyList(),
-        stores = emptyList(),
-        released = "2025-01-01",
-        tba = false,
-        backgroundImage = "https://example.com/$id.jpg",
-        rating = 4.5,
-        ratingTop = 5,
-        ratings = emptyList(),
-        ratingsCount = 100,
-        reviewsTextCount = 10,
-        added = 200,
-        addedByStatus = null,
-        metacritic = 80,
-        suggestionsCount = 5,
-        updated = "2025-06-01",
+    private fun game(id: Int, name: String) = CatalogGame(
         id = id,
-        score = null,
-        clip = null,
-        tags = emptyList(),
-        esrbRating = null,
-        userGame = null,
-        reviewsCount = 50,
-        saturatedColor = "#0f0f0f",
-        dominantColor = "#0f0f0f",
-        shortScreenshots = emptyList(),
-        parentPlatforms = emptyList(),
-        genres = emptyList()
+        name = name,
+        coverUrl = "https://example.com/$id.jpg",
+        released = "2025-01-01",
+        rating = 4.5,
+        genres = listOf("Action", "RPG")
     )
 
     @Before
@@ -89,8 +64,10 @@ class SearchViewModelTest {
 
     @Test
     fun `fetchGames con exito actualiza la lista y finaliza la carga`() = runTest {
-        val games = listOf(testGame(1, "Zelda"), testGame(2, "Mario"))
-        val viewModel = SearchViewModel(FakeGameApiService(searchResponse = ApiResponse(2, null, null, games)))
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda"), game(2, "Mario")))
+        )
+        val viewModel = SearchViewModel(catalog)
 
         viewModel.fetchGames("  zelda \"\" ")
 
@@ -100,18 +77,21 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `fetchGames limpia la consulta enviada a la API`() = runTest {
-        val api = FakeGameApiService()
-        val viewModel = SearchViewModel(api)
+    fun `fetchGames limpia la consulta enviada al catalogo`() = runTest {
+        val catalog = FakeGameCatalog()
+        val viewModel = SearchViewModel(catalog)
 
         viewModel.fetchGames("  metroid \"prime\"  ")
 
-        assertEquals("metroid prime", api.lastSearchQuery)
+        assertEquals("metroid prime", catalog.lastQuery)
     }
 
     @Test
-    fun `fetchGames con fallo de red publica el error y vacia resultados`() = runTest {
-        val viewModel = SearchViewModel(FakeGameApiService(failSearch = true))
+    fun `fetchGames con fallo publica el error y deja la lista vacia`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.failure(RuntimeException("sin conexión"))
+        )
+        val viewModel = SearchViewModel(catalog)
 
         viewModel.fetchGames("zelda")
 
@@ -122,12 +102,28 @@ class SearchViewModelTest {
 
     @Test
     fun `fetchGameDetails con exito actualiza los detalles`() = runTest {
-        val viewModel = SearchViewModel(FakeGameApiService(game = testGame(7, "Hollow Knight")))
+        val catalog = FakeGameCatalog(
+            detailsResult = Result.success(game(7, "Hollow Knight"))
+        )
+        val viewModel = SearchViewModel(catalog)
 
         viewModel.fetchGameDetails(7)
 
         assertEquals("Hollow Knight", viewModel.gameDetails.value?.name)
         assertFalse(viewModel.isLoadingDetails.value)
         assertNull(viewModel.errorDetails.value)
+    }
+
+    @Test
+    fun `fetchGameDetails con fallo publica el error de detalles`() = runTest {
+        val catalog = FakeGameCatalog(
+            detailsResult = Result.failure(RuntimeException("404"))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.fetchGameDetails(99)
+
+        assertTrue(viewModel.errorDetails.value?.contains("Error al cargar detalles") == true)
+        assertNull(viewModel.gameDetails.value)
     }
 }

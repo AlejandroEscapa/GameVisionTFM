@@ -6,13 +6,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import es.androidtfm.gamevision.retrofit.Game
-import es.androidtfm.gamevision.retrofit.GameApiService
+import es.androidtfm.gamevision.data.catalog.CatalogGame
+import es.androidtfm.gamevision.data.catalog.GameCatalog
+import es.androidtfm.gamevision.data.catalog.rawg.RawgGameCatalog
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import javax.inject.Inject
 
 /*
@@ -27,20 +27,22 @@ import javax.inject.Inject
  * Contiene todos los métodos con los que se interactúa con la API de juegos.
  */
 
+private const val TAG = "SearchViewModel"
+
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    // Inyectable para pruebas; Hilt provee la instancia Retrofit de la aplicación
-    private val gamesApi: GameApiService
+    // Catálogo de dominio: la UI y este ViewModel no conocen al proveedor concreto
+    private val catalog: GameCatalog
 ) : ViewModel() {
 
     /**
      * Constructor sin argumentos para previews y usos manuales (Hilt usa el primario).
      */
-    constructor() : this(RetrofitInstance.gamesApi)
+    constructor() : this(RawgGameCatalog(RetrofitInstance.gamesApi))
 
     // Estados para la búsqueda de juegos
-    private val _games = MutableStateFlow<List<Game>>(emptyList())
-    val games: StateFlow<List<Game>> = _games
+    private val _games = MutableStateFlow<List<CatalogGame>>(emptyList())
+    val games: StateFlow<List<CatalogGame>> = _games
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -49,12 +51,12 @@ class SearchViewModel @Inject constructor(
     val error: StateFlow<String?> = _error
 
     // Estado para almacenar múltiples juegos por ID
-    private val _gamesMap = mutableStateMapOf<Int, Game>()
-    val gamesMap: SnapshotStateMap<Int, Game> = _gamesMap
+    private val _gamesMap = mutableStateMapOf<Int, CatalogGame>()
+    val gamesMap: SnapshotStateMap<Int, CatalogGame> = _gamesMap
 
     // Estados para los detalles del juego
-    private val _gameDetails = MutableStateFlow<Game?>(null)
-    val gameDetails: StateFlow<Game?> = _gameDetails
+    private val _gameDetails = MutableStateFlow<CatalogGame?>(null)
+    val gameDetails: StateFlow<CatalogGame?> = _gameDetails
 
     private val _isLoadingDetails = MutableStateFlow(false)
     val isLoadingDetails: StateFlow<Boolean> = _isLoadingDetails
@@ -73,22 +75,11 @@ class SearchViewModel @Inject constructor(
 
             // Limpia la consulta eliminando espacios innecesarios y comillas
             val cleanedQuery = query.trim().replace("\"", "")
-            val requestBody = "search \"$cleanedQuery\"; fields *;"
 
-            try {
-                // Llamada a la API para buscar juegos
-                val response = gamesApi.searchGames(cleanedQuery)
-                _games.value = response.results // Actualiza la lista de juegos
-            } catch (e: HttpException) {
-                // Maneja errores HTTP
-                val errorResponse = e.response()?.errorBody()?.string()
-                _error.value = "Error al cargar juegos: $errorResponse"
-            } catch (e: Exception) {
-                // Maneja errores generales
-                _error.value = "Error al cargar juegos: ${e.message}"
-            } finally {
-                _isLoading.value = false // Carga finalizada
-            }
+            catalog.search(cleanedQuery)
+                .onSuccess { _games.value = it }
+                .onFailure { _error.value = "Error al cargar juegos: ${it.message}" }
+            _isLoading.value = false
         }
     }
 
@@ -101,20 +92,10 @@ class SearchViewModel @Inject constructor(
             _isLoadingDetails.value = true // Indica que la carga ha comenzado
             _errorDetails.value = null     // Limpia cualquier error previo
 
-            try {
-                // Llamada a la API para obtener los detalles del juego
-                val response = gamesApi.getGameDetails(gameId)
-                _gameDetails.value = response // Actualiza los detalles del juego
-            } catch (e: HttpException) {
-                // Maneja errores HTTP
-                val errorResponse = e.response()?.errorBody()?.string()
-                _errorDetails.value = "Error al cargar detalles: $errorResponse"
-            } catch (e: Exception) {
-                // Maneja errores generales
-                _errorDetails.value = "Error al cargar detalles: ${e.message}"
-            } finally {
-                _isLoadingDetails.value = false // Carga finalizada
-            }
+            catalog.getDetails(gameId)
+                .onSuccess { _gameDetails.value = it }
+                .onFailure { _errorDetails.value = "Error al cargar detalles: ${it.message}" }
+            _isLoadingDetails.value = false
         }
     }
 
@@ -125,15 +106,10 @@ class SearchViewModel @Inject constructor(
     suspend fun fetchAndStoreGameDetails(gameId: Int) {
         viewModelScope.launch {
             _isLoadingDetails.value = true // Indica que la carga ha comenzado
-            try {
-                // Llamada a la API para obtener los detalles del juego
-                val response = gamesApi.getGameDetails(gameId)
-                _gamesMap[gameId] = response // Almacena los detalles en el mapa
-            } catch (e: Exception) {
-                // Maneja errores generales (puedes agregar más detalles si es necesario)
-            } finally {
-                _isLoadingDetails.value = false // Carga finalizada
-            }
+            catalog.getDetails(gameId)
+                .onSuccess { game -> game?.let { _gamesMap[gameId] = it } }
+                .onFailure { Log.w(TAG, "No se pudo cachear el juego $gameId: ${it.message}") }
+            _isLoadingDetails.value = false
         }
     }
 

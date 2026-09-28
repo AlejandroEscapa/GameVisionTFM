@@ -58,7 +58,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameGridSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
@@ -252,7 +252,7 @@ fun SearchScreen(
  */
 @Composable
 fun GameCard(
-    game: Game,
+    game: CatalogGame,
     navController: NavController
 ) {
     Card(
@@ -267,7 +267,7 @@ fun GameCard(
         Box(modifier = Modifier.fillMaxSize()) {
             // Imagen de fondo del juego (shared element: vuela al detalle)
             GameCover(
-                imageUrl = game.backgroundImage,
+                imageUrl = game.coverUrl,
                 title = game.name,
                 modifier = Modifier
                     .fillMaxSize()
@@ -322,7 +322,7 @@ fun GameCard(
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                         append("Géneros: ")
                                     }
-                                    append(game.genres.joinToString(", ") { it.name })
+                                    append(game.genres.joinToString(", "))
                                 },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

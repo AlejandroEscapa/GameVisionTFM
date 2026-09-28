@@ -53,7 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.retrofit.Game
+import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
@@ -150,7 +150,7 @@ fun GameDetails(
                             onClick = {
                                 game?.let {
                                     val shareText =
-                                        "¡Mira este juego! ${it.name} - ${it.backgroundImage}"
+                                        "¡Mira este juego! ${it.name} - ${it.coverUrl}"
                                     context.startActivity(
                                         Intent.createChooser(
                                             Intent().apply {
@@ -230,7 +230,7 @@ fun GameDetails(
 
 
 @Composable
-fun GameContent(game: Game?) {
+fun GameContent(game: CatalogGame?) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -239,7 +239,7 @@ fun GameContent(game: Game?) {
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             GameCover(
-                imageUrl = game?.backgroundImage,
+                imageUrl = game?.coverUrl,
                 title = game?.name ?: "??",
                 contentDescription = "Imagen del juego",
                 modifier = Modifier
@@ -321,7 +321,7 @@ fun GameContent(game: Game?) {
                     MetaDataRow(
                         icon = Icons.Default.Info,
                         label = "Género",
-                        value = g.genres.joinToString { it.name }
+                        value = g.genres.joinToString()
                     )
                 }
             }
