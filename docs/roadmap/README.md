@@ -1,9 +1,12 @@
-# Roadmap GameVision — cómo se trackea y se debate
+﻿# Roadmap GameVision — cómo se trackea y se debate
 
 > Sistema de trabajo por fases para llevar GameVision al nivel descrito en
 > [product-vision-2026.md](../product-vision-2026.md).
 > Objetivo de esta carpeta: que **cada fase se pueda debatir antes de empezar,
 > seguir mientras se ejecuta y auditar cuando termina**.
+
+> **Contexto global:** las 8 vertientes, la estrategia, la revisión de la filosofía del
+> negocio y las fases F0-F6 están en el [Plan Maestro 2026](../plan/PLAN-MAESTRO-2026.md).
 
 ## Cómo se usa (flujo de una fase)
 
