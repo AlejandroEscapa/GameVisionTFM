@@ -60,7 +60,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] T0.7 Definir `logs/{logId}`: partida con fecha de inicio/fin, horas, reseña, nota, plataforma (modelo y repositorio; UI en F1)
 - [x] T0.8 Definir `sessions/{sessionId}`: sesión del diario (fecha, minutos) (modelo y repositorio; UI en F1)
 - [x] T0.9 Implementar el repositorio de biblioteca (`LibraryRepository`) devolviendo `Result` (+ adopción en pantallas, verificado E2E en emulador)
-- [~] T0.10 Actualizar las reglas de Firestore para las colecciones nuevas — **escritas en `firebase/firestore.rules`** (por uid, archivo listo); **PENDIENTE DE DESPLEGAR** (requiere `firebase login`; config en `firebase.json`/`.firebaserc`/`firestore.indexes.json`)
+- [x] T0.10 Reglas de Firestore actualizadas — **desplegadas el 28/09/2026 y verificadas**: login, lectura y escritura de biblioteca comprobados con las reglas nuevas activas. Test negativo sistemático: Bloque 2 del [plan de deuda](../plan/DEUDA-TECNICA-2026.md). Índices preparados en `firestore.indexes.json` para el próximo deploy por CLI
 - [ ] T0.11 Migración/limpieza de datos: `playedlist`/`wishlist`/`history` → **revisado 28/09: eran datos de prueba → se borran (backup previo); verificación con usuario de prueba nuevo**
 
 ### C. Deuda conocida
@@ -195,4 +195,8 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 - **D0.2 — revisión (28/09/2026)** — los datos de las listas actuales eran **de prueba**: en B3 se
   **borran** (junto a `aa` y `ee`) en lugar de migrarse; la verificación se hace creando un **usuario de
   prueba nuevo**.
+- **Reglas desplegadas y verificadas (28/09/2026)** — el propietario publicó las reglas nuevas
+  (por uid) y se verificaron desde la app (positivos): login, lectura y escritura de biblioteca.
+  La comprobación negativa (acceso cruzado denegado) se hará con el Emulator Suite
+  ([plan de deuda](../plan/DEUDA-TECNICA-2026.md), Bloque 2).
 

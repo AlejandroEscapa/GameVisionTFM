@@ -1,0 +1,139 @@
+# Plan de Deuda Técnica — GameVision (2026)
+
+> **Creado:** 28/09/2026 · **Estado:** en ejecución (se actualiza al cerrar cada bloque)
+> **Método:** inventario completo → priorización (`impacto × riesgo ÷ esfuerzo`) → bloques acotados
+> con criterio de cierre y **evidencia verificable**.
+> **Contexto:** nace al cerrar el bloque B2 de F0-B (biblioteca nueva). Recoge la deuda encontrada
+> durante la sesión y la ya conocida, ordenada para pagarla **antes de arrancar F1**, con las
+> piezas que bloquean la publicación marcadas para F5.
+
+---
+
+## 1. Principios de ejecución (criterio senior)
+
+1. **La deuda se paga en ventanas acotadas**, no "en ratos sueltos": cada bloque es una sesión
+   (o dos), con criterio de cierre y evidencia (build + tests + verificación en emulador/captura).
+2. **Orden por riesgo:** primero lo que protege **datos y accesos** (seguridad), después lo que
+   protege la **velocidad de trabajo** (CI e higiene), después el **futuro** (toolchain, release).
+3. **Nada de refactors sin disparador:** lo que puede esperar se queda con una **condición
+   explícita** de revisión; no hay "algún día".
+4. **Todo pasa por el GDF:** Definition of Done, commits convencionales y — si es una decisión
+   cara de revertir — ADR.
+5. **Cero deuda nueva por prisa:** antes de añadir features (F1), se cierra esta lista; así F1 se
+   construye sobre base limpia.
+
+---
+
+## 2. Inventario de deuda
+
+### 2.1 Seguridad — resuelto hoy; residual documentado
+
+| ID | Deuda | Estado |
+|---|---|---|
+| **D-S1** | Reglas de Firestore desplegadas demasiado abiertas (perfil público sin login; cualquier usuario autenticado podía acceder por comodín a los datos de cualquier otro) | ✅ **Resuelto (28/09)**: reglas nuevas publicadas por el propietario y **verificadas desde la app** (login, lectura y escritura de biblioteca). Los flujos sociales quedaron revisados: el borrado del muro ya estaba guardado para mensajes propios |
+| **D-S2** | Verificación **negativa** de las reglas (demostrar que se deniega el acceso cruzado) | ⚠️ Pendiente del sistema de test adecuado: **Emulator Suite** (Bloque 2). Las comprobaciones por REST quedaron bloqueadas al restringirse la clave de API (observado; si no fue intencionado, revisar) |
+| **D-S3** | `docs/firebase-setup.md` puede quedar desactualizado (auth antiguo / reglas viejas) | ⬜ Revisar y refrescar (Bloque 1) |
+
+### 2.2 Cierre de F0-B (paso B3)
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-B3-1** | Datos de prueba antiguos: listas viejas (`playedlist`/`wishlist`/`favorites`/`history`), basura (`aa`, `ee`), cuentas de prueba | Backup → borrado desde consola/Admin (el cliente ya no puede tocar esas rutas, y así debe ser) → verificación con usuario nuevo |
+| **D-B3-2** | Métodos muertos de las listas antiguas en `UserRepository` (sin uso tras B2) | Eliminar en la misma ventana (Bloque 1) |
+| **D-B3-3** | Reunificación de ramas: `ui-redesign-2026` vs `master` | Decisión del propietario al cerrar F0; documentar criterio |
+
+### 2.3 Código (higiene)
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-C1** | API adaptativa deprecada en `BottomBarNavigation` (`WindowWidthSizeClass`, `currentWindowAdaptiveInfo`) | Migrar a la API V2; fix pequeño |
+| **D-C2** | `DDBBViewModel` es una fachada legacy (nombre "DDBB"; mezcla biblioteca y social) | Renombrar/partir durante F1 (`LibraryViewModel` + `SocialViewModel`) |
+| **D-C3** | Botón "Me gusta" del timeline es decorativo (no hace nada) | Implementar reacción en F2 (S16) o ocultar hasta entonces |
+| **D-C4** | Avisos de compilación menores (p. ej. KT-73255 en `GoogleViewModel`) | Limpiar en Bloque 1 |
+| **D-C5** | Strings hardcodeados en español (i18n) | **Diferido**: disparador = plantear multiidioma |
+
+### 2.4 Calidad e infraestructura
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-Q1** | Sin CI: nada comprueba builds/tests en cada push | GitHub Actions: build + tests unitarios (y después, reglas) |
+| **D-Q2** | Reglas de Firestore sin tests automatizados | `@firebase/rules-unit-testing` + Emulator Suite (cierra D-S2) |
+| **D-Q3** | Tests instrumentados (`connectedAndroidTest`) nunca ejecutados | 1–2 smoke tests corriendo en el emulador |
+| **D-Q4** | Changelog manual | Opcional: autogenerar desde commits convencionales |
+| **D-Q5** | Backups de Firestore sin configurar | Se cierra junto a F5 (con alertas de presupuesto y App Check) |
+
+### 2.5 Toolchain
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-T1** | Kotlin 2.2.10 vs 2.4.x actual; Coil/googleid congelados por el límite de metadatos del Kotlin integrado de AGP 9.4.1 | Fase técnica propia: spike de compatibilidad (AGP/KSP/Coil) + ADR |
+| **D-T2** | Hilt 2.59.2 vs 2.60.1 | Subida menor y barata |
+| **D-T3** | Nav2 vs Nav3 | **Diferido con disparador**: cuando F4 necesite lista-detalle/tablet |
+| **D-T4** | Sin Baseline Profiles | **Diferido**: F4, con runtime estable |
+
+### 2.6 Release
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-R1** | Release sin firmar (falta keystore) | Crear keystore, `signingConfig`, verificar `assembleRelease` + instalación. **Prerrequisito de F5** |
+
+---
+
+## 3. Plan por bloques
+
+### Bloque 0 — Seguridad y cierre de F0-B (en curso; ~1 sesión restante)
+**Incluye:** D-S1 ✅ (hecho), **B3** (D-B3-1: backup → borrado → usuario nuevo verificado),
+decisión de ramas (D-B3-3).
+**Criterio de cierre:** datos de prueba fuera; usuario nuevo con flujo completo verificado;
+decisión de ramas escrita.
+**Evidencia:** consulta de consola + E2E del usuario nuevo.
+
+### Bloque 1 — Higiene rápida (≈1 sesión)
+**Incluye:** D-C1 (API adaptativa V2), D-C4 (avisos), D-B3-2 (código muerto), D-S3 (docs Firebase).
+**Criterio de cierre:** build sin avisos relevantes; cero código muerto de las listas viejas;
+documentación de Firebase al día.
+**Evidencia:** build + tests + diff.
+
+### Bloque 2 — Calidad y CI (≈1–2 sesiones)
+**Incluye:** D-Q1 (GitHub Actions), D-Q2 (tests de reglas; cierra D-S2), D-Q3 (smoke instrumentado).
+**Criterio de cierre:** CI verde en un PR de prueba; tests de reglas corriendo en local y CI;
+un smoke instrumentado ejecutado con evidencia.
+**Evidencia:** enlace al run de CI + salida de tests.
+
+### Bloque 3 — Toolchain Kotlin (+Hilt) (≈1–2 sesiones; spike primero)
+**Incluye:** D-T1, D-T2. Spike: matriz de versiones compatible (AGP ↔ Kotlin ↔ Coil ↔ googleid),
+plan de subida por pasos con rollback. Decisión registrada como **ADR-0004**.
+**Criterio de cierre:** compila con el Kotlin objetivo; 30+ tests verdes; app verificada en
+emulador; ADR escrito.
+**Evidencia:** build + tests + captura + ADR.
+
+### Bloque 4 — Release y firma (≈media sesión)
+**Incluye:** D-R1.
+**Criterio de cierre:** `assembleRelease` firmado instalado y arrancado en emulador; keystore
+fuera del repo (local.properties / gestor de secretos).
+**Evidencia:** artefacto + captura.
+
+### Diferidos con disparador (no se tocan ahora)
+| Deuda | Disparador |
+|---|---|
+| Nav3 (D-T3) | F4: lista-detalle / tablet |
+| Baseline Profiles (D-T4) | F4: runtime estable |
+| App Check, alertas de presupuesto, backups (D-Q5) | Preparación de F5 |
+| "Me gusta" (D-C3) | F2 (reacciones) |
+| i18n (D-C5) | Decisión de multiidioma |
+| Auditoría de costes (investigación F0-B §6) | Acercarse a ~1.000 usuarios activos |
+
+---
+
+## 4. Fuera de alcance (es roadmap, no deuda)
+
+T0.12 (foto de perfil en Storage), T0.13 (FCM), T0.14 (persistencia offline), import/export y todo
+F1+ son **trabajo planificado** en el [roadmap](../roadmap/README.md). No se mezclan aquí para no
+inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
+
+---
+
+## 5. Registro
+
+- **28/09/2026** — Plan creado. D-S1 resuelta y verificada (positivos). Bloque 0 en curso.
+  Pendiente inmediato: B3 (limpieza) y decisión de ramas.

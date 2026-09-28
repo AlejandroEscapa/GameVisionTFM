@@ -23,12 +23,13 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 ### 🔴 Ahora (cierre de F0 — Cimientos de datos)
 | Objetivo | Criterio de éxito | Estado |
 |---|---|---|
-| Cerrar el adapter de catálogo | `GameCatalog` + `RawgGameCatalog` commiteados, UI sin DTOs de RAWG | 🟢 En curso |
-| Caché local de catálogo (Room) | App muestra fichas visitadas sin red | ⬜ |
-| Modelo de biblioteca | `library`/`logs`/`sessions` definidos y con repositorio | ⬜ |
-| Migración de datos | Los datos de usuarios existentes se conservan | ⬜ |
+| Cerrar el adapter de catálogo | `GameCatalog` + `RawgGameCatalog` commiteados, UI sin DTOs de RAWG | ✅ Hecho |
+| Caché local de catálogo (Room) | App muestra fichas visitadas sin red (verificado en modo avión) | ✅ Hecha |
+| Modelo de biblioteca | `library`/`logs`/`sessions` + repositorio y adopción en pantallas | ✅ Hecho (B1/B2, E2E) |
+| Limpieza de datos (B3) | Datos de prueba borrados y usuario nuevo verificado end-to-end | ⬜ |
 | Foto de perfil en Storage | La imagen viaja entre dispositivos | ⬜ |
 | Offline real | La app abre y funciona sin conexión con lo visitado | ⬜ |
+| Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | 🟢 En curso (Bloque 0) |
 
 ### 🟠 Siguiente (cierre de F1 — El corazón del tracker)
 Estados ricos, valoración con estrellas, reseñas, diario con sesiones, múltiples
