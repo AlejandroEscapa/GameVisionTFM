@@ -18,8 +18,8 @@ npm install        # una vez
 npm test
 ```
 
-`npm test` arranca el emulador de Firestore (descarga el JAR la primera vez; requiere `java`
-en el PATH), ejecuta `rules.test.mjs` contra `firebase/firestore.rules` (el fichero real del repo)
-y lo apaga todo.
+`npm test` arranca el emulador de Firestore (descarga el JAR la primera vez; requiere **JDK 21+**
+en el PATH — firebase-tools ya no soporta versiones anteriores), ejecuta `rules.test.mjs` contra
+`firebase/firestore.rules` (el fichero real del repo) y lo apaga todo.
 
 En CI se ejecutan solos (job `firestore-rules` de `.github/workflows/ci.yml`).
