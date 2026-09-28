@@ -123,14 +123,28 @@ usuario de prueba con datos variados.
   ⚠️ Requiere **fuente de datos de logros por plataforma (Steam/PSN/Xbox)**; RAWG/IGDB no la ofrecen
   — análisis pendiente antes de planificarlo (ver ideas de fase-2).
 
-## 💡 Propuestas de ampliación de la ficha del juego (29/09/2026 — pendientes de selección)
+## 💡 Ampliación con datos HLTB (29/09/2026)
 
-Datos ya disponibles en el flujo HLTB verificado (ver informe). Bloques propuestos:
+### En la ficha del juego — **ADOPTADO ✅** (selección del propietario, 29/09)
 
 - **Duración rica (evolución de T1.11):** media + **mediana** + rango **rushed↔leisure** + nº de
   votos por estilo, y **speedrun** cuando exista.
-- **Bloque «Comunidad»:** completado / backlog / jugando / retirado + nota media de reseñas +
-  rejugadores (todo viene en el mismo fetch).
+- **Bloque «Comunidad»:** completado / backlog / jugando / retirado + **rejugadores** + nota media
+  de reseñas (todo en el mismo fetch).
 - **Ficha técnica extra:** desarrollador, editorial, clasificación por edad (PEGI/ESRB) y enlaces
   externos (Steam/IGN) — rellena huecos de RAWG.
-- **Relacionados (opcional):** fila de «juegos relacionados» en la ficha.
+- **Relacionados:** fila de «juegos relacionados» en la ficha.
+- **Tags/chips:** modos de juego (Un jugador · Co-op · Multijugador), clasificación de edad y rango
+  de duración como chips visuales (base para futuros filtros).
+
+### Extrapolación a otras vistas — propuestas (pendientes de selección, 29/09)
+
+- **Búsqueda (catálogo):** chips compactos en cada resultado (modos + duración estimada). Carga
+  **progresiva con caché** y cola con límite (evitar ráfagas de peticiones a HLTB).
+- **Biblioteca:** **progreso «tus horas / duración estimada»** (barra), chip de duración en la
+  tarjeta y orden «más cortos primero» (decidir el próximo juego).
+- **Estadísticas:** «Por jugar: ~X h» sumando duraciones de tu lista (tono positivo, sin deuda),
+  top géneros (RAWG + HLTB) y comparativa «tu nota vs. comunidad».
+- **Diario:** contexto por sesión («12 h de ~60 h»).
+- **F3 (nota):** filtro «algo que pueda terminar en <10 h» dentro de «¿Qué juego ahora?».
+- **F4 (nota):** los **Steam App IDs** ya vienen en el dato → importación/sync de Steam más cerca.
