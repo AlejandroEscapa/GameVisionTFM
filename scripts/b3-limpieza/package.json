@@ -2,5 +2,8 @@
   "name": "gamevision-b3-limpieza",
   "private": true,
   "type": "module",
-  "description": "B3 (one-shot): borra las listas antiguas y la basura de datos de prueba, con backup previo. Uso: ver README.md"
+  "description": "B3 (one-shot): borra las listas antiguas y la basura de datos de prueba, con backup previo. Uso: ver README.md",
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
 }
