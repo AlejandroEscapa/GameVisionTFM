@@ -13,6 +13,7 @@
 | [0001](0001-adapter-catalogo-rawg.md) | Adapter de catálogo: RAWG ahora, IGDB preparado | Aceptado | 2026-09-27 |
 | [0002](0002-escala-valoracion.md) | Escala de valoración: 1–10 entero | Superseded por [0003](0003-escala-medias-estrellas.md) | 2026-09-28 |
 | [0003](0003-escala-medias-estrellas.md) | Escala de valoración: 0,5–5,0 con medias estrellas | Aceptado | 2026-09-28 |
+| [0004](0004-upgrade-toolchain.md) | Upgrade del toolchain: micro-mejoras hoy, salto Kotlin bloqueado (con disparador) | Aceptado | 2026-09-28 |
 
 ## Cuándo crear un ADR
 

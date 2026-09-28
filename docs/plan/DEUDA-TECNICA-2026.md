@@ -66,8 +66,8 @@
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-T1** | Kotlin 2.2.10 vs 2.4.x actual; Coil/googleid congelados por el límite de metadatos del Kotlin integrado de AGP 9.4.1 | Fase técnica propia: spike de compatibilidad (AGP/KSP/Coil) + ADR |
-| **D-T2** | Hilt 2.59.2 vs 2.60.1 | Subida menor y barata |
+| **D-T1** | Kotlin 2.2.10 vs 2.4.x; Coil/googleid congelados por el límite de metadatos del Kotlin integrado | 🟡 Spike hecho (28/09): AGP 9.5 sigue alpha y no sube Kotlin; Coil/googleid bloqueados. **Disparador:** AGP ≥9.5 estable con Kotlin ≥2.4 — ver [ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md) |
+| **D-T2** | Hilt 2.59.2 vs 2.60.1 | ✅ Subido a 2.60.1 (+ KSP 2.3.12) el 28/09, verificado con build y tests |
 | **D-T3** | Nav2 vs Nav3 | **Diferido con disparador**: cuando F4 necesite lista-detalle/tablet |
 | **D-T4** | Sin Baseline Profiles | **Diferido**: F4, con runtime estable |
 
@@ -99,6 +99,9 @@ decisión de ramas escrita.
 **Ramas (dato para decidir):** `ui-redesign-2026` está **21 commits por delante** de `master` y
 **0 por detrás** → la fusión sería limpia (fast-forward). Recomendación: PR de cierre al terminar F0.
 
+**Herramienta lista:** [`scripts/b3-limpieza/`](../../scripts/b3-limpieza/README.md) — dry-run +
+`--commit` con backup JSON previo; solo falta que el propietario deje la clave de servicio.
+
 ### Bloque 1 — Higiene rápida ✅ (28/09/2026)
 **Incluye:** D-C1 (API adaptativa V2), D-C4 (avisos), D-B3-2 (código muerto), D-S3 (docs Firebase).
 **Resultado:** API adaptativa migrada a `currentWindowAdaptiveInfoV2()` + `isWidthAtLeastBreakpoint`
@@ -115,12 +118,13 @@ tests instrumentados migrados a las APIs v2 de Compose Test); 4 métodos muertos
 negativos); tests instrumentados ejecutados por primera vez: **7/7 verdes** (incluido el smoke nuevo
 `SmokeTest`). Pendiente menor: ver el primer run real de CI en GitHub al hacer push.
 
-### Bloque 3 — Toolchain Kotlin (+Hilt) (≈1–2 sesiones; spike primero)
-**Incluye:** D-T1, D-T2. Spike: matriz de versiones compatible (AGP ↔ Kotlin ↔ Coil ↔ googleid),
-plan de subida por pasos con rollback. Decisión registrada como **ADR-0004**.
-**Criterio de cierre:** compila con el Kotlin objetivo; 30+ tests verdes; app verificada en
-emulador; ADR escrito.
-**Evidencia:** build + tests + captura + ADR.
+### Bloque 3 — Toolchain Kotlin (+Hilt) 🟡 (spike completado; micro-mejoras aplicadas; salto bloqueado)
+**Spike (28/09, 3 builds de prueba):** AGP estable más reciente = 9.4.1 (ya la usamos); 9.5 sigue en
+alpha y **no sube el Kotlin integrado**; Coil 3.6.3/googleid 1.2.1 fallan con metadatos 2.4.0 vs
+2.2.0 esperado → **salto bloqueado aguas arriba**. Micro-mejoras válidas aplicadas: **Hilt 2.60.1** y
+**KSP 2.3.12** (build + 30 tests + instrumentados). Decisión y checklist completos:
+[ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md).
+**Disparador:** AGP ≥9.5 estable con Kotlin ≥2.4 (AGP 10.0 previsto fin de 2026) → ejecutar checklist del ADR.
 
 ### Bloque 4 — Release y firma (≈media sesión)
 **Incluye:** D-R1.
