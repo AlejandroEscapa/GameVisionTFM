@@ -31,7 +31,7 @@ como diferenciación directa.
 | D1.1 | **Definición exacta de los estados** | (a) Completado = ver créditos, Dominado = 100 % · (b) Nuestra propia definición | ✅ **CERRADA (28/09/2026): Completado = ver créditos; «Coleccionado» (antes «Dominado») = todos los logros / 100 %** | ✅ |
 | D1.2 | **¿Nota y reseña obligatorias al registrar?** | (a) Todo opcional · (b) Nota obligatoria · (c) Nota obligatoria sólo al completar | **(a) opcional al registrar, (c) sugerida al completar**: no bloquear nunca el registro rápido (GG gana por registrar en 10 s) | ⬜ |
 | D1.3 | **Escala de nota** | (a) 5 estrellas con medias · (b) 10 puntos · (c) Ambas | ✅ **CERRADA (28/09/2026; revisada el mismo día): escala 0,5–5,0 con medias estrellas**, alineada con el formato de RAWG. Ver ADR-0003 (supersede al ADR-0002) | ✅ |
-| D1.4 | **Duración del juego: fuente** | (a) Scraper HowLongToBeat · (b) Sólo campo propio · (c) No incluirla | **(a) con caché y fallback a (b)**: es *la* pregunta práctica y hoy obliga al usuario a abrir otra app | ⬜ |
+| D1.4 | **Duración del juego: fuente** | (a) Scraper HowLongToBeat · (b) Sólo campo propio · (c) No incluirla | ✅ **CERRADA (29/09/2026): (a) scraper ligero de HLTB con caché + respaldo manual** — verificado en vivo con 5 casos de prueba y caso «sin datos»; cruces externos OK. Ver [verificación](../investigacion-2026/hltb-verificacion-2026.md). IGDB queda como candidato futuro (TTB oficial) | ✅ |
 | D1.5 | **Estadísticas: ¿cliente o servidor?** | (a) Calcular en el cliente · (b) Cloud Function | **(a) en F1**: con los datos del propio usuario es rápido y evita dependencia de Functions; (b) cuando F3 necesite agregados | ⬜ |
 | D1.6 | **¿El diario es automático o manual?** | (a) Manual (el usuario apunta) · (b) Automático (al cambiar de estado) | **(a) manual, con atajos**: el diario es un acto de voluntad (como Letterboxd) y su valor está en que el usuario lo escribe | ⬜ |
 | D1.7 | **Importación de Steam/PSN/Xbox** | (a) En F1 · (b) Fase posterior · (c) Descartar | **(b)**: la investigación la marca como clave contra el abandono, pero es un bloque grande; F1 primero debe tener algo que importar | ⬜ |
@@ -53,7 +53,7 @@ como diferenciación directa.
 - [ ] T1.8 Vista de diario cronológico (por mes, con carátulas)
 - [ ] T1.9 Apuntar sesión: "hoy jugué X minutos" (con atajo rápido)
 - [ ] T1.10 Horas acumuladas por juego y totales
-- [ ] T1.11 Duración estimada del juego (historia / +extras / completista) desde la caché de F0
+- [ ] T1.11 Duración estimada del juego (historia / +extras / completista) vía scraper HLTB verificado + caché local + valor manual
 
 ### C. Estadísticas
 - [ ] T1.12 Pantalla de estadísticas: horas totales, distribución de notas, géneros y plataformas favoritas, juegos por año
@@ -105,6 +105,10 @@ usuario de prueba con datos variados.
   (0,5–5,0 en pasos de 0,5)**: congruencia visual con los datos de RAWG y 10 niveles de granularidad.
   Sustituye a la decisión previa del 1–10. Ver **ADR-0003** (`docs/metodologia/adr/0003-escala-medias-estrellas.md`),
   que supersede al ADR-0002.
+- **D1.4 — Duración: fuente cerrada (29/09/2026)** — Scraper ligero de HLTB con caché + respaldo
+  manual. **Verificado en vivo** con 5 casos (protocolo y valores en
+  [`docs/investigacion-2026/hltb-verificacion-2026.md`](../investigacion-2026/hltb-verificacion-2026.md));
+  caso «sin datos» (juego no lanzado) verificado; re-ejecutable con `node tools/hltb-check.mjs`.
 
 ## 💡 Ideas registradas (28/09/2026)
 
