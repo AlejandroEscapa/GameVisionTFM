@@ -61,7 +61,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [ ] T0.8 Definir `sessions/{sessionId}`: sesión del diario (fecha, minutos)
 - [ ] T0.9 Implementar el repositorio de biblioteca (`LibraryRepository`) devolviendo `Result`
 - [ ] T0.10 Actualizar las reglas de Firestore para las colecciones nuevas
-- [ ] T0.11 Migración de datos: `playedlist`/`wishlist`/`history` → `library` + `logs`
+- [ ] T0.11 Migración/limpieza de datos: `playedlist`/`wishlist`/`history` → **revisado 28/09: eran datos de prueba → se borran (backup previo); verificación con usuario de prueba nuevo**
 
 ### C. Deuda conocida
 - [ ] T0.12 Firebase Storage: subir la foto de perfil y guardar la URL (arregla el bug
@@ -83,8 +83,8 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       al recuperar la conexión (persistencia offline).
 - [ ] CA0.3 La foto de perfil subida desde el **dispositivo A** se ve al entrar desde el
       **dispositivo B** (o tras borrar datos de la app).
-- [ ] CA0.4 La migración conserva los juegos de los usuarios existentes: los 3 juegos de
-      `alex@gmail.com` (historial) siguen ahí tras la migración.
+- [ ] CA0.4 *(actualizado 28/09/2026)* Los datos antiguos eran **de prueba**: no se migran. La verificación
+      pasa a ser **end-to-end con un usuario de prueba nuevo** (registro → biblioteca → sesión → estadísticas).
 - [ ] CA0.5 Cambiar de proveedor de catálogo no toca ni una pantalla (demostrable:
       sustituir la implementación en el módulo de Hilt compila sin tocar UI).
 - [ ] CA0.6 Tests: los 17 unitarios + 6 instrumentados siguen verdes; nuevos tests para
@@ -192,4 +192,7 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
   (`playedlist`→`jugando`, `wishlist`→`deseado`, `favorites`→flag `favorite`; `history` se descarta).
   Implementación en 3 bloques: B1 datos → B2 adopción → B3 migración.
   Ver [propuesta](../plan/F0B-propuesta-modelo-datos.md).
+- **D0.2 — revisión (28/09/2026)** — los datos de las listas actuales eran **de prueba**: en B3 se
+  **borran** (junto a `aa` y `ee`) en lugar de migrarse; la verificación se hace creando un **usuario de
+  prueba nuevo**.
 

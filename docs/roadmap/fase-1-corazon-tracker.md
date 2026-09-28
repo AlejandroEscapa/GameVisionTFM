@@ -28,7 +28,7 @@ como diferenciación directa.
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| D1.1 | **Definición exacta de los estados** | (a) Completado = ver créditos, Dominado = 100 % · (b) Nuestra propia definición | **(a)**: el sector ya usa ese vocabulario y evita discusión con el usuario | ⬜ |
+| D1.1 | **Definición exacta de los estados** | (a) Completado = ver créditos, Dominado = 100 % · (b) Nuestra propia definición | ✅ **CERRADA (28/09/2026): Completado = ver créditos; «Coleccionado» (antes «Dominado») = todos los logros / 100 %** | ✅ |
 | D1.2 | **¿Nota y reseña obligatorias al registrar?** | (a) Todo opcional · (b) Nota obligatoria · (c) Nota obligatoria sólo al completar | **(a) opcional al registrar, (c) sugerida al completar**: no bloquear nunca el registro rápido (GG gana por registrar en 10 s) | ⬜ |
 | D1.3 | **Escala de nota** | (a) 5 estrellas con medias · (b) 10 puntos · (c) Ambas | ✅ **CERRADA (28/09/2026; revisada el mismo día): escala 0,5–5,0 con medias estrellas**, alineada con el formato de RAWG. Ver ADR-0003 (supersede al ADR-0002) | ✅ |
 | D1.4 | **Duración del juego: fuente** | (a) Scraper HowLongToBeat · (b) Sólo campo propio · (c) No incluirla | **(a) con caché y fallback a (b)**: es *la* pregunta práctica y hoy obliga al usuario a abrir otra app | ⬜ |
@@ -41,7 +41,7 @@ como diferenciación directa.
 ## Tareas
 
 ### A. Biblioteca
-- [ ] T1.1 UI de estado: selector con los 7 estados (Jugando, Completado, Dominado, En pausa, Retirado, Abandonado, Deseado)
+- [ ] T1.1 UI de estado: selector con los 7 estados (Jugando, Completado, Coleccionado, En pausa, Retirado, Abandonado, Deseado)
 - [ ] T1.2 Cambio de estado rápido desde la ficha del juego y desde la lista
 - [ ] T1.3 Valoración con medias estrellas (crear, editar, borrar)
 - [ ] T1.4 Reseña escrita por juego, con formato corto destacado (cultura "una línea" de Letterboxd)
@@ -86,7 +86,7 @@ como diferenciación directa.
 |---|---|
 | Sobrecargar el registro y perder la rapidez | Decisión D1.2: nada obligatorio salvo el estado; medir CA1.1 en cada iteración |
 | Las estadísticas se vuelven lentas | Se calculan sobre datos ya cargados del usuario; si crece, pasar a Cloud Function |
-| Duplicar el vocabulario del sector y confundir | D1.1: usar las definiciones ya establecidas (Completado vs Dominado) |
+| Duplicar el vocabulario del sector y confundir | D1.1: usar las definiciones ya establecidas (Completado vs Coleccionado) |
 
 ## Cómo se verifica
 
@@ -97,8 +97,21 @@ usuario de prueba con datos variados.
 
 ## Registro de decisiones
 
+- **D1.1 — Definición de estados cerrada (28/09/2026)** — Completado = ver créditos; **«Coleccionado»**
+  (antes «Dominado») = todos los logros / 100 %. Conecta con el lenguaje real de logros y abre las
+  ideas registradas de vitrina de coleccionados y comunidad.
 - **D1.3 — Escala de nota: 0,5–5,0 con medias estrellas (28/09/2026; revisión)** — Tras contrastar
   con el formato de RAWG (nota sobre 5 con decimales), la escala queda en **medias estrellas
   (0,5–5,0 en pasos de 0,5)**: congruencia visual con los datos de RAWG y 10 niveles de granularidad.
   Sustituye a la decisión previa del 1–10. Ver **ADR-0003** (`docs/metodologia/adr/0003-escala-medias-estrellas.md`),
   que supersede al ADR-0002.
+
+## 💡 Ideas registradas (28/09/2026)
+
+- **Vitrina de «Coleccionados»** — sección y KPI propios para tus juegos con todos los logros
+  (los «platinados»), ligada a T1.12–T1.13 (estadísticas).
+- **Separar lo conseguible de lo no conseguible** — solo los juegos con sistema de logros podrán
+  «coleccionarse»; (futuro) distinguir además logros aún obtenibles de los descontinuados.
+- **Comunidad de logros (F2)** — feed estilo foro y porcentaje de jugadores por logro.
+  ⚠️ Requiere **fuente de datos de logros por plataforma (Steam/PSN/Xbox)**; RAWG/IGDB no la ofrecen
+  — análisis pendiente antes de planificarlo (ver ideas de fase-2).

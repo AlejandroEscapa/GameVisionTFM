@@ -76,7 +76,7 @@ users/{uid}
 | Campo | Tipo | Notas |
 |---|---|---|
 | `gameId` | String | redundante a propósito: facilita export y consultas de grupo futuras |
-| `status` | String | `jugando` · `completado` · `dominado` · `en_pausa` · `retirado` · `abandonado` · `deseado` |
+| `status` | String | `jugando` · `completado` · `coleccionado` · `en_pausa` · `retirado` · `abandonado` · `deseado` |
 | `rating` | Number? | **0,5–5,0 en pasos de 0,5** (medias estrellas); `null` = sin nota |
 | `review` | String? | reseña por juego; **excluida de índices** (texto largo) |
 | `favorite` | Bool | para el Top 4 de F2 |
@@ -217,6 +217,10 @@ service cloud.firestore {
 
 ## 8. Migración (T0.11)
 
+> **Actualización (28/09/2026):** los datos actuales de las listas eran **de prueba** → **no se migran**.
+> B3 hará backup, borrará las listas antiguas y la basura (`aa`, `ee`), y la verificación se hará con un
+> **usuario de prueba nuevo**. Los pasos de abajo quedan como referencia del análisis original.
+
 1. **Backup previo** (export de la base) — sin excepciones.
 2. Mapa `email → uid` (consola de Auth / Admin SDK). Revisar documentos huérfanos sin cuenta Auth.
 3. Por cada usuario real migrar:
@@ -283,11 +287,15 @@ Con tu OK: implemento (T0.6–T0.10), ejecuto la migración (T0.11) y registramo
 |---|---|---|
 | **D-F0B-1** | Clave de usuario `users/{uid}` (email como campo) | ✅ Aprobado |
 | **D-F0B-2** | El "Historial" pasa a local en el dispositivo | ✅ Aprobado |
-| **D-F0B-3** | Migración: `playedlist` → estado `jugando`; `wishlist` → `deseado`; `favorites` → `favorite: true`; `history` → descartado | ✅ Aprobado (revisable antes de ejecutar) |
+| **D-F0B-3** | Migración: `playedlist` → estado `jugando`; `wishlist` → `deseado`; `favorites` → `favorite: true`; `history` → descartado | ✅ Aprobado (revisable antes de ejecutar) · **revisado 28/09: los datos eran de prueba → se borran; sin migración semántica (ver §8)** |
 | **D-F0B-4** | Campos e índices | ✅ Delegado al agente: §2–§3 tal cual; los índices compuestos se añaden a `firestore.indexes.json` junto con las pantallas que los usan |
 
 **Escala de nota:** confirmada **0,5–5,0 en pasos de 0,5** (medias estrellas). Registrada en
 [ADR-0003](../metodologia/adr/0003-escala-medias-estrellas.md), que supersede al ADR-0002.
+
+**Nomenclatura de estados (28/09/2026):** «Dominado» pasa a llamarse **«Coleccionado»**
+(todos los logros / 100 %). Ideas derivadas registradas en el roadmap: vitrina de coleccionados (F1)
+y comunidad de logros (F2).
 
 ### Plan de ejecución
 
@@ -295,4 +303,4 @@ Con tu OK: implemento (T0.6–T0.10), ejecuto la migración (T0.11) y registramo
 |---|---|---|
 | **B1** | Capa de datos: modelos + `LibraryRepository` (Result, lotes, incrementos) + tests de lógica pura | 🟢 En curso (código en `data/library/`; 29 tests verdes) |
 | **B2** | Adopción: sesión `uid` + ViewModels/pantallas (listas leídas del modelo nuevo; menú "Añadir" escribe la ficha) + reglas de seguridad (en el mismo paso, para no romper la app actual) + índices | ⬜ |
-| **B3** | Migración: backup → mapa email→uid → migración de listas → limpieza `aa`/`ee` → verificación CA0.4 | ⬜ |
+| **B3** | Limpieza: backup → borrado de los datos de prueba (listas antiguas + `aa`/`ee`) → usuario de prueba nuevo → verificación end-to-end | ⬜ |

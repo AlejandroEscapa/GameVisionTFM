@@ -15,7 +15,7 @@ class LibraryStatusTest {
     fun `fromValue reconoce todos los estados`() {
         assertEquals(LibraryStatus.PLAYING, LibraryStatus.fromValue("jugando"))
         assertEquals(LibraryStatus.COMPLETED, LibraryStatus.fromValue("completado"))
-        assertEquals(LibraryStatus.MASTERED, LibraryStatus.fromValue("dominado"))
+        assertEquals(LibraryStatus.COLLECTED, LibraryStatus.fromValue("coleccionado"))
         assertEquals(LibraryStatus.PAUSED, LibraryStatus.fromValue("en_pausa"))
         assertEquals(LibraryStatus.RETIRED, LibraryStatus.fromValue("retirado"))
         assertEquals(LibraryStatus.ABANDONED, LibraryStatus.fromValue("abandonado"))

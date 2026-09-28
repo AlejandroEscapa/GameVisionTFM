@@ -19,7 +19,7 @@ package es.androidtfm.gamevision.data.library
 enum class LibraryStatus(val value: String) {
     PLAYING("jugando"),
     COMPLETED("completado"),
-    MASTERED("dominado"),
+    COLLECTED("coleccionado"),
     PAUSED("en_pausa"),
     RETIRED("retirado"),
     ABANDONED("abandonado"),

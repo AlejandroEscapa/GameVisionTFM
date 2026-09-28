@@ -153,7 +153,7 @@ class LibraryRepository @Inject constructor(
         )
         when (to) {
             LibraryStatus.PLAYING -> update["startedAt"] = FieldValue.serverTimestamp()
-            LibraryStatus.COMPLETED, LibraryStatus.MASTERED ->
+            LibraryStatus.COMPLETED, LibraryStatus.COLLECTED ->
                 update["finishedAt"] = FieldValue.serverTimestamp()
             else -> Unit
         }

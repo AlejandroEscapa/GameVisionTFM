@@ -83,3 +83,11 @@ REST de que las lecturas públicas ya no exponen la colección completa.
 ## Registro de decisiones
 
 _(vacío: pendiente de debate)_
+
+## 💡 Ideas registradas (28/09/2026)
+
+- **Comunidad de logros (estilo foro)**: feed de logros conseguidos, secciones de «coleccionados»,
+  y **porcentaje de jugadores por logro**.
+  ⚠️ Requiere **fuente de datos de logros por plataforma (Steam/PSN/Xbox)** — RAWG/IGDB no la ofrecen;
+  análisis pendiente antes de planificar tareas. Vinculado a D2.x (feed/moderación) y a la vitrina de
+  «Coleccionados» de F1.
