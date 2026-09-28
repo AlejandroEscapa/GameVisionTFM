@@ -302,5 +302,10 @@ y comunidad de logros (F2).
 | Bloque | Contenido | Estado |
 |---|---|---|
 | **B1** | Capa de datos: modelos + `LibraryRepository` (Result, lotes, incrementos) + tests de lógica pura | 🟢 En curso (código en `data/library/`; 29 tests verdes) |
-| **B2** | Adopción: sesión `uid` + ViewModels/pantallas (listas leídas del modelo nuevo; menú "Añadir" escribe la ficha) + reglas de seguridad (en el mismo paso, para no romper la app actual) + índices | ⬜ |
+| **B2** | Adopción: sesión `uid` + ViewModels/pantallas (listas leídas del modelo nuevo; menú "Añadir" escribe la ficha) + reglas de seguridad + índices | ✅ Hecho y verificado en emulador (28/09). Reglas e índices **pendientes de desplegar** (requiere `firebase login`) |
 | **B3** | Limpieza: backup → borrado de los datos de prueba (listas antiguas + `aa`/`ee`) → usuario de prueba nuevo → verificación end-to-end | ⬜ |
+
+**Verificación de B2 (28/09/2026, emulador Pixel_9):** flujo E2E con una cuenta de QA
+(`qa.f0b@gamevision.test`): añadir como «Jugando» y «Deseado», marcar favorito, borrar con ajuste
+de contadores y pestañas nuevas — todo OK. Datos confirmados en Firestore
+(`users/{uid}/library`, `stats/summary`) vía REST. «Historial» ya es local (DataStore).

@@ -56,11 +56,11 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 > **Diseño definitivo pendiente de aprobación:** [docs/plan/F0B-propuesta-modelo-datos.md](../plan/F0B-propuesta-modelo-datos.md)
 > — propuesta senior para escalar (uid, stats agregadas, índices, reglas, costes). Se implementa tras el visto bueno.
 
-- [ ] T0.6 Definir `library/{gameId}`: estado, nota, favorito, plataforma, fecha de alta
-- [ ] T0.7 Definir `logs/{logId}`: partida con fecha de inicio/fin, horas, reseña, nota, plataforma
-- [ ] T0.8 Definir `sessions/{sessionId}`: sesión del diario (fecha, minutos)
-- [ ] T0.9 Implementar el repositorio de biblioteca (`LibraryRepository`) devolviendo `Result`
-- [ ] T0.10 Actualizar las reglas de Firestore para las colecciones nuevas
+- [x] T0.6 Definir `library/{gameId}`: estado, nota, favorito, plataforma, fecha de alta (implementado y verificado en B1/B2)
+- [x] T0.7 Definir `logs/{logId}`: partida con fecha de inicio/fin, horas, reseña, nota, plataforma (modelo y repositorio; UI en F1)
+- [x] T0.8 Definir `sessions/{sessionId}`: sesión del diario (fecha, minutos) (modelo y repositorio; UI en F1)
+- [x] T0.9 Implementar el repositorio de biblioteca (`LibraryRepository`) devolviendo `Result` (+ adopción en pantallas, verificado E2E en emulador)
+- [~] T0.10 Actualizar las reglas de Firestore para las colecciones nuevas — **escritas en `firebase/firestore.rules`** (por uid, archivo listo); **PENDIENTE DE DESPLEGAR** (requiere `firebase login`; config en `firebase.json`/`.firebaserc`/`firestore.indexes.json`)
 - [ ] T0.11 Migración/limpieza de datos: `playedlist`/`wishlist`/`history` → **revisado 28/09: eran datos de prueba → se borran (backup previo); verificación con usuario de prueba nuevo**
 
 ### C. Deuda conocida

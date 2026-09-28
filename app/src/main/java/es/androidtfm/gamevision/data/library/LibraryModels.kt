@@ -13,17 +13,17 @@ package es.androidtfm.gamevision.data.library
  */
 
 /**
- * Estados de una ficha, con sus valores estables para Firestore.
- * La UI traduce `value` a etiquetas en español.
+ * Estados de una ficha: `value` es el valor estable en Firestore y `label`
+ * la etiqueta en español que muestra la UI.
  */
-enum class LibraryStatus(val value: String) {
-    PLAYING("jugando"),
-    COMPLETED("completado"),
-    COLLECTED("coleccionado"),
-    PAUSED("en_pausa"),
-    RETIRED("retirado"),
-    ABANDONED("abandonado"),
-    WISHED("deseado");
+enum class LibraryStatus(val value: String, val label: String) {
+    PLAYING("jugando", "Jugando"),
+    COMPLETED("completado", "Completado"),
+    COLLECTED("coleccionado", "Coleccionado"),
+    PAUSED("en_pausa", "En pausa"),
+    RETIRED("retirado", "Retirado"),
+    ABANDONED("abandonado", "Abandonado"),
+    WISHED("deseado", "Deseado");
 
     companion object {
         /** Devuelve el estado a partir de su valor en Firestore (o null si no existe). */

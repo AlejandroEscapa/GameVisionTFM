@@ -39,6 +39,13 @@ class LibraryStatusTest {
     }
 
     @Test
+    fun `cada estado tiene etiqueta en espanol`() {
+        assertEquals("Coleccionado", LibraryStatus.COLLECTED.label)
+        assertEquals("En pausa", LibraryStatus.PAUSED.label)
+        assertEquals("Jugando", LibraryStatus.PLAYING.label)
+    }
+
+    @Test
     fun `todos los valores de estado son unicos`() {
         val values = LibraryStatus.entries.map { it.value }
         assertEquals(values.size, values.toSet().size)

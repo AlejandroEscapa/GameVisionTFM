@@ -1,16 +1,24 @@
 package es.androidtfm.gamevision.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import es.androidtfm.gamevision.data.library.LibraryEntry
+import es.androidtfm.gamevision.data.library.LibraryRepository
+import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.model.ChatMessage
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.repository.UserRepository
+import es.androidtfm.gamevision.datastore.RecentGame
+import es.androidtfm.gamevision.datastore.RecentGamesStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 27/09/2026 (Frente 2/3 — Result en toda la capa de datos)
+ * Fecha: 27/09/2026 (actualizado 28/09/2026 — F0-B/B2: biblioteca nueva y
+ * historial local; los juegos ya no viven en las listas antiguas por email).
  * Descripción:
  *
  * Fachada de los datos de juego, amigos y mensajes del usuario. El perfil y la
@@ -22,27 +30,54 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DDBBViewModel @Inject constructor(
-    private val repository: UserRepository
+    private val repository: UserRepository,
+    private val libraryRepository: LibraryRepository,
+    private val recentGamesStore: RecentGamesStore
 ) : ViewModel() {
 
-    /** Constructor sin argumentos para previews y usos manuales. */
-    constructor() : this(UserRepository(FirebaseFirestore.getInstance()))
+    // ------------------------------------------------------------------------
+    // Biblioteca (F0-B): users/{uid}/library|logs|sessions|stats
+    // ------------------------------------------------------------------------
 
-    // ---- Juegos ----
+    /** Flujo en vivo de la biblioteca del usuario (SSOT de sus fichas). */
+    fun observeLibrary(uid: String): Flow<Result<List<LibraryEntry>>> =
+        libraryRepository.observeLibrary(uid)
 
-    suspend fun addGame(email: String, gameId: String, targetCollection: String): Result<Unit> =
-        repository.addGame(email, gameId, targetCollection)
+    /** Añade una ficha nueva a la biblioteca. */
+    suspend fun addToLibrary(uid: String, entry: LibraryEntry): Result<Unit> =
+        libraryRepository.addGame(uid, entry)
 
-    suspend fun addGameToHistory(email: String, gameId: String): Result<Unit> =
-        repository.addGameToHistory(email, gameId)
+    /** Cambia el estado de una ficha (ajusta contadores en el mismo lote). */
+    suspend fun updateStatus(
+        uid: String,
+        gameId: String,
+        from: LibraryStatus,
+        to: LibraryStatus
+    ): Result<Unit> = libraryRepository.updateStatus(uid, gameId, from, to)
 
-    suspend fun removePlayedGame(email: String, gameId: String): Result<Unit> =
-        repository.removePlayedGame(email, gameId)
+    /** Marca o desmarca el favorito. */
+    suspend fun setFavorite(uid: String, gameId: String, favorite: Boolean): Result<Unit> =
+        libraryRepository.updateFavorite(uid, gameId, favorite)
 
-    suspend fun getUserGameIds(email: String, collectionName: String): Result<List<String>> =
-        repository.getUserGameIds(email, collectionName)
+    /** Elimina una ficha (se pasa la ficha en vivo para ajustar contadores). */
+    suspend fun removeFromLibrary(uid: String, entry: LibraryEntry): Result<Unit> =
+        libraryRepository.removeGame(uid, entry)
 
-    // ---- Amigos ----
+    // ------------------------------------------------------------------------
+    // Historial local (recientes) — vive en el dispositivo
+    // ------------------------------------------------------------------------
+
+    /** Últimos juegos vistos (local; no viaja entre dispositivos). */
+    val recentGames: Flow<List<RecentGame>> = recentGamesStore.recentGames
+
+    /** Registra un juego en el historial local. */
+    fun addRecentGame(game: RecentGame) {
+        viewModelScope.launch { recentGamesStore.add(game) }
+    }
+
+    // ------------------------------------------------------------------------
+    // Amigos (rutas heredadas por email hasta F2)
+    // ------------------------------------------------------------------------
 
     suspend fun addFriend(email: String, friendEmail: String): Result<Unit> =
         repository.addFriend(email, friendEmail)
@@ -55,7 +90,9 @@ class DDBBViewModel @Inject constructor(
     /** true si existe un perfil con ese email (para añadir amigos). */
     suspend fun profileExists(email: String): Result<Boolean> = repository.profileExists(email)
 
-    // ---- Mensajes ----
+    // ------------------------------------------------------------------------
+    // Mensajes (rutas heredadas por email hasta F2)
+    // ------------------------------------------------------------------------
 
     suspend fun publishMessage(email: String, message: String, time: String): Result<Unit> =
         repository.publishMessage(email, message, time)

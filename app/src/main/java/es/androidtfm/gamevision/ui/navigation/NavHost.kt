@@ -130,7 +130,6 @@ fun NavHost(
                     onThemeChange = onThemeChange,
                     paddingValues = paddingValues,
                     ddbbViewModel = ddbbViewModel,
-                    searchViewModel = searchViewModel,
                     userViewModel = userViewModel
                 )
                 }

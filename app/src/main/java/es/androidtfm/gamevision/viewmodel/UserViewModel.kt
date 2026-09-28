@@ -68,6 +68,11 @@ class UserViewModel @Inject constructor(
         .map { (it as? SessionState.LoggedIn)?.email }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    /** UID de Firebase Authentication del usuario (clave de la biblioteca), o null. */
+    val currentUid: StateFlow<String?> = session
+        .map { (it as? SessionState.LoggedIn)?.uid }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     /** true solo en modo invitado explícito. */
     val isGuest: StateFlow<Boolean> = session
         .map { it is SessionState.Guest }

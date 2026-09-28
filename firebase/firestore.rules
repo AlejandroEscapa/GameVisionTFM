@@ -1,31 +1,55 @@
 rules_version = '2';
 
 // ============================================================================
-// GameVision TFM — reglas de Firestore
+// GameVision — reglas de Firestore (F0-B, 28/09/2026)
 //
-// ATENCIÓN: la app usa autenticación PROPIA (guarda el password en el
-// documento del usuario en Firestore) en lugar de Firebase Authentication.
-// Por eso necesita acceso NO autenticado a /users. Esto significa que
-// cualquiera que extraiga la API key del APK puede leer y escribir la base
-// de datos. Es aceptable para una demo/TFM, NO para producción.
+// - Datos nuevos por UID (Firebase Auth): users/{uid}/library|logs|sessions|stats
+//   → solo su dueño puede leerlos y escribirlos.
+// - Perfil (documento raíz): lectura para cualquier usuario autenticado
+//   (necesario para añadir amigos por email); escritura, solo el dueño.
+// - Rutas heredadas por email (amigos, mensajes): transitorias hasta B3/F2.
+//   · friends: solo el dueño.
+//   · messages: lectura para autenticados (los muros se ven entre usuarios);
+//     escritura, solo el dueño del muro.
+// - Todo lo demás, cerrado.
 //
-// Para producción: migrar a Firebase Authentication (email/password) y usar
-// reglas basadas en request.auth.uid (ver docs/firebase-setup.md).
+// Nota (F2): el muro y la lectura de perfiles se rediseñarán con colecciones
+// públicas / Cloud Functions para no exponer datos de más (D2.4 del roadmap).
 // ============================================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /users/{email} {
-      allow read, write: if true;
-
-      // Subcolecciones por usuario: history, messages, playedlist, wishlist, friends
-      match /{document=**} {
-        allow read, write: if true;
-      }
+    // ¿Es el dueño del documento (por uid o, transitoriamente, por email)?
+    function isOwner(userId) {
+      return request.auth != null
+        && (request.auth.uid == userId || request.auth.token.email == userId);
     }
 
-    // El resto de la base queda cerrado
+    match /users/{userId} {
+      // Perfil raíz: escribir solo el dueño; leer, cualquier usuario autenticado.
+      allow read: if request.auth != null;
+      allow create, update, delete: if isOwner(userId);
+
+      // Biblioteca (F0-B) — solo el dueño.
+      match /library/{gameId}     { allow read, write: if isOwner(userId); }
+      match /logs/{logId}         { allow read, write: if isOwner(userId); }
+      match /sessions/{sessionId} { allow read, write: if isOwner(userId); }
+      match /stats/{docId}        { allow read, write: if isOwner(userId); }
+
+      // Rutas heredadas (transitorias hasta B3).
+      match /friends/{friendId}   { allow read, write: if isOwner(userId); }
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow write: if isOwner(userId);
+      }
+
+      // Listas antiguas (playedlist/wishlist/favorites/history) y cualquier otra
+      // subcolección no listada: cerradas; se borran en B3.
+      match /{document=**} { allow read, write: if false; }
+    }
+
+    // El resto de la base queda cerrado.
     match /{document=**} {
       allow read, write: if false;
     }

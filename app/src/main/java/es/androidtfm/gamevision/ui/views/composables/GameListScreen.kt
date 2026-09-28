@@ -1,6 +1,5 @@
 package es.androidtfm.gamevision.ui.views.composables
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,9 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,8 +42,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -55,34 +50,38 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.data.catalog.CatalogGame
+import es.androidtfm.gamevision.data.library.LibraryEntry
+import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
-import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 18/01/2025
- * Descripción: 
+ * Fecha: 18/01/2025 (actualizado 28/09/2026 — F0-B/B2)
+ * Descripción: pantalla con las listas de juegos.
+ *
+ * Desde B2 se alimenta de la biblioteca nueva (users/{uid}/library, con instantánea
+ * de nombre/portada: sin peticiones por juego) y del historial local del dispositivo.
+ * Pestañas: Jugando · Completados · Coleccionados · Deseados · Favoritos · Historial.
  */
 
+/** Elemento de la lista: ficha de biblioteca o reciente local. */
+private data class GameListItem(
+    val gameId: String,
+    val name: String,
+    val coverUrl: String?,
+    val released: String,
+    val genres: List<String>,
+    val entry: LibraryEntry?
+)
+
 /**
- * Pantalla con las listas de juegos.
- *
- * @param navController Controlador de navegación.
- * @param isDarkTheme Indica si el tema oscuro está activado.
- * @param onThemeChange Función para cambiar el tema.
- * @param paddingValues PaddingValues para ajustar el layout.
- * @param ddbbViewModel ViewModel para operaciones con la base de datos.
- * @param searchViewModel ViewModel para obtener detalles del juego.
- * @param userViewModel ViewModel para datos de usuario.
+ * Pantalla con las listas de juegos (biblioteca e historial local).
  */
 @Composable
 fun GameListScreen(
@@ -91,59 +90,52 @@ fun GameListScreen(
     onThemeChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
     ddbbViewModel: DDBBViewModel,
-    searchViewModel: SearchViewModel,
     userViewModel: UserViewModel
 ) {
-    val context = LocalContext.current
-    // Identidad desde el SSOT de sesión (única fuente de verdad)
-    val email by userViewModel.currentEmail.collectAsState()
-
-    var gameIds by remember { mutableStateOf<List<String>?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
     var sortOption by rememberSaveable { mutableStateOf("Alfabético") }
-    var selectedList by rememberSaveable { mutableStateOf("playedlist") }
-    val gamesMap = searchViewModel.gamesMap
+    var selectedList by rememberSaveable { mutableStateOf("playing") }
 
-    // Carga los juegos de la lista seleccionada cuando cambia la sesión o la lista.
-    // El perfil ya no se copia aquí: vive en UserViewModel.profile (SSOT).
-    LaunchedEffect(email, selectedList) {
-        val emailData = email
-        if (emailData.isNullOrBlank()) {
-            gameIds = emptyList()
-            isLoading = false
-            return@LaunchedEffect
+    // Identidad desde el SSOT de sesión.
+    val uid by userViewModel.currentUid.collectAsState()
+
+    // Biblioteca en vivo (SSOT del usuario). null = primera carga.
+    val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
+        .collectAsState(initial = null)
+
+    // Historial local (decisión F0-B: vive en el dispositivo, no en Firestore).
+    val recents by ddbbViewModel.recentGames.collectAsState(initial = emptyList())
+
+    // Elementos a mostrar según la pestaña seleccionada.
+    val items: List<GameListItem>? = when {
+        selectedList == "history" -> recents.map {
+            GameListItem(it.gameId.toString(), it.name, it.coverUrl, "", emptyList(), null)
         }
-        isLoading = true
-        val result = ddbbViewModel.getUserGameIds(emailData, selectedList)
-        val newGameIds = result.getOrElse { error ->
-            userViewModel.setMessage("No se pudieron cargar tus juegos: ${error.message}")
-            emptyList()
+        library == null -> null
+        else -> {
+            val entries = library?.getOrNull().orEmpty()
+            entries
+                .filter { entry ->
+                    when (selectedList) {
+                        "playing" -> entry.status == LibraryStatus.PLAYING
+                        "completed" -> entry.status == LibraryStatus.COMPLETED
+                        "collected" -> entry.status == LibraryStatus.COLLECTED
+                        "wished" -> entry.status == LibraryStatus.WISHED
+                        "favorites" -> entry.favorite
+                        else -> true
+                    }
+                }
+                .map { GameListItem(it.gameId, it.name, it.coverUrl, it.released, it.genres, it) }
         }
-        // Si la lista es "history", se limita a 20 elementos para rendimiento
-        val limitedGameIds = if (selectedList == "history") newGameIds.take(20) else newGameIds
-
-        // Se obtienen de forma asíncrona los detalles de cada juego
-        limitedGameIds.map { gameId ->
-            async { searchViewModel.fetchAndStoreGameDetails(gameId.toInt()) }
-        }.awaitAll()
-
-        gameIds = limitedGameIds
-        isLoading = false
     }
 
-    // Se genera una lista de IDs ordenada según la opción de ordenamiento
-    val sortedGameIds by remember {
-        derivedStateOf {
-            gameIds?.let { ids ->
-                if (ids.isEmpty()) emptyList() else when (sortOption) {
-                    "Alfabético" -> ids.sortedBy { gamesMap[it.toInt()]?.name ?: "" }
-                    "Rating (Asc.)" -> ids.sortedBy { gamesMap[it.toInt()]?.rating ?: 0.0 }
-                    "Rating (Desc.)" -> ids.sortedByDescending { gamesMap[it.toInt()]?.rating ?: 0.0 }
-                    "Recomendado (Asc.)" -> ids.sortedBy { gamesMap[it.toInt()]?.ratingsCount ?: 0 }
-                    "Recomendado (Desc.)" -> ids.sortedByDescending { gamesMap[it.toInt()]?.ratingsCount ?: 0 }
-                    else -> ids
-                }
-            } ?: emptyList()
+    val sortedItems: List<GameListItem> = remember(items, sortOption) {
+        val list = items.orEmpty()
+        when (sortOption) {
+            "Alfabético" -> list.sortedBy { it.name.lowercase() }
+            "Año (Asc.)" -> list.sortedBy { it.released }
+            "Año (Desc.)" -> list.sortedByDescending { it.released }
+            "Más jugados" -> list.sortedByDescending { it.entry?.minutesTotal ?: 0 }
+            else -> list
         }
     }
 
@@ -161,10 +153,8 @@ fun GameListScreen(
                 HeaderTitle(selectedList)
                 Spacer(modifier = Modifier.width(8.dp))
                 SelectListButton(
-                    ddbbViewModel = ddbbViewModel,
                     onListSelected = { selected ->
                         selectedList = selected
-                        isLoading = true
                     }
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -178,19 +168,13 @@ fun GameListScreen(
                     .padding(innerPadding)
             ) {
                 when {
-                    isLoading -> LoadingIndicator()
-                    sortedGameIds.isEmpty() -> GameListEmptyState()
+                    items == null -> LoadingIndicator()
+                    sortedItems.isEmpty() -> GameListEmptyState(selectedList)
                     else -> GameList(
-                        gameIds = sortedGameIds,
-                        gamesMap = gamesMap,
+                        gameItems = sortedItems,
                         navController = navController,
-                        searchViewModel = searchViewModel,
-                        context = context,
                         ddbbViewModel = ddbbViewModel,
-                        userViewModel = userViewModel,
-                        onGameDeleted = { deletedGameId ->
-                            gameIds = gameIds?.filter { it != deletedGameId }
-                        }
+                        userViewModel = userViewModel
                     )
                 }
             }
@@ -214,112 +198,85 @@ fun LoadingIndicator() {
 }
 
 /**
- * Estado vacío de la lista de juegos (componente del design system).
+ * Estado vacío de la lista seleccionada (componente del design system).
  */
 @Composable
-fun GameListEmptyState() {
+fun GameListEmptyState(selectedList: String = "playing") {
+    val (title, hint) = when (selectedList) {
+        "playing" -> "No tienes juegos en curso" to "Busca un juego y añádelo como «Jugando»"
+        "completed" -> "Aún no has completado ningún juego" to
+            "Cuando termines uno, cámbiale el estado a «Completado»"
+        "collected" -> "Aún no tienes juegos coleccionados" to
+            "Marca «Coleccionado» cuando consigas todos sus logros"
+        "wished" -> "Tu lista de deseos está vacía" to "Busca un juego y añádelo como «Deseado»"
+        "favorites" -> "Sin favoritos todavía" to "Marca el corazón en los juegos que más te gusten"
+        "history" -> "Aún no has visto ningún juego" to "Abre la ficha de un juego y aparecerá aquí"
+        else -> "No tienes juegos añadidos aún" to "Busca un juego y añádelo a tu lista"
+    }
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         EmptyState(
-            title = "No tienes juegos añadidos aún",
-            hint = "Busca un juego y añádelo a tu lista",
+            title = title,
+            hint = hint,
             icon = Icons.Default.Clear
         )
     }
 }
 
 @Composable
-fun GameList(
-    gameIds: List<String>,
-    gamesMap: Map<Int, CatalogGame>,
+private fun GameList(
+    gameItems: List<GameListItem>,
     navController: NavController,
-    searchViewModel: SearchViewModel,
-    context: Context,
     ddbbViewModel: DDBBViewModel,
-    userViewModel: UserViewModel,
-    onGameDeleted: (String) -> Unit
+    userViewModel: UserViewModel
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 80.dp) // Additional bottom padding
+            .padding(bottom = 80.dp)
     ) {
-        items(gameIds) { gameId ->
-            val game = gamesMap[gameId.toInt()]
+        items(gameItems, key = { it.gameId }) { item ->
             Box(Modifier.animateItem()) {
-            GameCard(
-                navController = navController,
-                game = game,
-                gameId = gameId,
-                searchViewModel = searchViewModel,
-                context = context,
-                ddbbViewModel = ddbbViewModel,
-                userViewModel = userViewModel,
-                onGameDeleted = onGameDeleted
-            )
+                GameListCard(
+                    item = item,
+                    navController = navController,
+                    ddbbViewModel = ddbbViewModel,
+                    userViewModel = userViewModel
+                )
             }
         }
     }
 }
 
 @Composable
-fun HeaderTitle(selectedList: String) {
-    val title = when (selectedList) {
-        "wishlist" -> "Lista de deseos"
-        "playedlist" -> "Juegos jugados"
-        "history" -> "Historial de juegos"
-        else -> "Juegos jugados"
-    }
-    Text(
-        text = title,
-        style = MaterialTheme.typography.displayLarge,
-        textAlign = TextAlign.Start
-    )
-}
-
-@Composable
-fun GameCard(
+private fun GameListCard(
+    item: GameListItem,
     navController: NavController,
-    game: CatalogGame?,
-    gameId: String,
-    searchViewModel: SearchViewModel,
-    context: Context,
     ddbbViewModel: DDBBViewModel,
-    userViewModel: UserViewModel,
-    onGameDeleted: (String) -> Unit
+    userViewModel: UserViewModel
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val email by userViewModel.currentEmail.collectAsState()
-
-    // Show loading state if game data isn't available yet (skeleton del design system)
-    if (game == null) {
-        GameRowSkeleton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        )
-        return
-    }
+    val uid by userViewModel.currentUid.collectAsState()
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .height(200.dp)
-            .clickable { navController.navigate("gameDetails/${game.id}") },
+            .clickable { navController.navigate("gameDetails/${item.gameId}") },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background image (shared element: vuela al detalle)
+            // Imagen de fondo (shared element: vuela al detalle)
             GameCover(
-                imageUrl = game.coverUrl,
-                title = game.name,
+                imageUrl = item.coverUrl,
+                title = item.name,
                 contentDescription = "Imagen del juego",
                 modifier = Modifier
                     .fillMaxSize()
-                    .gvSharedElement(key = "cover-${game.id}")
+                    .gvSharedElement(key = "cover-${item.gameId}")
             )
-            // Bottom panel with game details
+            // Panel inferior con los datos del juego
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -330,9 +287,8 @@ fun GameCard(
                     )
                     .padding(12.dp)
             ) {
-                // Game name
                 Text(
-                    text = game.name,
+                    text = item.name,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -341,58 +297,71 @@ fun GameCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                // Row with year, genres and delete button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("Año: ")
-                                }
-                                append(game.released.substring(0, 4))
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (game.genres.isNotEmpty()) {
+                        if (item.released.length >= 4) {
                             Text(
                                 text = buildAnnotatedString {
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("Géneros: ")
+                                        append("Año: ")
                                     }
-                                    append(game.genres.joinToString(", "))
+                                    append(item.released.substring(0, 4))
                                 },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                        if (item.genres.isNotEmpty()) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("Géneros: ")
+                                    }
+                                    append(item.genres.joinToString(", "))
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        item.entry?.let { entry ->
+                            Text(
+                                text = "Estado: ${entry.status.label}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                    // Delete icon button with functionality
-                    IconButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                email?.let {
-                                    ddbbViewModel.removePlayedGame(it, gameId).onFailure { error ->
+                    // Solo las fichas de la biblioteca se pueden eliminar
+                    // (el historial local no se toca desde aquí).
+                    item.entry?.let { entry ->
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    if (userId.isNullOrBlank()) {
+                                        userViewModel.setMessage("Inicia sesión para gestionar tu biblioteca")
+                                        return@launch
+                                    }
+                                    ddbbViewModel.removeFromLibrary(userId, entry).onFailure { error ->
                                         userViewModel.setMessage("No se pudo eliminar: ${error.message}")
                                     }
-                                    onGameDeleted(gameId)
                                 }
-                            }
-                        },
-                        modifier = Modifier
-                            .size(32.dp)
-                            .padding(bottom = 10.dp, end = 10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar juego",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(27.dp)
-                        )
+                            },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(bottom = 10.dp, end = 10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar juego",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(27.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -401,16 +370,36 @@ fun GameCard(
 }
 
 @Composable
+fun HeaderTitle(selectedList: String) {
+    val title = when (selectedList) {
+        "playing" -> "Jugando"
+        "completed" -> "Completados"
+        "collected" -> "Coleccionados"
+        "wished" -> "Deseados"
+        "favorites" -> "Favoritos"
+        "history" -> "Historial"
+        else -> "Jugando"
+    }
+    Text(
+        text = title,
+        style = MaterialTheme.typography.displayLarge,
+        textAlign = TextAlign.Start
+    )
+}
+
+@Composable
 fun SelectListButton(
-    ddbbViewModel: DDBBViewModel,
     modifier: Modifier = Modifier,
     onListSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val listas = listOf(
-        "Lista de deseos" to "wishlist",
-        "Juegos jugados" to "playedlist",
-        "Historial de juegos" to "history"
+        "Jugando" to "playing",
+        "Completados" to "completed",
+        "Coleccionados" to "collected",
+        "Deseados" to "wished",
+        "Favoritos" to "favorites",
+        "Historial" to "history"
     )
 
     Box(modifier = modifier) {
@@ -440,10 +429,9 @@ fun SortMenuButton(currentSortOption: String, onSortSelected: (String) -> Unit) 
     var expanded by remember { mutableStateOf(false) }
     val sortOptions = listOf(
         "Alfabético",
-        "Rating (Asc.)",
-        "Rating (Desc.)",
-        "Recomendado (Asc.)",
-        "Recomendado (Desc.)"
+        "Año (Asc.)",
+        "Año (Desc.)",
+        "Más jugados"
     )
 
     Box {

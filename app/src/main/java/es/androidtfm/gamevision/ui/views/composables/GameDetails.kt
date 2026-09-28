@@ -54,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.data.catalog.CatalogGame
+import es.androidtfm.gamevision.data.library.LibraryEntry
+import es.androidtfm.gamevision.data.library.LibraryStatus
+import es.androidtfm.gamevision.datastore.RecentGame
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
@@ -96,19 +99,25 @@ fun GameDetails(
     val context = LocalContext.current
     var addMenuExpanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    val currentEmail by userViewModel.currentEmail.collectAsState()
+    val uid by userViewModel.currentUid.collectAsState()
 
-    LaunchedEffect(gameId, currentEmail) {
+    LaunchedEffect(gameId, uid) {
         viewModel.fetchGameDetails(gameId)
-        currentEmail?.takeIf { it.isNotBlank() }?.let { email ->
-            ddbbViewModel.addGameToHistory(email, gameId.toString())
-                .onFailure { Log.w("GameDetails", "No se pudo registrar el historial: ${it.message}") }
-        }
     }
 
     val game by viewModel.gameDetails.collectAsState()
     val isLoading by viewModel.isLoadingDetails.collectAsState()
     val error by viewModel.errorDetails.collectAsState()
+
+    // Ficha en vivo del juego en la biblioteca (para añadir/cambiar estado/favorito).
+    val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
+        .collectAsState(initial = null)
+    val entry = library?.getOrNull()?.firstOrNull { it.gameId == gameId.toString() }
+
+    // Historial local de recientes (F0-B: ya no se guarda en Firestore).
+    LaunchedEffect(game) {
+        game?.let { g -> ddbbViewModel.addRecentGame(RecentGame(g.id, g.name, g.coverUrl)) }
+    }
 
     Column(
         modifier = Modifier
@@ -187,33 +196,81 @@ fun GameDetails(
                                 modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                             ) {
                                 listOf(
-                                    "Juegos jugados" to "playedlist",
-                                    "Lista de deseos" to "wishlist",
-                                    "Favoritos" to "favorites"
-                                ).forEach { (label, collection) ->
+                                    "Jugando" to "playing",
+                                    "Deseado" to "wished",
+                                    "Favorito (marcar/desmarcar)" to "favorite"
+                                ).forEach { (label, action) ->
                                     DropdownMenuItem(
                                         text = { Text(label) },
                                         onClick = {
                                             addMenuExpanded = false
                                             coroutineScope.launch {
-                                                val gameIdValue = game?.id
-                                                val emailValue = currentEmail
-                                                if (gameIdValue != null && !emailValue.isNullOrBlank()) {
-                                                    ddbbViewModel.addGame(
-                                                        emailValue,
-                                                        gameIdValue.toString(),
-                                                        collection
-                                                    ).onSuccess {
-                                                        userViewModel.setMessage("Añadido a la lista")
-                                                    }.onFailure { error ->
-                                                        userViewModel.setMessage(
-                                                            "No se pudo añadir: ${error.message}"
-                                                        )
+                                                val currentGame = game
+                                                val userId = uid
+                                                if (currentGame == null || userId.isNullOrBlank()) {
+                                                    userViewModel.setMessage("Inicia sesión para guardar juegos")
+                                                    return@launch
+                                                }
+                                                when (action) {
+                                                    "playing", "wished" -> {
+                                                        val target = if (action == "playing")
+                                                            LibraryStatus.PLAYING else LibraryStatus.WISHED
+                                                        val currentEntry = entry
+                                                        if (currentEntry == null) {
+                                                            ddbbViewModel.addToLibrary(
+                                                                userId,
+                                                                currentGame.toLibraryEntry(target)
+                                                            ).onSuccess {
+                                                                userViewModel.setMessage(
+                                                                    if (target == LibraryStatus.PLAYING) "Añadido a Jugando"
+                                                                    else "Añadido a Deseados"
+                                                                )
+                                                            }.onFailure { e ->
+                                                                userViewModel.setMessage("No se pudo añadir: ${e.message}")
+                                                            }
+                                                        } else if (currentEntry.status == target) {
+                                                            userViewModel.setMessage("Ya está en esa lista")
+                                                        } else {
+                                                            ddbbViewModel.updateStatus(
+                                                                userId,
+                                                                currentEntry.gameId,
+                                                                currentEntry.status,
+                                                                target
+                                                            ).onSuccess {
+                                                                userViewModel.setMessage(
+                                                                    if (target == LibraryStatus.PLAYING) "Ahora está en Jugando"
+                                                                    else "Ahora está en Deseados"
+                                                                )
+                                                            }.onFailure { e ->
+                                                                userViewModel.setMessage("No se pudo actualizar: ${e.message}")
+                                                            }
+                                                        }
                                                     }
-                                                } else {
-                                                    userViewModel.setMessage(
-                                                        "Inicia sesión para guardar juegos"
-                                                    )
+                                                    "favorite" -> {
+                                                        val currentEntry = entry
+                                                        if (currentEntry == null) {
+                                                            // Aún no está en la biblioteca: entra en Deseados con el corazón marcado.
+                                                            ddbbViewModel.addToLibrary(
+                                                                userId,
+                                                                currentGame.toLibraryEntry(LibraryStatus.WISHED)
+                                                                    .copy(favorite = true)
+                                                            ).onSuccess {
+                                                                userViewModel.setMessage("Añadido a Deseados y marcado como favorito")
+                                                            }.onFailure { e ->
+                                                                userViewModel.setMessage("No se pudo añadir: ${e.message}")
+                                                            }
+                                                        } else {
+                                                            ddbbViewModel.setFavorite(userId, currentEntry.gameId, !currentEntry.favorite)
+                                                                .onSuccess {
+                                                                    userViewModel.setMessage(
+                                                                        if (!currentEntry.favorite) "Marcado como favorito"
+                                                                        else "Quitado de favoritos"
+                                                                    )
+                                                                }.onFailure { e ->
+                                                                    userViewModel.setMessage("No se pudo actualizar: ${e.message}")
+                                                                }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -228,6 +285,18 @@ fun GameDetails(
     }
 }
 
+
+/**
+ * Ficha mínima con la instantánea del catálogo, lista para añadir a la biblioteca.
+ */
+private fun CatalogGame.toLibraryEntry(status: LibraryStatus) = LibraryEntry(
+    gameId = id.toString(),
+    status = status,
+    name = name,
+    coverUrl = coverUrl,
+    released = released,
+    genres = genres
+)
 
 @Composable
 fun GameContent(game: CatalogGame?) {
