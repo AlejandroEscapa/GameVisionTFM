@@ -16,6 +16,9 @@
   índices, reglas, costes y plan por etapas. **Pendiente de aprobación**.
 - **[Síntesis técnica y de publicación](sintesis-2026.md)** — Play Store, monetización, stack
   Android, diseño, marketing/ASO y métricas/proceso. Decisiones **D-E1…D-E9**.
+- **[Propuesta de integraciones de APIs (Steam, trofeos, precios, arte)](integraciones-apis-2026.md)** —
+  packs de adopción **P1–P4**, extrapolación por vistas y requisitos técnicos transversales.
+  **Pendiente de decisión del propietario**.
 
 ## Material crudo — tecnología y publicación
 
@@ -46,6 +49,14 @@
 | Modelado de datos Firestore para escalar | [fuentes-tecnicas/01-modelado-datos-firestore.md](fuentes-tecnicas/01-modelado-datos-firestore.md) |
 | Costes, cuotas y agregación | [fuentes-tecnicas/02-costes-cuotas-agregacion.md](fuentes-tecnicas/02-costes-cuotas-agregacion.md) |
 | Reglas, identidad y operación | [fuentes-tecnicas/03-reglas-identidad-operacion.md](fuentes-tecnicas/03-reglas-identidad-operacion.md) |
+
+## Material crudo — APIs e integraciones (2026)
+
+| Frente | Documento |
+|---|---|
+| Ecosistema Steam (oficial y estándar) | [fuentes-apis/01-ecosistema-steam.md](fuentes-apis/01-ecosistema-steam.md) |
+| Consolas, trofeos y agregadores | [fuentes-apis/02-consolas-trofeos-agregadores.md](fuentes-apis/02-consolas-trofeos-agregadores.md) |
+| Coleccionismo, precios y arte | [fuentes-apis/03-coleccionismo-precios-arte.md](fuentes-apis/03-coleccionismo-precios-arte.md) |
 
 ## Documentos relacionados
 
