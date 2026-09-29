@@ -21,7 +21,7 @@ import {
   assertFails,
   assertSucceeds,
 } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, increment, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, increment, query, setDoc, updateDoc } from 'firebase/firestore';
 
 const PROJECT_ID = 'demo-gamevision';
 
@@ -303,6 +303,15 @@ await check('F2: bob reporta contenido', setDoc(doc(bobDb, 'reports/r1'), { repo
 await check('F2: NO se reporta suplantando a otro', setDoc(doc(bobDb, 'reports/r2'), { reporterUid: 'aliceUid', reason: 'x' }), false);
 await check('F2: los reportes NO se leen desde cliente', getDoc(doc(bobDb, 'reports/r1')), false);
 await check('F2: los reportes NO se borran desde cliente', deleteDoc(doc(bobDb, 'reports/r1')), false);
+
+// 17b) Listas curadas (T2.6/CA2.4): dos colecciones (pública / privada)
+await check('F2: alice crea una lista pública', setDoc(doc(aliceDb, 'users/aliceUid/gamelist/l1'), { name: 'JRPGs', isPublic: true, gameIds: ['1'] }), true);
+await check('F2: alice crea una lista privada', setDoc(doc(aliceDb, 'users/aliceUid/gamelist_private/l2'), { name: 'culpa', isPublic: false, gameIds: ['2'] }), true);
+await check('F2: bob ve la lista pública', getDoc(doc(bobDb, 'users/aliceUid/gamelist/l1')), true);
+await check('F2: la lista privada NO se lee de fuera', getDoc(doc(bobDb, 'users/aliceUid/gamelist_private/l2')), false);
+await check('F2: la query de bob a la privada falla entera', getDocs(query(collection(bobDb, 'users/aliceUid/gamelist_private'))), false);
+await check('F2: la dueña SI ve su privada', getDoc(doc(aliceDb, 'users/aliceUid/gamelist_private/l2')), true);
+await check('F2: otro NO escribe listas ajenas', setDoc(doc(bobDb, 'users/aliceUid/gamelist/lX'), { name: 'hack' }), false);
 
 // 18) Resto de la base cerrado
 await check('otras rutas cerradas', getDoc(doc(aliceDb, 'games/1')), false);

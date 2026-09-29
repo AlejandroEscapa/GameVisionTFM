@@ -37,6 +37,7 @@ import es.androidtfm.gamevision.data.session.SessionState
 import dagger.hilt.android.AndroidEntryPoint
 import es.androidtfm.gamevision.ui.navigation.NavHost
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
             val userViewModel: UserViewModel = viewModel()
             val newsViewModel: NewsViewModel = viewModel()
             val ddbbViewModel: DDBBViewModel = viewModel()
+            val socialViewModel: SocialViewModel = viewModel()
             val searchViewModel: SearchViewModel = viewModel()
 
             MainScreen(
@@ -84,6 +86,7 @@ class MainActivity : ComponentActivity() {
                     lifecycleScope.launch { googleViewModel.signIn(this@MainActivity) }
                 },
                 ddbbViewModel = ddbbViewModel,
+                socialViewModel = socialViewModel,
                 searchViewModel = searchViewModel // Si NewsScreen u otras pantallas lo requieren
             )
         }
@@ -99,6 +102,7 @@ fun MainScreen(
     newsViewModel: NewsViewModel,
     onGoogleSignInClick: () -> Unit,
     ddbbViewModel: DDBBViewModel,
+    socialViewModel: SocialViewModel,
     searchViewModel: SearchViewModel
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
@@ -136,6 +140,7 @@ fun MainScreen(
                         newsViewModel = newsViewModel,
                         onGoogleSignInClick = onGoogleSignInClick,
                         ddbbViewModel = ddbbViewModel,
+                        socialViewModel = socialViewModel,
                         isGuest = isGuest,
                         searchViewModel = searchViewModel
                     )

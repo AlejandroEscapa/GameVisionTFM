@@ -69,6 +69,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -100,6 +101,7 @@ fun GameDetails(
     gameId: Int,
     ddbbViewModel: DDBBViewModel,
     userViewModel: UserViewModel,
+    socialViewModel: SocialViewModel,
     viewModel: SearchViewModel = viewModel(
         viewModelStoreOwner = navController.getBackStackEntry("searchScreen")
     )
@@ -247,7 +249,18 @@ fun GameDetails(
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
                                     ddbbViewModel.updateStatus(userId, currentEntry.gameId, currentEntry.status, to)
-                                        .onSuccess { userViewModel.setMessage("Estado: ${to.label}") }
+                                        .onSuccess {
+                                            userViewModel.setMessage("Estado: ${to.label}")
+                                            // F2/D2.3: hito de completado en el feed (determinista).
+                                            if (to == LibraryStatus.COMPLETED && currentEntry.status != LibraryStatus.COMPLETED) {
+                                                socialViewModel.publishCompletedMilestone(
+                                                    uid = userId,
+                                                    gameId = currentEntry.gameId,
+                                                    gameName = currentEntry.name.ifBlank { game?.name.orEmpty() },
+                                                    gameCover = currentEntry.coverUrl.orEmpty()
+                                                )
+                                            }
+                                        }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo cambiar: ${e.message}") }
                                 }
                             },

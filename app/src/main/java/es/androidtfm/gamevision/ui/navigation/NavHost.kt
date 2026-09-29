@@ -28,6 +28,7 @@ import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
 import es.androidtfm.gamevision.ui.views.composables.StatsScreen
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
@@ -49,6 +50,7 @@ fun NavHost(
     newsViewModel: NewsViewModel,
     onGoogleSignInClick: () -> Unit,
     ddbbViewModel: DDBBViewModel,
+    socialViewModel: SocialViewModel,
     isGuest: Boolean,
     searchViewModel: SearchViewModel
 ) {
@@ -258,7 +260,8 @@ fun NavHost(
                         paddingValues = paddingValues,
                         gameId = it,
                         ddbbViewModel = ddbbViewModel,
-                        userViewModel = userViewModel
+                        userViewModel = userViewModel,
+                        socialViewModel = socialViewModel
                     )
                 }
                 }

@@ -74,10 +74,17 @@ service cloud.firestore {
       match /sessions/{sessionId} { allow read, write: if isOwner(userId); }
       match /friends/{friendId}   { allow read, write: if isOwner(userId); }
 
-      // T2.6: listas curadas. Visibilidad como library/stats (CA2.4).
+      // T2.6: listas curadas. DOS colecciones, porque en queries (`list`) las
+      // reglas NO pueden filtrar por documento: lo público en `gamelist` (visible
+      // como library/stats) y lo privado en `gamelist_private` (solo el dueño).
+      // CA2.4 garantizada por construcción, no por filtrado.
       match /gamelist/{listId} {
+        // Convención: aquí solo se escriben listas públicas (el repo separa).
         allow read: if canSeePublicContent(userId);
         allow write: if isOwner(userId);
+      }
+      match /gamelist_private/{listId} {
+        allow read, write: if isOwner(userId);
       }
 
       // Muro del chat: CONGELADO (D2.7). Sin cambios de comportamiento.

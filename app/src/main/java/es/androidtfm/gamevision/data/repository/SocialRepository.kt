@@ -53,6 +53,7 @@ class SocialRepository @Inject constructor(
         private const val REPORTS = "reports"
         private const val USERNAMES = "usernames"
         private const val LISTS = "gamelist"
+        private const val LISTS_PRIVATE = "gamelist_private"
 
         /** Máximo de uids por whereIn: límite duro de Firestore. */
         const val MAX_FEED_CHUNK = FeedQueryPlanner.MAX_CHUNK
@@ -314,27 +315,40 @@ class SocialRepository @Inject constructor(
     }.onFailure { Log.e(TAG, "searchByUsername($prefix): ${it.message}") }
 
     // ------------------------------------------------------------------------
-    // Listas curadas (T2.6)
+    // Listas curadas (T2.6): dos colecciones (regla CA2.4 por construcción)
     // ------------------------------------------------------------------------
 
-    /** Listas de un usuario; para terceros el llamador pasa onlyPublic=true. */
+    private fun listsCollection(uid: String, isPublic: Boolean) =
+        db.collection(USERS).document(uid)
+            .collection(if (isPublic) LISTS else LISTS_PRIVATE)
+
+    /** Listas de un usuario. Para terceros: onlyPublic=true (no toca la privada). */
     suspend fun listsOf(uid: String, onlyPublic: Boolean = false): Result<List<GameList>> =
         runCatching {
-            db.collection(USERS).document(uid).collection(LISTS).get().await()
+            val publicLists = listsCollection(uid, isPublic = true).get().await()
                 .documents.mapNotNull { doc ->
                     doc.data?.let { GameList.fromMap(doc.id, uid, it) }
                 }
-                .filter { !onlyPublic || it.isPublic }
-                .sortedByDescending { it.createdAt }
+            if (onlyPublic) return@runCatching publicLists
+            val privateLists = listsCollection(uid, isPublic = false).get().await()
+                .documents.mapNotNull { doc ->
+                    doc.data?.let { GameList.fromMap(doc.id, uid, it) }
+                }
+            (publicLists + privateLists).sortedByDescending { it.createdAt }
         }.onFailure { Log.e(TAG, "listsOf($uid): ${it.message}") }
 
     suspend fun list(uid: String, listId: String): Result<GameList> = runCatching {
-        val doc = db.collection(USERS).document(uid).collection(LISTS).document(listId).get().await()
-        require(doc.exists()) { "La lista no existe" }
-        GameList.fromMap(doc.id, uid, doc.data)
+        val publicDoc = listsCollection(uid, isPublic = true).document(listId).get().await()
+        if (publicDoc.exists()) {
+            return@runCatching GameList.fromMap(publicDoc.id, uid, publicDoc.data)
+        }
+        val privateDoc = listsCollection(uid, isPublic = false).document(listId).get().await()
+        require(privateDoc.exists()) { "La lista no existe" }
+        GameList.fromMap(privateDoc.id, uid, privateDoc.data)
     }.onFailure { Log.e(TAG, "list($uid/$listId): ${it.message}") }
 
     suspend fun saveList(uid: String, list: GameList): Result<Unit> = runCatching {
+        // CA2.4 por construcción: lo privado NO se copia nunca a la colección pública.
         val data = mapOf(
             "name" to list.name,
             "description" to list.description,
@@ -342,15 +356,15 @@ class SocialRepository @Inject constructor(
             "gameIds" to list.gameIds,
             "createdAt" to (if (list.createdAt == 0L) FieldValue.serverTimestamp() else list.createdAt)
         )
-        val id = list.id.ifBlank {
-            db.collection(USERS).document(uid).collection(LISTS).document().id
-        }
-        db.collection(USERS).document(uid).collection(LISTS).document(id).set(data).await()
+        val collection = listsCollection(uid, isPublic = list.isPublic)
+        val id = list.id.ifBlank { collection.document().id }
+        collection.document(id).set(data).await()
         Unit
     }.onFailure { Log.e(TAG, "saveList($uid): ${it.message}") }
 
-    suspend fun deleteList(uid: String, listId: String): Result<Unit> = runCatching {
-        db.collection(USERS).document(uid).collection(LISTS).document(listId).delete().await()
-        Unit
-    }.onFailure { Log.e(TAG, "deleteList($uid/$listId): ${it.message}") }
+    suspend fun deleteList(uid: String, listId: String, isPublic: Boolean = true): Result<Unit> =
+        runCatching {
+            listsCollection(uid, isPublic).document(listId).delete().await()
+            Unit
+        }.onFailure { Log.e(TAG, "deleteList($uid/$listId): ${it.message}") }
 }
