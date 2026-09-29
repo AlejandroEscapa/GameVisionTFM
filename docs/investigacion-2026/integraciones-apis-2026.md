@@ -3,7 +3,7 @@
 > **Qué es:** la síntesis de la investigación profunda de 3 frentes (Steam · consolas/trofeos ·
 > coleccionismo/precios/arte), con verificación en vivo de endpoints, para decidir qué APIs
 > adoptamos y dónde se usan. Material crudo: [`fuentes-apis/`](fuentes-apis/).
-> **Fecha:** 29/09/2026 · **Estado:** propuesta — decision del propietario (packs P1–P4).
+> **Fecha:** 29/09/2026 · **Estado:** **ACEPTADO íntegramente** por el propietario (29/09/2026, «acepto todo»).
 
 ---
 
@@ -107,10 +107,22 @@ MobyGames/eBay/Metacritic: descartados documentadamente (coste o acceso).
 4. **Privacidad**: NPSSO/tokens de consola tratados como secretos críticos; consentimiento explícito
    por conexión; revocación fácil; nada de credenciales en claro en el dispositivo.
 
-## 6. Decisiones propuestas (para el brainstorming)
+## 6. Decisiones (cerradas: 29/09/2026 — «acepto todo»)
 
-- **D-AI-1** ¿Adoptamos el pack **P1 (Steam Inside)** como la "importación" definitiva (D1.7) y su capa servidor?
-- **D-AI-2** ¿Adoptamos **P2 en versión segura** (RA ya, Xbox piloto, PSN aplazado)?
-- **D-AI-3** ¿**P3** en parking con disparador (PriceCharting cuando haya ingresos; live opcional)?
-- **D-AI-4** ¿**P4**: contactar a OpenCritic más adelante y cerrar Metacritic/Moby/eBay?
-- **D-AI-5** ¿Arte SteamGridDB para la ficha **ya en F1** (es barato) o esperamos a F2?
+- **D-AI-1 ✅** P1 «Steam Inside» adoptado: es la importación definitiva (cierra D1.7) e incluye la
+  capa servidor (Cloud Functions: proxy de claves + caché compartida + sync incremental).
+- **D-AI-2 ✅** P2 adoptado en versión segura: RetroAchievements ya; Xbox en piloto (OpenXBL);
+  PSN aplazado con condiciones duras (opt-in, secretos en servidor, advertencias).
+- **D-AI-3 ✅** P3 en parking con disparador de ingresos (PriceCharting, Twitch live).
+- **D-AI-4 ✅** P4: contactar a OpenCritic cuando toque; Metacritic/MobyGames/eBay cerrados.
+- **D-AI-5 ✅** Arte SteamGridDB entra **con P1 en F2** (la ficha de F1 mantiene su alcance HLTB ya
+  cerrado; el proxy de claves llega con P1, no antes).
+
+**Requisitos nuevos del propietario (misma fecha):** reseñas visibles en la ficha del juego;
+vinculación Steam desde el perfil con recuperación de horas reales por juego (si un dato no
+llega, se oculta con degradación silenciosa); cada detalle se decide cláusula a cláusula;
+onboarding muy profesional; cohesión de producto aprendiendo de las apps exitosas de Play Store.
+
+**Siguiente paso diseñado a raíz de la adopción:** mapa de integración por vistas —
+`docs/plan/integracion-por-vistas-2026.md` (dónde vive cada integración, vistas nuevas y flujo de
+vinculación Steam + onboarding).

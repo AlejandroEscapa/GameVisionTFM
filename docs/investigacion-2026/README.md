@@ -18,7 +18,7 @@
   Android, diseño, marketing/ASO y métricas/proceso. Decisiones **D-E1…D-E9**.
 - **[Propuesta de integraciones de APIs (Steam, trofeos, precios, arte)](integraciones-apis-2026.md)** —
   packs de adopción **P1–P4**, extrapolación por vistas y requisitos técnicos transversales.
-  **Pendiente de decisión del propietario**.
+  **Aceptada íntegramente (29/09/2026)**; el mapa por vistas vive en `../plan/integracion-por-vistas-2026.md`.
 
 ## Material crudo — tecnología y publicación
 
@@ -57,6 +57,14 @@
 | Ecosistema Steam (oficial y estándar) | [fuentes-apis/01-ecosistema-steam.md](fuentes-apis/01-ecosistema-steam.md) |
 | Consolas, trofeos y agregadores | [fuentes-apis/02-consolas-trofeos-agregadores.md](fuentes-apis/02-consolas-trofeos-agregadores.md) |
 | Coleccionismo, precios y arte | [fuentes-apis/03-coleccionismo-precios-arte.md](fuentes-apis/03-coleccionismo-precios-arte.md) |
+
+## Material crudo — vistas, onboarding, logros y ofertas (2026)
+
+| Frente | Documento |
+|---|---|
+| Apps exitosas de otros campos (IMDb, Letterboxd, Trakt…) | [fuentes-apis-views/01-apps-exitosas.md](fuentes-apis-views/01-apps-exitosas.md) |
+| Onboarding y vinculación de Steam | [fuentes-apis-views/02-onboarding-steam.md](fuentes-apis-views/02-onboarding-steam.md) |
+| Logros, ofertas y colección con valor | [fuentes-apis-views/03-logros-ofertas-coleccion.md](fuentes-apis-views/03-logros-ofertas-coleccion.md) |
 
 ## Documentos relacionados
 

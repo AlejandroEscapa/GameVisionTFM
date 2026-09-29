@@ -216,6 +216,8 @@ interstitial/app-open agresivos; precio estable (no "bait-and-switch").
 2. **Terminar F0**: caché Room, modelo de biblioteca, Storage, import/export.
 3. **Abrir F5 en borrador**: cuenta de desarrollador + política de privacidad + Data Safety.
 4. **Instrumentar** (Analytics + Crashlytics) al cerrar F1.
+5. **Ratificar el mapa de integraciones por vistas** (P1–P4 ya aceptados):
+   `integracion-por-vistas-2026.md` — 20 micro-decisiones D-V1…D-V20 pendientes de firma.
 
 ---
 
@@ -223,5 +225,7 @@ interstitial/app-open agresivos; precio estable (no "bait-and-switch").
 
 - [Análisis competitivo y de mercado (cierre)](../investigacion-2026/analisis-competitivo-2026.md)
 - [Investigación técnica y de publicación 2026](../investigacion-2026/sintesis-2026.md)
+- [Integraciones y APIs aceptadas (P1–P4)](../investigacion-2026/integraciones-apis-2026.md)
+- [Mapa de integración por vistas (D-V1…D-V20)](integracion-por-vistas-2026.md)
 - [Framework de desarrollo (GDF)](../metodologia/README.md)
 - [Visión de producto](../product-vision-2026.md)

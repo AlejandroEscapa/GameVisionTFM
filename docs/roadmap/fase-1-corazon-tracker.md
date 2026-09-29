@@ -32,9 +32,9 @@ como diferenciación directa.
 | D1.2 | **¿Nota y reseña obligatorias al registrar?** | (a) Todo opcional · (b) Nota obligatoria · (c) Nota obligatoria sólo al completar | ✅ **CERRADA (29/09/2026): (c) en versión NO bloqueante — nada impide registrar; al marcar Completado/Coleccionado se sugiere la nota en un toque (saltable); reseña siempre opcional** | ✅ |
 | D1.3 | **Escala de nota** | (a) 5 estrellas con medias · (b) 10 puntos · (c) Ambas | ✅ **CERRADA (28/09/2026; revisada el mismo día): escala 0,5–5,0 con medias estrellas**, alineada con el formato de RAWG. Ver ADR-0003 (supersede al ADR-0002) | ✅ |
 | D1.4 | **Duración del juego: fuente** | (a) Scraper HowLongToBeat · (b) Sólo campo propio · (c) No incluirla | ✅ **CERRADA (29/09/2026): (a) scraper ligero de HLTB con caché + respaldo manual** — verificado en vivo con 5 casos de prueba y caso «sin datos»; cruces externos OK. Ver [verificación](../investigacion-2026/hltb-verificacion-2026.md). IGDB queda como candidato futuro (TTB oficial) | ✅ |
-| D1.5 | **Estadísticas: ¿cliente o servidor?** | (a) Calcular en el cliente · (b) Cloud Function | **(a) en F1**: con los datos del propio usuario es rápido y evita dependencia de Functions; (b) cuando F3 necesite agregados | ⬜ |
-| D1.6 | **¿El diario es automático o manual?** | (a) Manual (el usuario apunta) · (b) Automático (al cambiar de estado) | **(a) manual, con atajos**: el diario es un acto de voluntad (como Letterboxd) y su valor está en que el usuario lo escribe | ⬜ |
-| D1.7 | **Importación de Steam/PSN/Xbox** | (a) En F1 · (b) Fase posterior · (c) Descartar | **(b)**: la investigación la marca como clave contra el abandono, pero es un bloque grande; F1 primero debe tener algo que importar | ⬜ |
+| D1.5 | **Estadísticas: ¿cliente o servidor?** | (a) Calcular en el cliente · (b) Cloud Function | **(a) en F1**: con los datos del propio usuario es rápido y evita dependencia de Functions; (b) cuando F3 necesite agregados | ✅ (29/09/2026) |
+| D1.6 | **¿El diario es automático o manual?** | (a) Manual (el usuario apunta) · (b) Automático (al cambiar de estado) | **(a) manual, con atajos**: el diario es un acto de voluntad (como Letterboxd) y su valor está en que el usuario lo escribe | ✅ (29/09/2026) |
+| D1.7 | **Importación de Steam/PSN/Xbox** | (a) En F1 · (b) Fase posterior · (c) Descartar | **(b) → concretada**: importación = pack **P1 «Steam Inside»** (Steam Web API + capa Cloud Functions) en **F2**; Xbox/RA por su vía segura (P2); PSN aplazado | ✅ (29/09/2026) |
 
 ---
 
