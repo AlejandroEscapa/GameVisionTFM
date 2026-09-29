@@ -45,12 +45,13 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(userId)).data.get('isPrivate', false);
     }
 
-    // Lectura de contenido público de un usuario: con sesión, sin bloqueo entre
-    // ambos y con la cuenta abierta (el dueño siempre entra).
+    // Lectura de contenido público de un usuario: el dueño siempre entra (sin
+    // tocar la BD); el resto, con sesión, sin bloqueo y con la cuenta abierta.
     function canSeePublicContent(userId) {
-      return signedIn()
-        && !blockedBetween(request.auth.uid, userId)
-        && (isOwner(userId) || !profileIsPrivate(userId));
+      return isOwner(userId)
+        || (signedIn()
+            && !blockedBetween(request.auth.uid, userId)
+            && !profileIsPrivate(userId));
     }
 
     match /users/{userId} {
@@ -73,6 +74,12 @@ service cloud.firestore {
       match /sessions/{sessionId} { allow read, write: if isOwner(userId); }
       match /friends/{friendId}   { allow read, write: if isOwner(userId); }
 
+      // T2.6: listas curadas. Visibilidad como library/stats (CA2.4).
+      match /gamelist/{listId} {
+        allow read: if canSeePublicContent(userId);
+        allow write: if isOwner(userId);
+      }
+
       // Muro del chat: CONGELADO (D2.7). Sin cambios de comportamiento.
       match /messages/{messageId} {
         allow read: if signedIn();
@@ -91,8 +98,13 @@ service cloud.firestore {
 
     // D2.1: seguir asimétrico. Id determinista {follower}_{followed}: idempotente.
     // Solo creas/borras aristas cuyo `followerUid` eres tú; nadie se sigue a sí mismo.
+    // Lectura puntual (get) cortada si hay bloqueo entre los dos extremos; el
+    // listado (list) exige solo sesión: contiene ids y fechas, no contenido.
     match /following/{edgeId} {
-      allow read: if signedIn();
+      allow get: if signedIn()
+        && !blockedBetween(request.auth.uid, resource.data.get('followerUid', ''))
+        && !blockedBetween(request.auth.uid, resource.data.get('followedUid', ''));
+      allow list: if signedIn();
       allow create: if isOwner(request.resource.data.get('followerUid', ''))
         && request.resource.data.get('followedUid', '') is string
         && request.resource.data.get('followedUid', '') != request.resource.data.get('followerUid', '');
@@ -101,24 +113,34 @@ service cloud.firestore {
     }
 
     // D2.3/D2.6: feed de hitos + posts del usuario. Sin sesiones diarias.
+    // El get() puntual a un autor bloqueado se corta; el listado (list) del feed
+    // exige solo sesión (el feed es la página pública del producto).
     match /feed/{feedId} {
-      allow read: if signedIn();
+      allow get: if signedIn()
+        && !blockedBetween(request.auth.uid, resource.data.get('authorUid', ''));
+      allow list: if signedIn();
       allow create: if isOwner(request.resource.data.get('authorUid', ''))
         && request.resource.data.get('type', '') in ['milestone', 'post']
         && request.resource.data.get('text', '') is string
         && (request.resource.data.get('type', '') != 'post'
             || (request.resource.data.get('text', '').size() >= 1
                 && request.resource.data.get('text', '').size() <= 280));
-      // La única mutación ajena permitida es el contador de me gusta (increment).
+      // La única mutación ajena permitida es el contador de me gusta (increment);
+      // `resource` en update es el doc POST-escritura, así que la comparación de
+      // cambios se hace con request.resource.data.diff(resource.data). La autoría
+      // se lee con get() directo (el listen exige la query restringida).
       allow update: if signedIn()
-        && !blockedBetween(request.auth.uid, resource.data.get('authorUid', ''))
+        && !blockedBetween(request.auth.uid, get(/databases/$(database)/documents/feed/$(feedId)).data.get('authorUid', ''))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount']);
       allow delete: if resource.data.get('authorUid', '') == request.auth.uid;
 
       // Me gusta: uno por uid (el id del like ES el uid), idempotente.
       match /likes/{likeId} {
-        allow read: if signedIn();
+        allow get: if signedIn()
+          && !blockedBetween(request.auth.uid, get(/databases/$(database)/documents/feed/$(feedId)).data.get('authorUid', ''));
+        allow list: if signedIn();
         allow create, delete: if isOwner(likeId)
+          && exists(/databases/$(database)/documents/feed/$(feedId))
           && !blockedBetween(likeId, get(/databases/$(database)/documents/feed/$(feedId)).data.get('authorUid', ''));
         allow update: if false;
       }

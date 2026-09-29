@@ -163,10 +163,18 @@ class UserRepository @Inject constructor(
             when (write) {
                 is IndexWrite.LinkEmail ->
                     batch.set(db.collection(EMAIL_INDEX).document(write.email), mapOf("uid" to write.uid))
-                is IndexWrite.LinkUsername ->
+                is IndexWrite.LinkUsername -> {
                     batch.set(db.collection(USERNAMES).document(write.username), mapOf("uid" to write.uid))
-                is IndexWrite.UnlinkUsername ->
+                    // F2 (D2.4): alias en minúsculas para la búsqueda por prefijo.
+                    batch.set(
+                        db.collection(USERNAMES).document(usernameAliasId(write.username)),
+                        mapOf("uid" to write.uid)
+                    )
+                }
+                is IndexWrite.UnlinkUsername -> {
                     batch.delete(db.collection(USERNAMES).document(write.username))
+                    batch.delete(db.collection(USERNAMES).document(usernameAliasId(write.username)))
+                }
             }
         }
     }

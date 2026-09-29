@@ -28,6 +28,13 @@ sealed interface IndexWrite {
  */
 fun indexEmail(email: String): String = email.trim().lowercase()
 
+/**
+ * F2 (D2.4): alias en minúsculas de `usernames` para búsqueda por prefijo
+ * insensible a mayúsculas. Prefijo `~` (ordena tras a-z) para que el rango de
+ * consulta nunca capture usernames originales y no haga falta índice compuesto.
+ */
+fun usernameAliasId(username: String): String = "~" + username.trim().lowercase()
+
 /** Índices al crear un perfil: email y username apuntan al uid. */
 fun createIndexWrites(uid: String, email: String, username: String): List<IndexWrite> = buildList {
     val key = indexEmail(email)

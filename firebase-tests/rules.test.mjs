@@ -251,6 +251,12 @@ await check('F2: NO puedes crear aristas fingiendo otro follower', setDoc(doc(bo
 await check('F2: la arista NO se puede actualizar', updateDoc(doc(aliceDb, 'following/aliceUid_bobUid'), { followedUid: 'carolUid' }), false);
 await check('F2: otro NO borra tu arista', deleteDoc(doc(bobDb, 'following/aliceUid_bobUid')), false);
 await check('F2: sin sesión NO lee following', getDoc(doc(anonDb, 'following/aliceUid_bobUid')), false);
+await check('F2: get puntual de arista con bloqueo NO', (async () => {
+  await setDoc(doc(bobDb, 'blocks/bobUid/people/aliceUid'), {});
+  try { await getDoc(doc(aliceDb, 'following/aliceUid_bobUid')); return Promise.reject(new Error('sirvio')); }
+  catch { return Promise.resolve(); }
+  finally { await deleteDoc(doc(bobDb, 'blocks/bobUid/people/aliceUid')); }
+})(), true);
 
 // 15) Feed D2.3/D2.6: hitos y posts validados; me gusta idempotentes
 await check(
