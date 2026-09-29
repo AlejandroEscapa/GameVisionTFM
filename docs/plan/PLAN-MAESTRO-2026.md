@@ -22,7 +22,7 @@ a cuáles toca.
 | # | Vertiente | Qué cubre | Documento de referencia |
 |---|---|---|---|
 | **V1** | **Producto / funcional** | Biblioteca, diario, estados, stats, social, decisión, Rewind | [`roadmap/`](../roadmap/README.md) |
-| **V2** | **Diseño / UX** | Design system, patrones, Wrapped, accesibilidad, adaptativo | [`DESIGN.md`](../../DESIGN.md) |
+| **V2** | **Diseño / UX** | Design system, patrones, Wrapped, accesibilidad, adaptativo. **Design system en transición** (provisional hasta recibir el nuevo, ADR-0009) | [`DESIGN.md`](../../DESIGN.md) |
 | **V3** | **Datos / arquitectura** | Adapter de catálogo, caché, modelo, offline, sync | [`AGENTS.md`](../../AGENTS.md) · ADR-0001 |
 | **V4** | **Comercial / monetización** | Modelo gratis vs. premium, anuncios, precios | [`investigacion-2026/sintesis-2026.md`](../investigacion-2026/sintesis-2026.md) §3 |
 | **V5** | **Publicación / distribución** | Cuenta, ficha, Data Safety, privacidad, rollout | mismo doc, §2 |
@@ -166,6 +166,7 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 - **Vertientes:** V2, V1
 - **Objetivo:** auditar y pulir la experiencia **pantalla a pantalla** (diseño, estados y **animaciones**) antes de abrir la monetización. Ver [fase-4-5](../roadmap/fase-4-5-diseno-animaciones.md).
 - **Por qué antes de F5:** monetizar una experiencia sin pulir es el peor orden posible; el cuidado del detalle es parte del argumento del producto.
+- **Añadido (29/09/2026):** esta fase **re-ancla el design system** al que aportará el propietario (documento entrante); `DESIGN.md` pasa a provisional. Ver [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md).
 
 ### Auditoría de cierre de cada fase (transversal)
 Cada fase (F0-F6) cierra con una **auditoría de código y experiencia** validada por el propietario, según el [protocolo](../metodologia/auditoria-de-cierre.md). Una fase no pasa a ✅ Completada sin ella.
@@ -232,6 +233,9 @@ interstitial/app-open agresivos; precio estable (no "bait-and-switch").
 4. **Instrumentar** (Analytics + Crashlytics) al cerrar F1.
 5. **✅ Mapa de integraciones por vistas ratificado (29/09):**
    `integracion-por-vistas-2026.md` - las 20 micro-decisiones D-V1...D-V20 adoptadas en bloque.
+6. **Orden de trabajo UI registrado (29/09):** higiene Compose ya (deuda, Bloque 5), superficie de
+   catálogo en **F4** (rails/grid + rutas tipadas + Paging) y `UiState` / motion / re-anclaje del
+   design system en **F4.5**. Detalle en [auditoría UI 2026](ui-adopcion-hallazgos-2026.md).
 
 ---
 

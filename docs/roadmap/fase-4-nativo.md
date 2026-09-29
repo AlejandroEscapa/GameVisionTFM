@@ -33,6 +33,7 @@ que exista contenido que mostrar (biblioteca, diario y estadísticas de F1).
 | D4.4 | **Alcance offline** | (a) Catálogo visitado + biblioteca · (b) Todo el catálogo | **(a)**: la biblioteca siempre offline (es tuya) y el catálogo ya visto; el resto necesita red | ⬜ |
 | D4.5 | **¿Wear OS / TV?** | (a) No por ahora · (b) Wear como compañero (registrar desde el reloj) · (c) TV | **(a)**: no aporta al objetivo y multiplica el mantenimiento; la tablet ya está cubierta por la navegación adaptativa | ⬜ |
 | D4.6 | **Estantería visual** | (a) Sí, en esta fase · (b) Descartar | **(a)**: es altísimo valor percibido para un coleccionista y barato de hacer con las portadas ya cacheadas | ⬜ |
+| D4.7 | **Superficie de descubrimiento en Home** | (a) **Sí**: rail de trending + grid de pósters · (b) Diferir | **(a)**: hoy Home no muestra catálogo (0 `LazyRow`/`LazyVerticalGrid`); es el mayor retorno visual por línea del proyecto | ⬜ |
 
 ---
 
@@ -47,6 +48,9 @@ que exista contenido que mostrar (biblioteca, diario y estadísticas de F1).
 - [ ] T4.7 Repaso de tablet/plegable: lista-detalle real con Navigation 3 (pendiente de la fase de UI)
 - [ ] T4.8 Accesibilidad: contraste, tamaños táctiles, TalkBack en los flujos principales
 - [ ] T4.9 Icono temático y pantalla de arranque acordes a la marca
+- [ ] T4.10 Superficie de descubrimiento en Home: rail de *trending* (`LazyRow`) + grid de pósters (`LazyVerticalGrid`)
+- [ ] T4.11 Rutas de navegación tipadas (`@Serializable`) y `hiltViewModel()` por destino (Nav Compose 2.8+, sin migrar a Nav3)
+- [ ] T4.12 Paginación del catálogo (Paging 3) en búsqueda y lista de juegos
 
 ---
 
@@ -62,6 +66,7 @@ que exista contenido que mostrar (biblioteca, diario y estadísticas de F1).
       (revisión manual de registro, biblioteca y ficha).
 - [ ] CA4.5 En ventana de tablet se ve lista + detalle a la vez.
 - [ ] CA4.6 Sin regresiones: **todos** los tests (unitarios + instrumentados) en verde.
+- [ ] CA4.7 Home muestra un rail de trending y un grid de pósters navegables (captura en móvil y tablet).
 
 ---
 

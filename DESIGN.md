@@ -1,5 +1,12 @@
 # DESIGN.md — GameVision Design System
 
+> ⚠️ **PROVISIONAL (29/09/2026).** El propietario ha confirmado que GameVision usará un **nuevo
+> design system** (documento Markdown entrante). Cuando llegue, **sustituirá a este documento como
+> fuente única de verdad visual**. El re-anclaje (tokens, tipografía, componentes y motion) se
+> ejecuta en **F4.5** — ver [ADR-0009](docs/metodologia/adr/0009-reanclaje-design-system.md) y la
+> decisión **DX.8** en `docs/roadmap/fase-4-5-diseno-animaciones.md`. Hasta entonces, este documento
+> sigue siendo la referencia vigente.
+
 > **Fuente única de verdad** del lenguaje visual de GameVision.
 > Decisión registrada en `docs/ui-redesign-2026-proposals.md` (27/09/2026).
 > Dirección: *design-system-first cinematográfico con identidad editorial* —

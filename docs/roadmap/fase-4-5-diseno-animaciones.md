@@ -5,6 +5,12 @@
 > **Encaje.** Va **entre F4 (Nativo) y F5 (Publicación)**: se audita y se pule la experiencia
 > **antes** de abrir la monetización. Monetizar una experiencia sin pulir es el peor orden posible.
 
+> **Nota (29/09/2026) — design system en transición.** La identidad visual actual (`DESIGN.md` +
+> `ui/designsystem/`) queda **provisional**: el propietario aportará un **nuevo design system**
+> (documento Markdown) que pasará a ser la **fuente única de verdad visual**. Esta fase ejecuta el
+> **re-anclaje** (tokens, tipografía, componentes y motion) sobre las pantallas ya auditadas. Ver
+> [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md) y la decisión **DX.8**.
+
 ## Objetivo
 
 Revisar **pantalla a pantalla** que las decisiones de diseño siguen siendo las correctas y que
@@ -42,6 +48,7 @@ producto, no como un adorno final.
 | DX.5 | **Movimiento reducido / accesibilidad** | (a) **Respetar la preferencia del sistema** (`ANIMATOR_DURATION_SCALE` / «reducir movimiento») · (b) Ignorarla | **(a)**: obligatorio; la animación nunca puede ser la única forma de entender algo | ⬜ |
 | DX.6 | **Alcance de la auditoría funcional** | (a) **Todas las pantallas contra `integracion-por-vistas-2026.md`** · (b) Sólo las dudosas | **(a)**: verificar que cada acción está donde el usuario la busca (cruza con las D-V ratificadas) | ⬜ |
 | DX.7 | **¿Se retoca el onboarding?** | (a) Sí, si la auditoría lo pide · (b) No | **(a)**: el onboarding es la primera impresión y es donde más se nota el motion bien hecho | ⬜ |
+| DX.8 | **¿Se conserva el design system actual o se re-ancla al entrante?** | (a) Mantener el actual · (b) **Re-anclar al design system que aportará el propietario** | **(b)**: confirmado un design system nuevo; `DESIGN.md` pasa a provisional y esta fase aplica sus tokens/componentes. Lo agnóstico al sistema (estados, motion, estructura) se conserva | ⬜ |
 
 ---
 
@@ -83,6 +90,14 @@ producto, no como un adorno final.
 
 ---
 
+### G. Re-anclaje del design system entrante (ADR-0009)
+- [ ] DX-T23 Recibir el documento del nuevo design system y **sustituir `DESIGN.md`** como fuente única de verdad
+- [ ] DX-T24 Mapear tokens (color, tipografía, forma, elevación) a `GVTheme` / `GVTypography` / `GVShapes`
+- [ ] DX-T25 Migrar los componentes de `ui/designsystem/` (GameCard, GameCover, NewsCard, RatingBadge, FriendAvatar, GVButton, GVChip, GVSkeleton, EmptyState) al sistema nuevo
+- [ ] DX-T26 Revisar pantalla a pantalla el resultado del re-anclaje contra el inventario auditado
+- [ ] DX-T27 Ajustar `GVMotion` a las curvas/duraciones del sistema nuevo, si las define
+- [ ] DX-T28 Retirar cualquier token o asset huérfano del sistema anterior
+
 ## Criterios de aceptación (con evidencia)
 
 - [ ] CA4.5.1 Inventario de pantallas completo, con veredicto por pantalla (captura antes/después de los cambios)
@@ -91,6 +106,7 @@ producto, no como un adorno final.
 - [ ] CA4.5.4 Con «reducir movimiento» activo, la app se entiende y se usa igual (verificado en emulador)
 - [ ] CA4.5.5 Auditoría funcional contra las D-V cerrada: sin acciones huérfanas ni controles muertos
 - [ ] CA4.5.6 TalkBack recorre los flujos principales sin elementos sin etiqueta
+- [ ] CA4.5.7 El design system entrante está aplicado en todas las pantallas y `DESIGN.md` actualizado como fuente única (sin restos del sistema anterior)
 
 ---
 
@@ -111,7 +127,11 @@ antes/después por pantalla + capturas o vídeo de las transiciones principales.
 
 ## Registro de decisiones
 
-_(vacío: pendiente de debate)_
+- **29/09/2026** — Punto de partida registrado. Se abre **DX.8**: el propietario confirma que se usará
+  un **design system nuevo** (documento entrante) y `DESIGN.md` queda **provisional**. El re-anclaje
+  se ejecuta en esta fase ([ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md)). DX.1–DX.7
+  siguen abiertas. Entra como material la [auditoría UI 2026](../plan/ui-adopcion-hallazgos-2026.md)
+  (P1: `UiState` por pantalla y estados resueltos, que es el criterio CA4.5.3).
 
 ---
 

@@ -153,3 +153,25 @@ reales. Por eso son baratas en diseño y caras en impacto.
   el árbol quede libre; P0.4 (docs) en cualquier momento; P1 al abrir F4.5.
 - **Criterio rector para la interfaz 2026:** antes de añadir estilo, **enseñar el catálogo** (rails y grid)
   y **modelar el estado** (`UiState`). La identidad visual ya existe; lo que falta es donde aplicarla.
+
+---
+
+## 8. Design system en transición (29/09/2026)
+
+**Confirmado por el propietario:** GameVision **usará otro design system**; aportará su documento
+(Markdown) cuando toque. Consecuencias para este plan:
+
+- **`DESIGN.md` queda provisional.** El documento entrante pasa a ser la fuente única de verdad
+  visual; el actual se mantiene como referencia vigente hasta la sustitución.
+- **Se registra como decisión formal:** [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md)
+  y como decisión **DX.8** de [F4.5](../roadmap/fase-4-5-diseno-animaciones.md), que es la fase que
+  ejecuta el re-anclaje (tokens, tipografía, componentes y motion).
+- **Lo que sobrevive al cambio de sistema (agnóstico):** P1.1 `UiState` por pantalla, P1.2 rutas
+  tipadas + `hiltViewModel()`, P1.4 retirar `LiveData`, P2.1 Paging 3 y toda la higiene P0. Son
+  decisiones de **arquitectura y estado**, no de estética.
+- **Lo que se re-estiliza:** P1.3 (superficie de descubrimiento: rails y grid sobre Home) es
+  **agnóstico en estructura** (dónde y qué se muestra) pero su **estilo** (tokens, tipografía,
+  forma) se aplicará con el sistema nuevo. El trabajo de estructura no se tira.
+- **Regla para no rehacer:** no introducir tokens ni componentes "a mano" que no existan en
+  `ui/designsystem/`; cuando llegue el sistema nuevo, la migración debe ser de tokens y componentes,
+  no de pantallas.

@@ -79,6 +79,17 @@
 
 ---
 
+### 2.7 UI / Compose (higiene)
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-U1** | `GameCover` usa `SubcomposeAsyncImage` (dentro de listas: GameCard, Search, GameList, Diary, Details) | Coste alto al hacer scroll. Cambiar a `AsyncImage` con `placeholder`/`error`. Ver [auditoría UI](ui-adopcion-hallazgos-2026.md) §2 |
+| **D-U2** | `ui-tooling` en `implementation` (además de `debugImplementation`) | Puede arrastrar `PreviewActivity` al manifest de release. Dejar solo `debugImplementation` y verificar el merged manifest |
+| **D-U3** | 40 `collectAsState` y 0 `collectAsStateWithLifecycle`; falta `lifecycle-runtime-compose` en el catálogo | Práctica estándar: no recolectar flujos en segundo plano |
+| **D-U4** | `AGENTS.md` desfasado (6.900 líneas / 36 archivos / 12 rutas → 10.513 / 79 / 14) y cita `ui/theme/Theme.kt`, que no existe | Corregir números y ruta (el tema vive en `ui/designsystem/GVTheme.kt`); marcar `03-stack-android-2026.md` como histórico |
+
+---
+
 ## 3. Plan por bloques
 
 ### Bloque 0 — Seguridad y cierre de F0-B ✅ (cerrado 29/09/2026)
@@ -140,6 +151,14 @@ emulador**. Guía completa: [`docs/release-signing.md`](../release-signing.md).
 Pendientes menores: copia del keystore/credenciales en gestor de secretos + añadir el SHA-1 de
 release en Firebase (Google Sign-In en builds release).
 
+### Bloque 5 — Higiene UI/Compose ⬜ (no depende de ninguna fase)
+**Alcance:** D-U1 (GameCover → `AsyncImage`), D-U2 (`ui-tooling` solo en debug), D-U3
+(`collectAsStateWithLifecycle` + `lifecycle-runtime-compose`), D-U4 (sincronizar `AGENTS.md` y marcar
+el stack histórico). Origen y evidencia: [auditoría UI 2026](ui-adopcion-hallazgos-2026.md).
+**Por qué primero:** son 3 archivos de código + 2 de docs, sin riesgo de arquitectura, y no dependen
+de F1 (en curso) ni de la fase de UI.
+**Verificación:** build debug/release + tests en verde + merged manifest de release sin `PreviewActivity`.
+
 ### Diferidos con disparador (no se tocan ahora)
 | Deuda | Disparador |
 |---|---|
@@ -179,7 +198,11 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
   + Coil 3.6.3 + googleid 1.2.1 vía `android.builtInKotlin=false` + `android.newDsl=false`;
   verificación completa en verde (30 unitarios + 7 instrumentados + release firmado). Detalle en
   «Actualización» de ADR-0004. **Push hecho y CI VERDE** (run del 29/09, ambos jobs).
-- **29/09/2026 (madrugada, 2ª parte)** — **Bloque 4 cerrado** (release firmado: keystore + firma +
-  verificación apksigner + instalado/arrancado en emulador). **Ramas limpiadas**: `ui-redesign-2026`
-  y `upgrade-2026` borradas (local y remoto); queda solo `master`. **Push hecho** y **CI VERDE**
-  (segundo run; el primero falló por dos causas ya corregidas).
+- **29/09/2026 (noche)** — **Auditoría UI 2026 registrada y planificación actualizada.** Se contrasta
+  una reflexión externa con el repo real ([auditoría UI](ui-adopcion-hallazgos-2026.md)): 9 hallazgos
+  confirmados y 2 matices; prioridad P0 (higiene Compose) / P1 (arquitectura de UI) / P2 (paginación).
+  Se abre **Bloque 5 — Higiene UI/Compose** (D-U1…D-U4). Se actualizan **F4** (superficie de
+  descubrimiento, rutas tipadas, Paging: T4.10–T4.12, D4.7, CA4.7) y **F4.5** (`UiState`, estados
+  resueltos y re-anclaje). **Decisión del propietario:** GameVision usará un **design system nuevo**;
+  `DESIGN.md` pasa a **provisional** → [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md),
+  DX.8 y DX-T23…DX-T28.

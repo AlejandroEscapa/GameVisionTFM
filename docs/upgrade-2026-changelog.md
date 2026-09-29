@@ -144,6 +144,24 @@
 - R8: eliminada la keep rule de DTOs (serializadores generados en compilación).
 - Verificado: assembleDebug, 11 tests, assembleRelease (R8), androidTest compila.
 
+## M5 - Auditoría UI 2026 y design system en transición (29/09/2026)
+
+> Sin cambios de código de la app: registro documental. Commits `b4905e4` (auditoría) + el de este bloque.
+
+- **Origen:** contraste de una reflexión externa (Claude, lectura estática) con el repo real. Los
+  hallazgos se verificaron uno a uno: 9 confirmados y 2 matices (sí hay skills instaladas; el stack
+  de `AGENTS.md` ya está al día, pero sus números y una ruta están desfasados).
+- **Resultado:** [auditoría y plan de adopción](plan/ui-adopcion-hallazgos-2026.md), con prioridad
+  P0 (higiene Compose) / P1 (arquitectura de UI, F4.5) / P2 (paginación).
+- **Hallazgo estructural:** la identidad visual ya existe (`DESIGN.md` + `ui/designsystem/`); lo que
+  falta es **superficie de catálogo** (0 `LazyRow`/`LazyVerticalGrid`, Home sin listas) y **estado
+  modelado** (0 `UiState`, 40 `collectAsState`).
+- **Decisión del propietario:** GameVision **usará un design system nuevo** (documento entrante);
+  `DESIGN.md` pasa a **provisional**. Formalizado en
+  [ADR-0009](metodologia/adr/0009-reanclaje-design-system.md) y **DX.8** de F4.5, que ejecuta el re-anclaje.
+- **Planificación actualizada:** deuda D-U1…D-U4 + Bloque 5 (higiene UI) · F4 suma descubrimiento,
+  rutas tipadas y Paging (T4.10–T4.12, D4.7, CA4.7) · F4.5 suma re-anclaje (DX-T23–DX-T28, CA4.5.7).
+
 ## Qué NO se hizo (y por qué)
 
 - **M4b Navigation 3**: saltada deliberadamente; la navegación actual (2.10.2)
