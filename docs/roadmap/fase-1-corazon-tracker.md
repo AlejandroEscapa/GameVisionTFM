@@ -8,10 +8,24 @@
 |---|---|---|
 | **1 · Biblioteca rica** | Estados (T1.1/T1.2), nota (T1.3), reseña (T1.4), favorito (T1.7) | ✅ **Hecho y verificado** (29/09/2026) |
 | **2 · Diario y tiempo** | Partidas/rejugadas (T1.5/T1.6), diario (T1.8/T1.9), horas (T1.10) | ✅ **Hecho y verificado** (29/09/2026) |
-| **2b · Duración HLTB** | Scraper HLTB con caché + respaldo manual (T1.11) | ⬜ Pendiente |
+| **2b · Duración HLTB** | Scraper HLTB con caché + respaldo manual (T1.11) | ✅ **Hecho y verificado** (29/09/2026) |
 | **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ⬜ Pendiente |
 | **4 · Navegación + cierre** | Filtros/orden (T1.14/T1.15), instrumentación, auditoría de F1 | ⬜ Pendiente |
 | **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ⬜ Pendiente |
+
+### Bloque 2b cerrado (29/09/2026) — Duración HLTB (T1.11)
+- **Cliente HLTB aislado** (`HltbClient`, OkHttp): token + búsqueda, con **un reintento** si el token caduca (403).
+  Es un flujo no oficial → si falla, devuelve `null` y **la app no se rompe**.
+- **Caché Room** (`hltb_cache`) por nombre normalizado, con **TTL de 90 días** (los tiempos derivan muy
+  lento). Base de datos subida a **versión 2**.
+- **Valor manual que gana**: `playtimeManual` en la ficha (en minutos); si está, la tarjeta muestra
+  «Tu estimación» y **oculta** los tiempos de HLTB.
+- **UI**: tarjeta «Duración estimada» en la ficha con Historia / +Extras / Completista. **Sin dato,
+  el bloque se oculta** (regla del propietario).
+- **Tests**: 5 nuevos (`HltbUtilsTest`) → **55 unitarios**. Lint 0 errores; debug + release OK.
+- **Verificado E2E** (usuario QA): la ficha de *Elden Ring* mostró **60 h 6 min / 101 h 19 min /
+  136 h 13 min** (coincide con la verificación del 29/09) y, al fijar manualmente **100 h**, la tarjeta
+  pasó a «Tu estimación: 100 h» (`playtimeManual=6000` en Firestore).
 
 ### Bloque 1 cerrado (29/09/2026)
 - **Panel de biblioteca en la ficha** (`LibraryPanel`): los 7 estados, nota con medias estrellas,
@@ -74,7 +88,7 @@ como diferenciación directa.
 - [x] T1.8 Vista de diario cronológico (por mes, con carátulas) — pantalla **Diario** con agrupación por mes
 - [x] T1.9 Apuntar sesión ("hoy jugué X minutos") — diálogo desde el botón «+» del diario
 - [x] T1.10 Horas acumuladas por juego y totales — totales «Esta semana» y «Total» en el diario
-- [ ] T1.11 Duración estimada del juego (historia / +extras / completista) vía scraper HLTB + caché + valor manual → **Bloque 2b**
+- [x] T1.11 Duración estimada (historia / +extras / completista) vía HLTB con caché de 90 días + valor manual que gana — HltbClient aislado, HltbRepository, tarjeta en la ficha
 
 ### C. Estadísticas
 - [ ] T1.12 Pantalla de estadísticas: horas totales, distribución de notas, géneros y plataformas favoritas, juegos por año

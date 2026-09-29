@@ -252,6 +252,23 @@ class LibraryRepository @Inject constructor(
         }.onFailure { Log.e(TAG, "Error actualizando plataforma de $gameId: ${it.message}") }
 
     /**
+     * Fija (o borra con `minutes = null`) la duración manual de una ficha (F1/T1.11).
+     * El valor manual del usuario siempre gana sobre el de HowLongToBeat.
+     */
+    suspend fun updateManualPlaytime(uid: String, gameId: String, minutes: Int?): Result<Unit> =
+        runCatching {
+            require(uid.isNotEmpty()) { "Usuario no autenticado" }
+            libraryCol(uid).document(gameId).set(
+                mapOf(
+                    "playtimeManual" to (minutes ?: FieldValue.delete()),
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            ).await()
+            Unit
+        }.onFailure { Log.e(TAG, "Error actualizando duración manual de $gameId: ${it.message}") }
+
+    /**
      * Elimina una ficha y ajusta contadores. Se pasa la ficha completa (la UI la tiene
      * en vivo) para poder deshacer sus contribuciones sin lecturas extra.
      * Nota: las partidas y sesiones del juego no se borran aquí (borrado en cascada
@@ -382,7 +399,8 @@ private fun DocumentSnapshot.toLibraryEntryOrNull(): LibraryEntry? {
         coverUrl = getString("coverUrl"),
         released = getString("released").orEmpty(),
         genres = (get("genres") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
-        minutesTotal = (getLong("minutesTotal") ?: 0L).toInt()
+        minutesTotal = (getLong("minutesTotal") ?: 0L).toInt(),
+        playtimeManual = (getLong("playtimeManual"))?.toInt()?.takeIf { it > 0 }
     )
 }
 

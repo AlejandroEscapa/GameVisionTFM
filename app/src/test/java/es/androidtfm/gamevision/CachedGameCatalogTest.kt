@@ -5,6 +5,7 @@ import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.data.catalog.GameCatalog
 import es.androidtfm.gamevision.data.catalog.local.GameDao
 import es.androidtfm.gamevision.data.catalog.local.GameEntity
+import es.androidtfm.gamevision.data.catalog.local.HltbCacheEntity
 import es.androidtfm.gamevision.data.catalog.local.SearchCacheEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -37,6 +38,9 @@ class CachedGameCatalogTest {
         override suspend fun games(ids: List<Int>) = ids.mapNotNull { games[it] }
         override suspend fun upsertSearch(search: SearchCacheEntity) { searches[search.query] = search }
         override suspend fun search(query: String) = searches[query]
+        val hltb = LinkedHashMap<String, HltbCacheEntity>()
+        override suspend fun hltb(key: String) = hltb[key]
+        override suspend fun upsertHltb(entity: HltbCacheEntity) { hltb[entity.cacheKey] = entity }
     }
 
     private fun game(id: Int, name: String) = CatalogGame(

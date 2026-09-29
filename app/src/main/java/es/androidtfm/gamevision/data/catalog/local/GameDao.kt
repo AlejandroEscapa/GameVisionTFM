@@ -31,4 +31,12 @@ interface GameDao {
     /** Recupera el resultado cacheado de una búsqueda, o null. */
     @Query("SELECT * FROM cached_searches WHERE query = :query LIMIT 1")
     suspend fun search(query: String): SearchCacheEntity?
+
+    /** Duración cacheada de HLTB por clave normalizada, o null. */
+    @Query("SELECT * FROM hltb_cache WHERE cacheKey = :key LIMIT 1")
+    suspend fun hltb(key: String): HltbCacheEntity?
+
+    /** Guarda (o reemplaza) la duración de HLTB de un juego. */
+    @Upsert
+    suspend fun upsertHltb(entity: HltbCacheEntity)
 }

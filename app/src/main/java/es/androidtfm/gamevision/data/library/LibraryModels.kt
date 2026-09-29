@@ -63,6 +63,11 @@ data class LibraryEntry(
     val genres: List<String> = emptyList(),
     /** Minutos jugados acumulados (contador; la fuente detallada son las sesiones). */
     val minutesTotal: Int = 0,
+    /**
+     * Duración manual del juego en minutos (F1/T1.11). Si está, el valor del
+     * usuario GANA sobre el de HowLongToBeat.
+     */
+    val playtimeManual: Int? = null,
 )
 
 /** Partida de un juego (`users/{uid}/logs/{logId}`): una por rejugada. */

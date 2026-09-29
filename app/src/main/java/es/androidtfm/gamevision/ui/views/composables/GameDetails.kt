@@ -39,6 +39,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -127,6 +128,15 @@ fun GameDetails(
         game?.let { g -> ddbbViewModel.addRecentGame(RecentGame(g.id, g.name, g.coverUrl)) }
     }
 
+    // Duración estimada (F1/T1.11): se pide con caché cuando se conoce el nombre.
+    var playtimes by remember(gameId) {
+        mutableStateOf<es.androidtfm.gamevision.data.hltb.HltbPlaytimes?>(null)
+    }
+    LaunchedEffect(game?.name) {
+        val nombre = game?.name ?: return@LaunchedEffect
+        playtimes = ddbbViewModel.playtimesFor(nombre)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -158,6 +168,10 @@ fun GameDetails(
                     )
 
                     GameContent(game = game)
+
+                    // Duración estimada (T1.11): el valor manual del usuario gana;
+                    // si no hay dato ni manual, la tarjeta no se muestra.
+                    DurationCard(entry = entry, playtimes = playtimes)
 
 
                     // Sección de botones
@@ -275,6 +289,21 @@ fun GameDetails(
                                     ddbbViewModel.removeFromLibrary(userId, currentEntry)
                                         .onSuccess { userViewModel.setMessage("Quitado de tu biblioteca") }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo quitar: ${e.message}") }
+                                }
+                            },
+                            onManualPlaytime = { minutos ->
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.setManualPlaytime(userId, currentEntry.gameId, minutos)
+                                        .onSuccess {
+                                            userViewModel.setMessage(
+                                                if (minutos == null) "Duración manual quitada"
+                                                else "Duración manual guardada"
+                                            )
+                                        }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo guardar: ${e.message}") }
                                 }
                             },
                             onNewRun = { platform ->
@@ -546,6 +575,7 @@ private fun LibraryPanel(
     onToggleFavorite: () -> Unit,
     onRemove: () -> Unit,
     onNewRun: (platform: String?) -> Unit,
+    onManualPlaytime: (Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -615,6 +645,39 @@ private fun LibraryPanel(
 
                 HorizontalDivider()
 
+                // Duración manual (F1/T1.11): gana sobre el dato de HowLongToBeat.
+                Text("Duración manual (horas)", style = MaterialTheme.typography.titleSmall)
+                var manualText by remember(entry.gameId) {
+                    mutableStateOf(
+                        entry.playtimeManual?.let { m ->
+                            val h = m / 60.0
+                            if (h % 1.0 == 0.0) h.toInt().toString() else h.toString()
+                        }.orEmpty()
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = manualText,
+                        onValueChange = { txt -> manualText = txt.filter { it.isDigit() || it == '.' }.take(6) },
+                        label = { Text("Horas") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val horas = manualText.toDoubleOrNull()
+                            onManualPlaytime(horas?.let { (it * 60).toInt() })
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Guardar") }
+                }
+
+                HorizontalDivider()
+
                 // Rejugada con plataforma (F1/T1.5 y T1.6)
                 Text("Nueva partida (rejugada)", style = MaterialTheme.typography.titleSmall)
                 var runPlatform by remember(entry.gameId) { mutableStateOf<String?>(entry.lastPlatform) }
@@ -641,5 +704,74 @@ private fun LibraryPanel(
                 }
             }
         }
+    }
+}
+
+
+/**
+ * Tarjeta de duración estimada (F1/T1.11).
+ *
+ * Prioridad: valor MANUAL del usuario > dato de HowLongToBeat. Si no hay
+ * ninguno de los dos, la tarjeta NO se muestra (sin dato, se oculta).
+ */
+@Composable
+private fun DurationCard(
+    entry: LibraryEntry?,
+    playtimes: es.androidtfm.gamevision.data.hltb.HltbPlaytimes?,
+    modifier: Modifier = Modifier
+) {
+    val manual = entry?.playtimeManual
+    val hasHltb = playtimes?.hasData == true
+    if (manual == null && !hasHltb) return
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Duración estimada", style = MaterialTheme.typography.titleMedium)
+
+            if (manual != null) {
+                Text(
+                    text = "Tu estimación: " + es.androidtfm.gamevision.data.hltb.HltbUtils.format(manual),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                playtimes?.mainMinutes?.let { DurationRow("Historia principal", it) }
+                playtimes?.plusMinutes?.let { DurationRow("Historia + extras", it) }
+                playtimes?.completeMinutes?.let { DurationRow("Completista", it) }
+                Text(
+                    text = "Fuente: HowLongToBeat (orientativo)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DurationRow(label: String, minutes: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = es.androidtfm.gamevision.data.hltb.HltbUtils.format(minutes),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

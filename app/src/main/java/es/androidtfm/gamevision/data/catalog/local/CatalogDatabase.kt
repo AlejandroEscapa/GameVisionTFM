@@ -11,8 +11,8 @@ import androidx.room.TypeConverters
  * NO cachea todo el catálogo (RAWG no lo permite y no cabe en el dispositivo).
  */
 @Database(
-    entities = [GameEntity::class, SearchCacheEntity::class],
-    version = 1,
+    entities = [GameEntity::class, SearchCacheEntity::class, HltbCacheEntity::class],
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

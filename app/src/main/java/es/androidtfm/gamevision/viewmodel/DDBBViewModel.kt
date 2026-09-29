@@ -3,6 +3,8 @@ package es.androidtfm.gamevision.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import es.androidtfm.gamevision.data.hltb.HltbPlaytimes
+import es.androidtfm.gamevision.data.hltb.HltbRepository
 import es.androidtfm.gamevision.data.library.GameLog
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.LibraryRepository
@@ -35,7 +37,8 @@ import javax.inject.Inject
 class DDBBViewModel @Inject constructor(
     private val repository: UserRepository,
     private val libraryRepository: LibraryRepository,
-    private val recentGamesStore: RecentGamesStore
+    private val recentGamesStore: RecentGamesStore,
+    private val hltbRepository: HltbRepository
 ) : ViewModel() {
 
     // ------------------------------------------------------------------------
@@ -101,6 +104,20 @@ class DDBBViewModel @Inject constructor(
     /** Agregados de la biblioteca (stats/summary), para la pantalla de F1/T1.12. */
     fun observeStats(uid: String): Flow<Result<LibraryStats>> =
         libraryRepository.observeStats(uid)
+
+    // ------------------------------------------------------------------------
+    // Duración estimada (F1/T1.11 — HowLongToBeat, con caché)
+    // ------------------------------------------------------------------------
+
+    /**
+     * Duración estimada de un juego por su nombre. Con caché de 90 d"as y
+     * degradable: si HLTB falla, devuelve null y la UI ofrece valor manual.
+     */
+    suspend fun playtimesFor(name: String): HltbPlaytimes? = hltbRepository.playtimesFor(name)
+
+    /** Fija (o borra con `minutes = null`) la duración manual de una ficha (T1.11). */
+    suspend fun setManualPlaytime(uid: String, gameId: String, minutes: Int?): Result<Unit> =
+        libraryRepository.updateManualPlaytime(uid, gameId, minutes)
 
     // ------------------------------------------------------------------------
     // Historial local (recientes) — vive en el dispositivo
