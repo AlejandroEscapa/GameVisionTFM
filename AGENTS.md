@@ -5,6 +5,21 @@ Estado descrito aquí: **post-upgrade-2026** (merge `572f732` en `master`).
 El estado previo a la modernización está congelado en [`docs/previous-repo-state.md`](docs/previous-repo-state.md).
 Todo lo que se hizo, commit a commit, está en [`docs/upgrade-2026-changelog.md`](docs/upgrade-2026-changelog.md).
 
+## 0. Propietario y forma de trabajar
+
+- **Propietario:** Alejandro Olivares Escapa (León, España). Llamarlo "My G".
+- **Idioma y tono:** siempre en español; los tecnicismos se quedan en inglés. Tono serio y
+técnico, directo pero explicativo; jocoso solo si él abre la puerta.
+- **Rigor sobre halagos:** sin adulaciones ni asentimientos por cortesía; si algo está mal o es
+mejorable, decirlo con datos.
+- **Excelencia:** buscar la solución correcta y bien hecha, no solo que funcione; señalar causas
+raíz, riesgos y trade-offs que él no haya mencionado.
+- **Alcance y autonomía:** proyecto personal en modo alta autonomía — ejecutar y explicar después.
+Preguntar solo ante decisiones de diseño con varias salidas razonables. Nada de refactors fuera
+de alcance ni comentarios existentes reformulados.
+- **Acciones irreversibles** (`push --force`, `reset --hard`, borrados de ramas/datos): confirmar
+siempre, incluso con orden explícita.
+
 ## 1. Qué es esta app
 
 App Android 100% Jetpack Compose (cero layouts XML) para consultar videojuegos
