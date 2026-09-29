@@ -1,18 +1,24 @@
 rules_version = '2';
 
 // ============================================================================
-// GameVision — reglas de Firestore (ADR-0008, 29/09/2026)
+// GameVision — reglas de Firestore (F2 Social, 30/09/2026)
 //
-// Clave ÚNICA de identidad: uid de Firebase Auth.
+// Clave ÚNICA de identidad: uid de Firebase Auth (ADR-0008).
 //   users/{uid}                          → perfil (el email es un CAMPO)
 //   users/{uid}/library|logs|sessions|stats   → datos del usuario
-//   users/{uid}/friends|messages              → social
-//   profile_images/{uid}                 → foto de perfil (base64)
-//   email_index/{email}                  → índice email → { uid } (resolver amigos)
-//   usernames/{username}                 → índice username → { uid } (búsqueda, F2)
+//   users/{uid}/friends|messages         → social (friends congelado: D2.1 lo jubila)
+//   profile_images/{uid}                 → foto de perfil (base64, ADR-0007)
+//   email_index/{email}                  → índice email → { uid }
+//   usernames/{username}                 → índice username → { uid } (búsqueda F2)
+//   following/{followerUid}_{followedUid} → arista de seguimiento asimétrico (D2.1)
+//   feed/{id} (+ /likes/{uid})           → hitos y posts del feed (D2.3, D2.6)
+//   blocks/{blockerUid}/people/{uid}     → bloqueos (D2.5)
+//   reports/{id}                         → reportes, solo crear (D2.5)
 //
-// Se elimina el parche anterior (uid == id || email == id): ahora SOLO uid.
-// El email no aparece en ninguna ruta (privacidad por diseño; coherente con D2.4).
+// Privacidad (D2.2): perfil público por defecto; `isPrivate` (default FALSE para no
+// cegar los perfiles existentes que aún no tienen el campo) cierra library/stats.
+// sessions/logs son SIEMPRE privados: el diario no se comparte.
+// Bloqueo (CA2.9): bloquear corta la lectura del perfil en AMBAS direcciones.
 // ============================================================================
 
 service cloud.firestore {
@@ -23,18 +29,53 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // ¿Hay bloqueo entre esos dos uids? (cualquiera de las dos direcciones)
+    function blockedBetween(uidA, uidB) {
+      return exists(/databases/$(database)/documents/blocks/$(uidA)/people/$(uidB))
+          || exists(/databases/$(database)/documents/blocks/$(uidB)/people/$(uidA));
+    }
+
+    // D2.2: el perfil es privado SOLO si su dueño lo cerró. `get()` con default:
+    // los perfiles existentes no tienen el campo y no deben quedarse ciegos.
+    function profileIsPrivate(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.get('isPrivate', false);
+    }
+
+    // Lectura de contenido público de un usuario: con sesión, sin bloqueo entre
+    // ambos y con la cuenta abierta (el dueño siempre entra).
+    function canSeePublicContent(userId) {
+      return signedIn()
+        && !blockedBetween(request.auth.uid, userId)
+        && (isOwner(userId) || !profileIsPrivate(userId));
+    }
+
     match /users/{userId} {
-      // Perfil: escribir solo el dueño; leer, cualquier usuario autenticado.
-      allow read: if request.auth != null;
+      // Perfil raíz: con sesión y sin bloqueo; escribir solo el dueño.
+      allow read: if signedIn() && !blockedBetween(request.auth.uid, userId);
       allow create, update, delete: if isOwner(userId);
 
-      match /library/{gameId}     { allow read, write: if isOwner(userId); }
+      // D2.2: biblioteca y stats son públicos salvo cuenta privada o bloqueo.
+      match /library/{gameId} {
+        allow read: if canSeePublicContent(userId);
+        allow write: if isOwner(userId);
+      }
+      match /stats/{docId} {
+        allow read: if canSeePublicContent(userId);
+        allow write: if isOwner(userId);
+      }
+
+      // Privados SIEMPRE, aunque la cuenta sea pública.
       match /logs/{logId}         { allow read, write: if isOwner(userId); }
       match /sessions/{sessionId} { allow read, write: if isOwner(userId); }
-      match /stats/{docId}        { allow read, write: if isOwner(userId); }
       match /friends/{friendId}   { allow read, write: if isOwner(userId); }
+
+      // Muro del chat: CONGELADO (D2.7). Sin cambios de comportamiento.
       match /messages/{messageId} {
-        allow read: if request.auth != null;
+        allow read: if signedIn();
         allow write: if isOwner(userId);
       }
 
@@ -42,10 +83,58 @@ service cloud.firestore {
       match /{document=**} { allow read, write: if false; }
     }
 
-    // Foto de perfil (ADR-0007): el dueño escribe; cualquier autenticado lee.
+    // Foto de perfil (ADR-0007): el dueño escribe; con sesión y sin bloqueo se lee.
     match /profile_images/{userId} {
-      allow read: if request.auth != null;
+      allow read: if signedIn() && !blockedBetween(request.auth.uid, userId);
       allow write, delete: if isOwner(userId);
+    }
+
+    // D2.1: seguir asimétrico. Id determinista {follower}_{followed}: idempotente.
+    // Solo creas/borras aristas cuyo `followerUid` eres tú; nadie se sigue a sí mismo.
+    match /following/{edgeId} {
+      allow read: if signedIn();
+      allow create: if isOwner(request.resource.data.get('followerUid', ''))
+        && request.resource.data.get('followedUid', '') is string
+        && request.resource.data.get('followedUid', '') != request.resource.data.get('followerUid', '');
+      allow update: if false;
+      allow delete: if resource.data.get('followerUid', '') == request.auth.uid;
+    }
+
+    // D2.3/D2.6: feed de hitos + posts del usuario. Sin sesiones diarias.
+    match /feed/{feedId} {
+      allow read: if signedIn();
+      allow create: if isOwner(request.resource.data.get('authorUid', ''))
+        && request.resource.data.get('type', '') in ['milestone', 'post']
+        && request.resource.data.get('text', '') is string
+        && (request.resource.data.get('type', '') != 'post'
+            || (request.resource.data.get('text', '').size() >= 1
+                && request.resource.data.get('text', '').size() <= 280));
+      // La única mutación ajena permitida es el contador de me gusta (increment).
+      allow update: if signedIn()
+        && !blockedBetween(request.auth.uid, resource.data.get('authorUid', ''))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount']);
+      allow delete: if resource.data.get('authorUid', '') == request.auth.uid;
+
+      // Me gusta: uno por uid (el id del like ES el uid), idempotente.
+      match /likes/{likeId} {
+        allow read: if signedIn();
+        allow create, delete: if isOwner(likeId)
+          && !blockedBetween(likeId, get(/databases/$(database)/documents/feed/$(feedId)).data.get('authorUid', ''));
+        allow update: if false;
+      }
+    }
+
+    // D2.5: bloquear. Solo el blocker gestiona su lista; nadie la lee de fuera.
+    match /blocks/{blockerUid}/people/{blockedUid} {
+      allow read: if isOwner(blockerUid);
+      allow create, delete: if isOwner(blockerUid) && blockedUid != blockerUid;
+      allow update: if false;
+    }
+
+    // D2.5: reportes. Solo crear con tu propio uid; nadie lee ni toca desde cliente.
+    match /reports/{reportId} {
+      allow create: if request.resource.data.get('reporterUid', '') == request.auth.uid;
+      allow read, update, delete: if false;
     }
 
     // Índice email → uid: lectura autenticada; escritura solo del propio uid.
