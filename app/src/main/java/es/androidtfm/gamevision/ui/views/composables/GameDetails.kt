@@ -3,6 +3,7 @@ package es.androidtfm.gamevision.ui.views.composables
 import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -275,6 +276,26 @@ fun GameDetails(
                                         .onSuccess { userViewModel.setMessage("Quitado de tu biblioteca") }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo quitar: ${e.message}") }
                                 }
+                            },
+                            onNewRun = { platform ->
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.createLog(
+                                        userId,
+                                        es.androidtfm.gamevision.data.library.GameLog(
+                                            gameId = currentEntry.gameId,
+                                            runIndex = 2,
+                                            platform = platform,
+                                            minutes = null
+                                        )
+                                    ).onSuccess {
+                                        userViewModel.setMessage(if (platform != null) "Rejugada iniciada en $platform" else "Rejugada iniciada")
+                                    }.onFailure { e ->
+                                        userViewModel.setMessage("No se pudo iniciar la rejugada: ${e.message}")
+                                    }
+                                }
                             }
                         )
                     }
@@ -504,15 +525,16 @@ private fun EmptyState() {
 }
 
 /**
- * Panel de gestiÃ³n de la biblioteca (F1 â€” Bloque 1).
+ * Panel de gestión de la biblioteca (F1 — Bloque 1 + rejugada del Bloque 2).
  *
- * ReÃºne, en un mismo sitio, lo que define la "biblioteca rica":
+ * Reúne, en un mismo sitio, lo que define la "biblioteca rica":
  *  - los 7 estados (T1.1/T1.2),
  *  - la nota con medias estrellas (T1.3),
- *  - la reseÃ±a escrita (T1.4),
- *  - el favorito (T1.7) y quitar de la biblioteca.
+ *  - la reseña escrita (T1.4),
+ *  - el favorito y quitar de la biblioteca (T1.7),
+ *  - la rejugada con plataforma (T1.5/T1.6).
  *
- * Si el juego aÃºn no estÃ¡ en la biblioteca, solo ofrece aÃ±adirlo eligiendo estado.
+ * Si el juego aún no está en la biblioteca, solo ofrece añadirlo eligiendo estado.
  */
 @Composable
 private fun LibraryPanel(
@@ -523,6 +545,7 @@ private fun LibraryPanel(
     onReview: (String) -> Unit,
     onToggleFavorite: () -> Unit,
     onRemove: () -> Unit,
+    onNewRun: (platform: String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -538,7 +561,7 @@ private fun LibraryPanel(
         ) {
             if (entry == null) {
                 Text(
-                    text = "AÃ±adir a tu biblioteca",
+                    text = "Añadir a tu biblioteca",
                     style = MaterialTheme.typography.titleMedium
                 )
                 LibraryStatusSelector(current = null, onSelect = onAdd)
@@ -575,10 +598,7 @@ private fun LibraryPanel(
 
                 HorizontalDivider()
 
-                Text(
-                    text = "Tu nota",
-                    style = MaterialTheme.typography.titleSmall
-                )
+                Text(text = "Tu nota", style = MaterialTheme.typography.titleSmall)
                 RatingStars(rating = entry.rating, onRatingChange = onRate)
 
                 HorizontalDivider()
@@ -590,10 +610,36 @@ private fun LibraryPanel(
                     modifier = Modifier.align(Alignment.End),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Guardar reseÃ±a")
+                    Text("Guardar reseña")
+                }
+
+                HorizontalDivider()
+
+                // Rejugada con plataforma (F1/T1.5 y T1.6)
+                Text("Nueva partida (rejugada)", style = MaterialTheme.typography.titleSmall)
+                var runPlatform by remember(entry.gameId) { mutableStateOf<String?>(entry.lastPlatform) }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    es.androidtfm.gamevision.data.library.Platforms.ALL.take(8).forEach { p ->
+                        es.androidtfm.gamevision.ui.designsystem.components.GVChip(
+                            text = p,
+                            selected = runPlatform == p,
+                            onClick = { runPlatform = if (runPlatform == p) null else p }
+                        )
+                    }
+                }
+                Button(
+                    onClick = { onNewRun(runPlatform) },
+                    modifier = Modifier.align(Alignment.End),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Empezar rejugada")
                 }
             }
         }
     }
 }
-

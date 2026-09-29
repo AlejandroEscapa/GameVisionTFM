@@ -94,6 +94,10 @@ class DDBBViewModel @Inject constructor(
     suspend fun createLog(uid: String, log: GameLog): Result<Unit> =
         libraryRepository.createLog(uid, log)
 
+    /** Fija la plataforma de la última partida de una ficha (F1/T1.6). */
+    suspend fun setLastPlatform(uid: String, gameId: String, platform: String?): Result<Unit> =
+        libraryRepository.updateLastPlatform(uid, gameId, platform)
+
     /** Agregados de la biblioteca (stats/summary), para la pantalla de F1/T1.12. */
     fun observeStats(uid: String): Flow<Result<LibraryStats>> =
         libraryRepository.observeStats(uid)

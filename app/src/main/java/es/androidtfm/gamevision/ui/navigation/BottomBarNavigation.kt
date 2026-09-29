@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -58,12 +59,13 @@ fun AppScaffold(
     val items = if (isGuest) {
         listOf(
             BottomNavItem("news", Icons.Default.Home, "Home"),
-            BottomNavItem("gamesearch", Icons.Filled.Search, "Search")
+            BottomNavItem("gameSearch", Icons.Filled.Search, "Search")
         )
     } else {
         listOf(
-            BottomNavItem("gamesearch", Icons.Filled.Search, "Search"),
+            BottomNavItem("gameSearch", Icons.Filled.Search, "Search"),
             BottomNavItem("gamelist", Icons.AutoMirrored.Filled.List, "Game List"),
+            BottomNavItem("diary", Icons.AutoMirrored.Filled.MenuBook, "Diario"),
             BottomNavItem("news", Icons.Default.Home, "Home"),
             BottomNavItem("profile", Icons.Default.Person, "Profile"),
             BottomNavItem("social", Icons.Default.Face, "Social")

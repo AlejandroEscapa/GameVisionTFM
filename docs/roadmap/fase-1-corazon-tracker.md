@@ -7,7 +7,8 @@
 | Bloque | Contenido | Estado |
 |---|---|---|
 | **1 · Biblioteca rica** | Estados (T1.1/T1.2), nota (T1.3), reseña (T1.4), favorito (T1.7) | ✅ **Hecho y verificado** (29/09/2026) |
-| **2 · Diario y tiempo** | Partidas/rejugadas (T1.5/T1.6), diario (T1.8/T1.9), horas (T1.10), duración HLTB (T1.11) | ⬜ Pendiente |
+| **2 · Diario y tiempo** | Partidas/rejugadas (T1.5/T1.6), diario (T1.8/T1.9), horas (T1.10) | ✅ **Hecho y verificado** (29/09/2026) |
+| **2b · Duración HLTB** | Scraper HLTB con caché + respaldo manual (T1.11) | ⬜ Pendiente |
 | **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ⬜ Pendiente |
 | **4 · Navegación + cierre** | Filtros/orden (T1.14/T1.15), instrumentación, auditoría de F1 | ⬜ Pendiente |
 | **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ⬜ Pendiente |
@@ -65,15 +66,15 @@ como diferenciación directa.
 - [x] T1.2 Cambio de estado rápido desde la ficha del juego y desde la lista (panel de biblioteca en la ficha + pestañas por estado en la lista)
 - [x] T1.3 Valoración con medias estrellas (crear, editar, borrar) — `RatingStars` + `RatingUtils` (0,5–5,0, con «Quitar»)
 - [x] T1.4 Reseña escrita por juego, con formato corto destacado — `ReviewEditor` (máx. 280, contador)
-- [~] T1.5 Múltiples partidas por juego (rejugada = nuevo `log`) — **modelo y repositorio listos** (`GameLog`, `createLog`); **UI en el Bloque 2 (diario)**
-- [~] T1.6 Plataforma jugada por partida (PC, PS5, Switch…) — **campo `platform` en `GameLog` listo**; **UI en el Bloque 2**
+- [x] T1.5 Múltiples partidas por juego (rejugada = nuevo `log`) — botón «Empezar rejugada» en el panel de la ficha
+- [x] T1.6 Plataforma jugada por partida (PC, PS5, Switch…) — selector de plataforma en la rejugada y en la sesión (`lastPlatform`)
 - [x] T1.7 Favorito (para el Top 4 de F2) — corazón en el panel de biblioteca; `favorite` en la ficha y pestaña «Favoritos»
 
 ### B. Diario y tiempo
-- [ ] T1.8 Vista de diario cronológico (por mes, con carátulas)
-- [ ] T1.9 Apuntar sesión: "hoy jugué X minutos" (con atajo rápido)
-- [ ] T1.10 Horas acumuladas por juego y totales
-- [ ] T1.11 Duración estimada del juego (historia / +extras / completista) vía scraper HLTB verificado + caché local + valor manual
+- [x] T1.8 Vista de diario cronológico (por mes, con carátulas) — pantalla **Diario** con agrupación por mes
+- [x] T1.9 Apuntar sesión ("hoy jugué X minutos") — diálogo desde el botón «+» del diario
+- [x] T1.10 Horas acumuladas por juego y totales — totales «Esta semana» y «Total» en el diario
+- [ ] T1.11 Duración estimada del juego (historia / +extras / completista) vía scraper HLTB + caché + valor manual → **Bloque 2b**
 
 ### C. Estadísticas
 - [ ] T1.12 Pantalla de estadísticas: horas totales, distribución de notas, géneros y plataformas favoritas, juegos por año
@@ -90,8 +91,8 @@ como diferenciación directa.
 - [ ] CA1.1 Registrar un juego nuevo (buscar → estado → guardar) en **menos de 60 s**
       cronometrado en el emulador.
 - [ ] CA1.2 Los 7 estados existen y son visibles en la ficha y en la lista.
-- [ ] CA1.3 Una rejugada crea un segundo registro sin borrar el primero.
-- [ ] CA1.4 El diario muestra las sesiones ordenadas por fecha y suma las horas.
+- [x] CA1.3 Una rejugada crea un segundo registro sin borrar el primero — `createLog` con `runIndex` (CA1.3).
+- [x] CA1.4 El diario muestra las sesiones ordenadas por fecha y suma las horas — verificado en emulador.
 - [ ] CA1.5 Las estadísticas cuadran con los datos introducidos (verificación manual con
       un usuario de prueba: 3 juegos, 2 completados, 1 abandonado → los números coinciden).
 - [ ] CA1.6 Los filtros combinados (estado + género) devuelven lo esperado.

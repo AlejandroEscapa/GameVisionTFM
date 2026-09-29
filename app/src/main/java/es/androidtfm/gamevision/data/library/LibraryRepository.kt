@@ -235,6 +235,23 @@ class LibraryRepository @Inject constructor(
         }.onFailure { Log.e(TAG, "Error actualizando favorito de $gameId: ${it.message}") }
 
     /**
+     * Actualiza la plataforma de la última partida de una ficha (F1/T1.6).
+     * Se usa al apuntar una sesión con plataforma, sin crear una partida nueva.
+     */
+    suspend fun updateLastPlatform(uid: String, gameId: String, platform: String?): Result<Unit> =
+        runCatching {
+            require(uid.isNotEmpty()) { "Usuario no autenticado" }
+            libraryCol(uid).document(gameId).set(
+                mapOf(
+                    "lastPlatform" to platform,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            ).await()
+            Unit
+        }.onFailure { Log.e(TAG, "Error actualizando plataforma de $gameId: ${it.message}") }
+
+    /**
      * Elimina una ficha y ajusta contadores. Se pasa la ficha completa (la UI la tiene
      * en vivo) para poder deshacer sus contribuciones sin lecturas extra.
      * Nota: las partidas y sesiones del juego no se borran aquí (borrado en cascada
@@ -268,6 +285,17 @@ class LibraryRepository @Inject constructor(
         require(uid.isNotEmpty()) { "Usuario no autenticado" }
         val batch = db.batch()
         batch.set(logsCol(uid).document(), log.toMap())
+
+        // La plataforma de la última partida se refleja en la ficha (T1.6),
+        // sin lecturas extra (merge parcial).
+        if (log.platform != null) {
+            batch.set(
+                libraryCol(uid).document(log.gameId),
+                mapOf("lastPlatform" to log.platform),
+                SetOptions.merge()
+            )
+        }
+
         val minutes = log.minutes
         if (minutes != null && minutes > 0) {
             batch.set(

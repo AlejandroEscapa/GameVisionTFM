@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import kotlinx.coroutines.launch
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.ui.views.composables.EditProfileScreen
+import es.androidtfm.gamevision.ui.views.composables.DiaryScreen
 import es.androidtfm.gamevision.ui.views.composables.FriendsList
 import es.androidtfm.gamevision.ui.views.composables.GameDetails
 import es.androidtfm.gamevision.ui.views.composables.GameListScreen
@@ -179,6 +180,21 @@ fun NavHost(
                 navController = navController,
                 userViewModel = userViewModel
             )
+        }
+
+        // Pantalla del diario (F1 — Bloque 2)
+        composable("diary") {
+            AppScaffold(
+                navController = navController,
+                userViewModel = userViewModel
+            ) { paddingValues ->
+                DiaryScreen(
+                    navController = navController,
+                    paddingValues = paddingValues,
+                    ddbbViewModel = ddbbViewModel,
+                    userViewModel = userViewModel
+                )
+            }
         }
 
         // Pantalla de la red social (timeline)
