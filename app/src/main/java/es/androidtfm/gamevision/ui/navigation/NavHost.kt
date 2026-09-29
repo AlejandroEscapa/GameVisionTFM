@@ -223,7 +223,11 @@ fun NavHost(
                     isDarkTheme = isDarkTheme,
                     paddingValues = paddingValues,
                     navController = navController,
-                    userViewModel = userViewModel
+                    userViewModel = userViewModel,
+                    // OJO: sin esto se evalúa el default `viewModel()` del composable, que en el
+                    // ámbito de un composable() no tiene la factory de Hilt y CRASHEA. El resto
+                    // de rutas ya lo pasaban; esta era la única que no.
+                    ddbbViewModel = ddbbViewModel
                 )
             }
         }
