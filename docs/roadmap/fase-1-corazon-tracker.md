@@ -95,6 +95,24 @@ usuario de prueba con datos variados.
 
 ---
 
+## 🔍 Auditoría de cierre de fase
+
+> Aplica el [protocolo de auditoría de cierre](../metodologia/auditoria-de-cierre.md).
+> **Particularidad de F1:** es la fase que más pantallas nuevas añade (estados, nota, reseña,
+> diario, estadísticas), así que el bloque 6 revisa sus **estados vacío/carga/error** y el
+> bloque 2 la lógica pura (estadísticas, cálculo de horas) testeada en JVM.
+
+- [ ] Bloque 1: build debug y release (R8) sin warnings nuevos
+- [ ] Bloque 2: unitarios + instrumentados en verde; tests de estadísticas y biblioteca
+- [ ] Bloque 3: lint limpio; sin código muerto de las tres listas antiguas
+- [ ] Bloque 4: el cálculo de estadísticas vive en una capa testeable (no en la UI)
+- [ ] Bloque 5: docs de la fase + ADR-0003 (escala) sincronizados
+- [ ] Bloque 6: cada pantalla nueva revisada en vacío/carga/error; registro fluido (CA1.1 < 60 s)
+- [ ] Motion: según el [sistema de motion](../roadmap/fase-4-5-diseno-animaciones.md) (si ya existe)
+- [ ] Auditoría firmada y validada por el propietario
+
+---
+
 ## Registro de decisiones
 
 - **D1.1 — Definición de estados cerrada (28/09/2026)** — Completado = ver créditos; **«Coleccionado»**

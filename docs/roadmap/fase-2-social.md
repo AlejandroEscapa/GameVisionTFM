@@ -80,6 +80,23 @@ REST de que las lecturas públicas ya no exponen la colección completa.
 
 ---
 
+## 🔍 Auditoría de cierre de fase
+
+> Aplica el [protocolo de auditoría de cierre](../metodologia/auditoria-de-cierre.md).
+> **Particularidad de F2:** hay contenido de terceros y datos nuevos (username, seguidores,
+> feed), así que el bloque 4 revisa las **reglas de Firestore** y el bloque 6 los estados de
+> un feed vacío y de perfiles privados.
+
+- [ ] Bloque 1: build debug y release (R8) sin warnings nuevos
+- [ ] Bloque 2: unitarios + instrumentados en verde; tests de seguimiento y visibilidad
+- [ ] Bloque 3: lint limpio; sin código muerto del modelo de amigos antiguo
+- [ ] Bloque 4: las lecturas públicas **no** exponen la colección `users` completa (CA2.6)
+- [ ] Bloque 5: docs + decisiones D2.x registradas; condiciones de seguridad de Firestore al día
+- [ ] Bloque 6: estados de **feed vacío**, **perfil privado** y **error de red** revisados
+- [ ] Auditoría firmada y validada por el propietario
+
+---
+
 ## Registro de decisiones
 
 _(vacío: pendiente de debate)_

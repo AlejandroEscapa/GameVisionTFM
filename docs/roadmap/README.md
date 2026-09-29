@@ -18,7 +18,10 @@
 3. EJECUTAR  → se marcan las tareas ([x]) y el estado pasa a 🟢 En ejecución.
 4. VERIFICAR → se cumplen los "Criterios de aceptación" (con evidencia:
                tests, emulador, capturas). Sin evidencia no se marca hecho.
-5. CERRAR    → estado ✅ Completada + commit de la fase + actualización del
+5. AUDITAR   → se ejecuta la "Auditoría de cierre de fase" (código + experiencia)
+               según el protocolo de docs/metodologia/auditoria-de-cierre.md.
+               Sin auditoría validada, la fase no cierra.
+6. CERRAR    → estado ✅ Completada + commit de la fase + actualización del
                "Registro de decisiones" con lo que se aprendió.
 ```
 
@@ -42,6 +45,7 @@
 | [F2](fase-2-social.md) | Social | 1 semana | ⬜ Pendiente | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | ⬜ Pendiente | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |
+| [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | ⬜ Pendiente | F1–F4 |
 
 **Reglas de ejecución (no negociables):**
 1. Una fase **no empieza** hasta que sus decisiones abiertas estén cerradas.

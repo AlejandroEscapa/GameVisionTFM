@@ -90,6 +90,23 @@ recomendaciones explicadas + imagen compartida.
 
 ---
 
+## 🔍 Auditoría de cierre de fase
+
+> Aplica el [protocolo de auditoría de cierre](../metodologia/auditoria-de-cierre.md).
+> **Particularidad de F3:** la fase es de **celebración y movimiento**, así que el bloque 6
+> revisa explícitamente las **animaciones del Rewind** y de la recomendación, y el caso de
+> «poca actividad» (CA3.5).
+
+- [ ] Bloque 1: build debug y release (R8) sin warnings nuevos
+- [ ] Bloque 2: unitarios en verde; motor de recomendación y cálculo del Rewind testeados
+- [ ] Bloque 3: lint limpio; sin recursos de compartir sin usar
+- [ ] Bloque 4: el motor de recomendación es lógica pura (testeable en JVM sin Firebase)
+- [ ] Bloque 5: docs + decisiones D3.x registradas
+- [ ] Bloque 6: Rewind y recomendación revisados en movimiento, y el caso «poca actividad» con tono positivo
+- [ ] Auditoría firmada y validada por el propietario
+
+---
+
 ## Registro de decisiones
 
 _(vacío: pendiente de debate)_

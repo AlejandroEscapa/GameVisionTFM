@@ -47,7 +47,8 @@
 | **2. Aprobar** | Decisiones cerradas | Estado 🔵 Aprobada | Alcance y criterios de aceptación escritos |
 | **3. Ejecutar** | Lista de tareas | Commits convencionales + tareas `[x]` | Todas las tareas hechas o recortadas a conciencia |
 | **4. Verificar** | Criterios de aceptación | Evidencia (tests, captura de emulador, log) | **Todos** los criterios cumplidos con evidencia |
-| **5. Cerrar** | Todo lo anterior | Commit de cierre + changelog + ADR + registro de decisiones | La app compila, tests verdes, doc actualizada |
+| **5. Auditar** | Todo lo anterior | Informe de auditoría (código + experiencia) validado | Bloques del [protocolo de auditoría](auditoria-de-cierre.md) en verde |
+| **6. Cerrar** | Todo lo anterior | Commit de cierre + changelog + ADR + registro de decisiones | La app compila, tests verdes, doc actualizada |
 
 **Regla de oro:** una fase no se cierra "casi". O cumple sus criterios con evidencia, o sigue abierta.
 
@@ -66,6 +67,7 @@
 | **Guía de agentes** | `AGENTS.md` | Cómo trabajar en este repo | Al cambiar convenciones |
 | **Objetivos próximos** | `docs/metodologia/objetivos-2026.md` | El horizonte inmediato, priorizado | Revisión periódica |
 | **Memoria de sesión** | `memory/YYYY-MM-DD.md` | Continuidad entre sesiones/agentes | Al final de cada sesión con hallazgos |
+| **Auditoría de cierre de fase** | `docs/metodologia/auditoria-de-cierre.md` | Revisión de código y experiencia antes de cerrar una fase | Al cerrar cada fase |
 
 **Regla anti-duplicación:** cada dato vive en **un solo** sitio; el resto lo enlazan.
 

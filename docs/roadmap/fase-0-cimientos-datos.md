@@ -179,6 +179,24 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 
 ---
 
+## 🔍 Auditoría de cierre de fase
+
+> Aplica el [protocolo de auditoría de cierre](../metodologia/auditoria-de-cierre.md).
+> **Particularidad de F0:** los datos y el offline son la base de todo, así que el bloque 6
+> (experiencia) se centra en los **modos degradado y sin conexión**, y el bloque 1 en que la
+> **release firmada con R8** sigue compilando tras la modernización.
+
+- [ ] Bloque 1: `assembleDebug` y `assembleRelease` (R8) sin warnings nuevos
+- [ ] Bloque 2: **38 unitarios en verde** + instrumentados de la sesión de emulador
+- [ ] Bloque 3: sin código muerto (p. ej. restos de las tres listas planas antiguas)
+- [ ] Bloque 4: `GameCatalog` como SSOT del catálogo; sin DTOs de RAWG en la UI
+- [ ] Bloque 5: docs, ADRs y `AGENTS.md` sincronizados con el cierre de código del 29/09
+- [ ] Bloque 6: CA0.1–CA0.3 en emulador (RAWG caído, modo avión, foto entre dispositivos)
+- [ ] **Reglas de `firebase/storage.rules` publicadas** en Firebase Console
+- [ ] Auditoría firmada y validada por el propietario
+
+---
+
 ## Registro de decisiones
 
 > Se rellena conforme se debaten. Formato: `D0.x — Opción elegida (fecha) — porqué`.

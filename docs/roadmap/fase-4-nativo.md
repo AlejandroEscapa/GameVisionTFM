@@ -80,6 +80,23 @@ de tests + captura de la app en tablet con lista-detalle.
 
 ---
 
+## 🔍 Auditoría de cierre de fase
+
+> Aplica el [protocolo de auditoría de cierre](../metodologia/auditoria-de-cierre.md).
+> **Particularidad de F4:** todo es nativo (widget, notificaciones, offline, adaptativo), así que
+> el bloque 1 se centra en que **no haya regresiones de rendimiento** y el bloque 6 en el
+> comportamiento real del widget y del modo avión.
+
+- [ ] Bloque 1: build debug y release (R8) sin warnings; sin regresión de rendimiento/batería
+- [ ] Bloque 2: unitarios + instrumentados en verde (CA4.6: **todos** en verde)
+- [ ] Bloque 3: lint limpio; sin manifest/permissions sin usar
+- [ ] Bloque 4: widget (Glance) reutiliza el design system; sin lógica duplicada
+- [ ] Bloque 5: docs de la fase + decisiones D4.x registradas
+- [ ] Bloque 6: widget en el lanzador, notificaciones con app cerrada y modo avión (CA4.1–CA4.3)
+- [ ] Auditoría firmada y validada por el propietario
+
+---
+
 ## Registro de decisiones
 
 _(vacío: pendiente de debate)_

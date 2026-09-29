@@ -119,7 +119,7 @@ maximizar ingresos. Si se gana el nicho, la monetización viene sola; al revés,
 
 ## 4. Fases del plan
 
-Siete fases. Las **F0–F4 son el roadmap de producto** ya existente; se añaden **F5
+Ocho fases (F4.5 incluida). Las **F0–F4 son el roadmap de producto** ya existente; se añaden **F5
 (Publicación)** y **F6 (Crecimiento)**, y se refuerza lo transversal.
 
 ```
@@ -157,6 +157,14 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 - **Vertientes:** V1, V2
 - **Objetivo:** widget, notificaciones, offline afinado, estantería visual, list-detail adaptativo (Nav3).
 - **Añadido:** **gamificación ética** (S18), **accesibilidad** auditada.
+
+### F4.5 · Diseño, animaciones y auditoría de experiencia - ⬜ Nueva (antes de la comercial)
+- **Vertientes:** V2, V1
+- **Objetivo:** auditar y pulir la experiencia **pantalla a pantalla** (diseño, estados y **animaciones**) antes de abrir la monetización. Ver [fase-4-5](../roadmap/fase-4-5-diseno-animaciones.md).
+- **Por qué antes de F5:** monetizar una experiencia sin pulir es el peor orden posible; el cuidado del detalle es parte del argumento del producto.
+
+### Auditoría de cierre de cada fase (transversal)
+Cada fase (F0–F6) cierra con una **auditoría de código y experiencia** validada por el propietario, según el [protocolo](../metodologia/auditoria-de-cierre.md). Una fase no pasa a ✅ Completada sin ella.
 
 ### F5 · Publicación en Play Store — 📄 Nueva (transversal)
 - **Vertientes:** V4, V5, V7
