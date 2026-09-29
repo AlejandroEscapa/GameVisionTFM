@@ -1,9 +1,24 @@
 package es.androidtfm.gamevision.data.model
 
 /*
- * Modelos sociales de F2 (seguimiento asimétrico, feed, listas curadas).
+ * Modelos sociales del usuario (F1) y de F2 (seguimiento, feed, listas).
  * Sustituyen a los Map<String, Any> a mano. D2.1–D2.7 en fase-2-social.md.
  */
+
+data class Friend(
+    val uid: String,
+    /** Nombre visible; puede ser vacío si el perfil aún no se ha resuelto. */
+    val nameSurname: String = "",
+    val username: String
+)
+
+data class ChatMessage(
+    val id: String,
+    val text: String,
+    val time: String,
+    /** uid del autor del mensaje (el propio usuario o un amigo). */
+    val ownerUid: String
+)
 
 /** Arista de seguimiento (D2.1): id determinista `{followerUid}_{followedUid}`. */
 data class FollowEdge(

@@ -1,5 +1,9 @@
 package es.androidtfm.gamevision.data.social
 
+import es.androidtfm.gamevision.data.model.FeedEntry
+import es.androidtfm.gamevision.data.model.GameList
+import es.androidtfm.gamevision.data.model.MilestoneTypes
+
 /*
  * Lógica pura de F2 (sin Firestore ni Android): todo testeable con JUnit.
  * La capa de datos orquesta el I/O; aquí vive la decisión, no el acceso a red.

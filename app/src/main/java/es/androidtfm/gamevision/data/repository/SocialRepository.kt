@@ -1,6 +1,7 @@
 package es.androidtfm.gamevision.data.repository
 
 import android.util.Log
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -83,9 +84,15 @@ class SocialRepository @Inject constructor(
     /** (seguidores, seguidos) por aggregate count: sin escrituras cruzadas. */
     suspend fun followCounts(uid: String): Result<Pair<Long, Long>> = runCatching {
         val followers = db.collection(FOLLOWING)
-            .whereEqualTo("followedUid", uid).count().get().await().count
+            .whereEqualTo("followedUid", uid)
+            .count()
+            .get(AggregateSource.SERVER).await()
+            .count
         val following = db.collection(FOLLOWING)
-            .whereEqualTo("followerUid", uid).count().get().await().count
+            .whereEqualTo("followerUid", uid)
+            .count()
+            .get(AggregateSource.SERVER).await()
+            .count
         followers to following
     }.onFailure { Log.e(TAG, "followCounts($uid): ${it.message}") }
 
@@ -101,12 +108,14 @@ class SocialRepository @Inject constructor(
                     "createdAt" to FieldValue.serverTimestamp()
                 )
             ).await()
+        Unit
     }.onFailure { Log.e(TAG, "follow($me->$target): ${it.message}") }
 
     suspend fun unfollow(me: String, target: String): Result<Unit> = runCatching {
         db.collection(FOLLOWING)
             .document(FollowEdge.edgeId(me, target))
             .delete().await()
+        Unit
     }.onFailure { Log.e(TAG, "unfollow($me->$target): ${it.message}") }
 
     // ------------------------------------------------------------------------
@@ -219,6 +228,7 @@ class SocialRepository @Inject constructor(
             likeRef.delete().await()
             entryRef.update("likesCount", FieldValue.increment(-1)).await()
         }
+        Unit
     }.onFailure { Log.e(TAG, "setLike($entryId, $uid, $liked): ${it.message}") }
 
     /** ¿Le di me gusta? (1 lectura) */
@@ -251,11 +261,13 @@ class SocialRepository @Inject constructor(
         require(me != target) { "No te puedes bloquear a ti mismo" }
         db.collection(BLOCKS).document(me).collection(PEOPLE).document(target)
             .set(mapOf("at" to FieldValue.serverTimestamp())).await()
+        Unit
     }.onFailure { Log.e(TAG, "block($me->$target): ${it.message}") }
 
     suspend fun unblock(me: String, target: String): Result<Unit> = runCatching {
         db.collection(BLOCKS).document(me).collection(PEOPLE).document(target)
             .delete().await()
+        Unit
     }.onFailure { Log.e(TAG, "unblock($me->$target): ${it.message}") }
 
     suspend fun report(
@@ -273,6 +285,7 @@ class SocialRepository @Inject constructor(
                 "createdAt" to FieldValue.serverTimestamp()
             )
         ).await()
+        Unit
     }.onFailure { Log.e(TAG, "report: ${it.message}") }
 
     // ------------------------------------------------------------------------
@@ -333,9 +346,11 @@ class SocialRepository @Inject constructor(
             db.collection(USERS).document(uid).collection(LISTS).document().id
         }
         db.collection(USERS).document(uid).collection(LISTS).document(id).set(data).await()
+        Unit
     }.onFailure { Log.e(TAG, "saveList($uid): ${it.message}") }
 
     suspend fun deleteList(uid: String, listId: String): Result<Unit> = runCatching {
         db.collection(USERS).document(uid).collection(LISTS).document(listId).delete().await()
+        Unit
     }.onFailure { Log.e(TAG, "deleteList($uid/$listId): ${it.message}") }
 }
