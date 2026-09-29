@@ -1,6 +1,6 @@
 # Fase 2 — Social
 
-**Estado:** ⬜ Pendiente · **Estimación:** 1 semana · **Depende de:** F1
+**Estado:** 🟢 En ejecución (30/09) · **Estimación:** 1 semana · **Depende de:** F1 · **Plan:** [FASE-2-SOCIAL-2026.md](../plan/FASE-2-SOCIAL-2026.md)
 
 ## Objetivo
 
@@ -24,22 +24,22 @@ hasta que existe el diario y las notas**.
 
 ---
 
-## Decisiones abiertas (debate antes de empezar)
+## Decisiones (cerradas el 30/09)
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| D2.1 | **Modelo social** | (a) Amigos simétricos (actual) · (b) Seguir asimétrico (Letterboxd) | **(b) seguir**: el asimétrico no exige permiso mutuo, crece solo y es el modelo que funciona en el sector | ⬜ |
-| D2.2 | **Privacidad por defecto** | (a) Perfil público · (b) Privado y abrir por opción | **(a) público** con interruptor para hacerlo privado: el descubrimiento es el motor del producto | ⬜ |
-| D2.3 | **Qué se publica en el feed** | (a) Todo (estados, notas, reseñas, sesiones) · (b) Solo hitos (completado, reseña, lista) | **(b) solo hitos**: las sesiones diarias saturan el feed | ⬜ |
-| D2.4 | **Buscar usuarios: dónde se hace** | (a) En el cliente (como hoy) · (b) Cloud Function | **(b)**: hoy para buscar un amigo se puede leer cualquier perfil (privacidad); con Function se expone solo `username → email` al buscar | ⬜ |
-| D2.5 | **Moderación de reseñas** | (a) Nada · (b) Reportar + bloqueo de usuario · (c) Filtro de palabras | **(b) mínimo**: reportar y bloquear es suficiente para el alcance actual y demuestra criterio | ⬜ |
-| D2.6 | **¿Comentarios o solo reacciones?** | (a) Comentarios · (b) Me gusta · (c) Ambos | **(b) me gusta en F2, comentarios después**: los comentarios implican moderación y notificaciones | ⬜ |
+| D2.1 | **Modelo social** | (a) Amigos simétricos (actual) · (b) Seguir asimétrico (Letterboxd) | **(b) seguir**: el asimétrico no exige permiso mutuo, crece solo y es el modelo que funciona en el sector | ✅ (b) (30/09) |
+| D2.2 | **Privacidad por defecto** | (a) Perfil público · (b) Privado y abrir por opción | **(a) público** con interruptor para hacerlo privado: el descubrimiento es el motor del producto | ✅ (a) (30/09) |
+| D2.3 | **Qué se publica en el feed** | (a) Todo (estados, notas, reseñas, sesiones) · (b) Solo hitos (completado, reseña, lista) | **(b) solo hitos**: las sesiones diarias saturan el feed. **Resolución (30/09): hitos + posts del usuario** (ampliación del propietario), sin sesiones | ✅ (30/09) |
+| D2.4 | **Buscar usuarios: dónde se hace** | (a) En el cliente (como hoy) · (b) Cloud Function · (c) Índice + reglas | **(c)**: las Functions exigen plan Blaze (el mismo muro que Storage); el índice `usernames` + reglas acotadas da la misma privacidad gratis en Spark | ✅ (c) (30/09) |
+| D2.5 | **Moderación de reseñas** | (a) Nada · (b) Reportar + bloqueo de usuario · (c) Filtro de palabras | **(b) mínimo**: reportar y bloquear es suficiente para el alcance actual y demuestra criterio | ✅ (b) (30/09) |
+| D2.6 | **¿Comentarios o solo reacciones?** | (a) Comentarios · (b) Me gusta · (c) Ambos | **(b) me gusta en F2, comentarios después**: los comentarios implican moderación y notificaciones | ✅ (b) (30/09) |
 
 ---
 
 ## Tareas
 
-- [ ] T2.1 Nombre de usuario único + búsqueda por username (Cloud Function)
+- [ ] T2.1 Nombre de usuario único + búsqueda por username (índice + reglas, sin Blaze — D2.4)
 - [ ] T2.2 Perfil público: biblioteca, estadísticas, Top 4, listas visibles
 - [ ] T2.3 Seguir / dejar de seguir (modelo asimétrico) + contadores
 - [ ] T2.4 Feed de actividad con los hitos de la gente que sigues
@@ -99,7 +99,9 @@ REST de que las lecturas públicas ya no exponen la colección completa.
 
 ## Registro de decisiones
 
-_(vacío: pendiente de debate)_
+**D2.1–D2.6 cerradas el 30/09** con el propietario. **D2.7 (chat):** congelado — se oculta
+sin borrar código ni datos; su destino se decide en la auditoría de cierre de F2.
+Detalles y modelo de datos en el [plan de F2](../plan/FASE-2-SOCIAL-2026.md).
 
 ## 💡 Ideas registradas (28/09/2026)
 
