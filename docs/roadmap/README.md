@@ -41,11 +41,16 @@
 | Fase | Título | Estimación | Estado | Depende de |
 |---|---|---|---|---|
 | [F0](fase-0-cimientos-datos.md) | Cimientos de datos | 1 semana | ✅ Completada (29/09) | — |
-| [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | 🟢 En ejecución (Bloque 1 hecho) | F0 ✅ |
+| [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | ✅ Completada (pendiente de validación) | F0 ✅ |
 | [F2](fase-2-social.md) | Social | 1 semana | ⬜ Pendiente | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | ⬜ Pendiente | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |
 | [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | ⬜ Pendiente | F1–F4 |
+
+> **Dónde vive el estado.** Esta tabla es un **índice**, no la fuente de verdad. El estado real de
+> una fase lo declara su fichero (`fase-N-*.md`, apartado "Progreso por bloques"). Si esta tabla y
+> el fichero discrepan, **manda el fichero** y corrige la tabla. No repitas el detalle de bloques
+> aquí: ya se desactualizó una vez y afirmaba "Bloque 1 hecho" cuando F1 estaba cerrada.
 
 **Reglas de ejecución (no negociables):**
 1. Una fase **no empieza** hasta que sus decisiones abiertas estén cerradas.

@@ -7,6 +7,8 @@ package es.androidtfm.gamevision.data.model
 
 data class Friend(
     val uid: String,
+    /** Nombre visible; puede ser vacío si el perfil aún no se ha resuelto. */
+    val nameSurname: String = "",
     val username: String
 )
 

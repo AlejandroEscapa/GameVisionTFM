@@ -33,6 +33,24 @@ object RatingUtils {
     fun average(sum: Double, count: Int): Double? =
         if (count <= 0) null else round1(sum / count)
 
+    /**
+     * Diferencia de los agregados agregados al cambiar una nota (`null` = sin nota).
+     *
+     * Los contadores `ratingSum` y `ratingCount` solo pueden ajustarse por incrementos,
+     * así que hay que calcular bien los dos deltas de golpe: si se desalinean, la media
+     * de la pantalla queda corrupta sin que ningún error la delate.
+     *
+     * @param previous la nota que la UI cree que hay ahora mismo
+     * @param rating la nota nueva, o null para quitarla
+     */
+    fun ratingDelta(previous: Double?, rating: Double?): RatingDelta = RatingDelta(
+        sumDelta = (rating ?: 0.0) - (previous ?: 0.0),
+        countDelta = (if (rating != null) 1L else 0L) - (if (previous != null) 1L else 0L)
+    )
+
     /** Redondeo a 1 decimal para evitar ruido de coma flotante (2.5000000001 → 2.5). */
     fun round1(value: Double): Double = kotlin.math.round(value * 10.0) / 10.0
 }
+
+/** Incrementos que aplicar a `ratingSum` y `ratingCount` en un cambio de nota. */
+data class RatingDelta(val sumDelta: Double, val countDelta: Long)

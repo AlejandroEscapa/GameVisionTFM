@@ -108,6 +108,22 @@ fun SocialScreen(
 
     var friendsList by remember { mutableStateOf(emptyList<Friend>()) }
     var messageList by remember { mutableStateOf(emptyList<ChatMessage>()) }
+
+    // uid → nombre visible: el muro es de propios y amigos, y hay que mostrar el autor real.
+    val myProfile by userViewModel.profile.collectAsState()
+    val authors = remember(friendsList, myProfile, uid) {
+        buildMap {
+            uid?.takeIf { it.isNotBlank() }?.let { myUid ->
+                put(
+                    myUid,
+                    myProfile.nameSurname.takeIf { it.isNotBlank() } ?: myProfile.username
+                )
+            }
+            friendsList.forEach { friend ->
+                put(friend.uid, friend.nameSurname.takeIf { it.isNotBlank() } ?: friend.username)
+            }
+        }
+    }
     var isLoading by remember { mutableStateOf(true) }
     var comment by remember { mutableStateOf("") }
     val commentMaxLength = 280
@@ -164,6 +180,7 @@ fun SocialScreen(
                     SocialCard(
                         userUid = uid.orEmpty(),
                         ownerUid = message.ownerUid,
+                        authorName = authors[message.ownerUid].orEmpty(),
                         message = message.text,
                         hora = message.time,
                         messageID = message.id,
@@ -260,6 +277,8 @@ fun SocialHeader(
 fun SocialCard(
     userUid: String,
     ownerUid: String,
+    /** Nombre visible del autor; si viene vacío, la tarjeta no inventa etiquetas. */
+    authorName: String = "",
     message: String,
     hora: String,
     messageID: String,
@@ -297,7 +316,8 @@ fun SocialCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = ownerUid.take(1).uppercase(),
+                        text = authorName.takeIf { it.isNotBlank() }
+                            ?.take(1)?.uppercase() ?: "·",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -306,7 +326,7 @@ fun SocialCard(
                 // Nombre y hora
                 Column {
                     Text(
-                        text = "Autor",
+                        text = authorName.ifBlank { "Usuario" },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )

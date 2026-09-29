@@ -70,12 +70,10 @@ class UserViewModel @Inject constructor(
     /** Estado de sesión de la app (única fuente de verdad). */
     val session: StateFlow<SessionState> = sessionRepository.sessionState
 
-    /** Email del usuario autenticado, o null si es invitado/anónimo. */
-    val currentEmail: StateFlow<String?> = session
-        .map { (it as? SessionState.LoggedIn)?.email }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    /** UID de Firebase Authentication del usuario (clave de la biblioteca), o null. */
+    /**
+     * UID de Firebase Authentication del usuario: única clave de identidad (ADR-0008).
+     * El email es solo un campo del perfil, y no se expone como identificador.
+     */
     val currentUid: StateFlow<String?> = session
         .map { (it as? SessionState.LoggedIn)?.uid }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

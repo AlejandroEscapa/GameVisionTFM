@@ -2,10 +2,14 @@ package es.androidtfm.gamevision.data.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.WriteBatch
 import es.androidtfm.gamevision.data.model.ChatMessage
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.model.UserProfile
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
@@ -78,33 +82,48 @@ class UserRepository @Inject constructor(
     /**
      * Crea el documento de perfil (sin password) en `users/{uid}` y sus índices
      * (`email_index`, `usernames`). El email se guarda como CAMPO.
+     *
+     * Todo en UN lote: si un índice no se puede escribir (p. ej. el username ya está
+     * tomado y las reglas lo deniegan), no se escribe nada — así no quedan perfiles
+     * huérfanos ni escrituras a medias.
      */
     suspend fun createProfile(uid: String, profile: UserProfile): Result<Unit> = runCatching {
         require(uid.isNotBlank()) { "Usuario no autenticado" }
         val email = profile.email.trim().lowercase()
-        userDoc(uid).set(
+        val username = profile.username
+        val batch = db.batch()
+        batch.set(
+            userDoc(uid),
             mapOf(
                 "email" to email,
                 "nameSurname" to profile.nameSurname,
-                "username" to profile.username,
+                "username" to username,
                 "description" to profile.description,
                 "country" to profile.country
             )
-        ).await()
-        writeIndexes(uid, email, profile.username)
+        )
+        applyIndexWrites(batch, createIndexWrites(uid, email, username))
+        batch.commit().await()
         Unit
     }.onFailure { Log.e(TAG, "Error creando perfil $uid: ${it.message}") }
 
-    /** Actualiza campos del perfil. */
+    /**
+     * Actualiza campos del perfil. Si cambia el `username`, retira el índice viejo y
+     * registra el nuevo **en el mismo lote**: o cambia todo, o no cambia nada.
+     */
     suspend fun updateProfile(uid: String, fields: Map<String, Any?>): Result<Unit> = runCatching {
         require(uid.isNotBlank()) { "Usuario no autenticado" }
         val cleaned = fields.filterValues { it != null }
         if (cleaned.isEmpty()) return@runCatching Unit
-        userDoc(uid).update(cleaned).await()
-        // Si cambió el nombre de usuario, se reindexa (el índice viejo se retira aparte).
-        (cleaned["username"] as? String)?.takeIf { it.isNotBlank() }?.let { newUsername ->
-            db.collection(USERNAMES).document(newUsername).set(mapOf("uid" to uid)).await()
-        }
+
+        val newUsername = cleaned["username"] as? String
+        val oldUsername = if (newUsername.isNullOrBlank()) null
+            else userDoc(uid).get().await().getString("username").orEmpty()
+
+        val batch = db.batch()
+        batch.update(userDoc(uid), cleaned)
+        applyIndexWrites(batch, updateIndexWrites(uid, newUsername, oldUsername))
+        batch.commit().await()
         Unit
     }.onFailure { Log.e(TAG, "Error actualizando perfil $uid: ${it.message}") }
 
@@ -138,12 +157,17 @@ class UserRepository @Inject constructor(
         userDoc(uid).get().await().getString("username").orEmpty()
     }.onFailure { Log.e(TAG, "Error obteniendo username de $uid: ${it.message}") }
 
-    private suspend fun writeIndexes(uid: String, email: String, username: String) {
-        if (email.isNotBlank()) {
-            db.collection(EMAIL_INDEX).document(email).set(mapOf("uid" to uid)).await()
-        }
-        if (username.isNotBlank()) {
-            db.collection(USERNAMES).document(username).set(mapOf("uid" to uid)).await()
+    /** Traduce el plan de índices a escrituras de lote. La decisión ya está tomada arriba. */
+    private fun applyIndexWrites(batch: WriteBatch, writes: List<IndexWrite>) {
+        writes.forEach { write ->
+            when (write) {
+                is IndexWrite.LinkEmail ->
+                    batch.set(db.collection(EMAIL_INDEX).document(write.email), mapOf("uid" to write.uid))
+                is IndexWrite.LinkUsername ->
+                    batch.set(db.collection(USERNAMES).document(write.username), mapOf("uid" to write.uid))
+                is IndexWrite.UnlinkUsername ->
+                    batch.delete(db.collection(USERNAMES).document(write.username))
+            }
         }
     }
 
@@ -170,13 +194,26 @@ class UserRepository @Inject constructor(
         Unit
     }.onFailure { Log.e(TAG, "Error eliminando amigo: ${it.message}") }
 
-    /** Lista de amigos con su nombre de usuario (el email NO se expone). */
+    /**
+     * Lista de amigos con su nombre visible. El email NO se expone (D2.4).
+     *
+     * Una sola lectura de la lista y resolución de perfiles en paralelo: el nombre y el
+     * username salen del mismo documento de perfil, así que no hay viajes extra.
+     */
     suspend fun getFriends(uid: String): Result<List<Friend>> = runCatching {
         val snapshot = userDoc(uid).collection(FRIENDS).get().await()
-        snapshot.documents.map { friendDoc ->
-            val friendUid = friendDoc.id
-            val username = getUsername(friendUid).getOrNull()?.takeIf { it.isNotBlank() } ?: "Sin nombre"
-            Friend(uid = friendUid, username = username)
+        coroutineScope {
+            snapshot.documents.map { friendDoc ->
+                async {
+                    val friendUid = friendDoc.id
+                    val profile = getProfile(friendUid).getOrNull()
+                    Friend(
+                        uid = friendUid,
+                        nameSurname = profile?.nameSurname.orEmpty(),
+                        username = profile?.username?.takeIf { it.isNotBlank() } ?: "Sin nombre"
+                    )
+                }
+            }.awaitAll()
         }
     }.onFailure { Log.e(TAG, "Error obteniendo amigos: ${it.message}") }
 

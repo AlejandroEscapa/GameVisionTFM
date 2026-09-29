@@ -119,6 +119,10 @@ maximizar ingresos. Si se gana el nicho, la monetización viene sola; al revés,
 
 ## 4. Fases del plan
 
+> **Dónde vive el estado:** este documento es estrategia y visión; **no declara el estado de las
+> fases**. El estado real vive en [`docs/roadmap/`](../roadmap/README.md) y, dentro de cada fase, en
+> su fichero. Si algo aquí discrepa, manda el roadmap.
+
 Ocho fases (F4.5 incluida). Las **F0-F4 son el roadmap de producto** ya existente; se añaden **F5
 (Publicación)** y **F6 (Crecimiento)**, y se refuerza lo transversal.
 
@@ -136,7 +140,7 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 - **Entregable:** app que registra un juego offline, muestra catálogo cacheado si RAWG cae, y la foto de perfil viaja entre dispositivos.
 - **Extra de este análisis:** **import/export universal** (Steam/HLTB/Backloggd/CSV) sube a requisito de F0/F1.
 
-### F1 · El corazón del tracker - 🟢 En ejecución (Bloque 1 hecho)
+### F1 · El corazón del tracker - ✅ Completada (29/09, pendiente de validación)
 - **Vertientes:** V1, V2, V3
 - **Objetivo:** biblioteca rica (estados, notas, reseñas, diario, sesiones, stats).
 - **Añadido por el análisis:** cerrar la **escala de nota** (D-C1), **avisos de contenido** (S11), y **estimaciones personalizadas** de duración.

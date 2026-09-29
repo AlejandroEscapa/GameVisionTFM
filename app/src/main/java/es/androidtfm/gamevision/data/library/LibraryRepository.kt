@@ -184,8 +184,7 @@ class LibraryRepository @Inject constructor(
         rating: Double?
     ): Result<Unit> = runCatching {
         require(uid.isNotEmpty()) { "Usuario no autenticado" }
-        val delta = (rating ?: 0.0) - (previous ?: 0.0)
-        val countDelta = (if (rating != null) 1L else 0L) - (if (previous != null) 1L else 0L)
+        val delta = RatingUtils.ratingDelta(previous, rating)
 
         val batch = db.batch()
         batch.update(
@@ -198,8 +197,8 @@ class LibraryRepository @Inject constructor(
         batch.set(
             statsDoc(uid),
             mapOf(
-                "ratingSum" to FieldValue.increment(delta),
-                "ratingCount" to FieldValue.increment(countDelta),
+                "ratingSum" to FieldValue.increment(delta.sumDelta),
+                "ratingCount" to FieldValue.increment(delta.countDelta),
                 "updatedAt" to FieldValue.serverTimestamp()
             ),
             SetOptions.merge()

@@ -29,3 +29,8 @@ firebase-debug.log
 
 # B3 (backups locales de la limpieza)
 scripts/b3-limpieza/backups/
+
+# Migracion ADR-0008: backups con datos reales de usuarios.
+# Por defecto van a `.secrets/` (fuera del repo); esto es la red de seguridad.
+scripts/migracion-uid/migration-backup/
+*.secrets.json

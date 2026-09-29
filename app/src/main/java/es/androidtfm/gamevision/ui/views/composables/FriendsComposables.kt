@@ -243,6 +243,7 @@ fun FriendItem(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val username = friend.username
+    val displayName = friend.nameSurname.takeIf { it.isNotBlank() } ?: username
     val friendUid = friend.uid
 
     // Tarjeta que representa a un amigo en la lista
@@ -258,7 +259,7 @@ fun FriendItem(
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            // Icono del amigo (inicial del correo electrónico)
+            // Icono del amigo (inicial del nombre de usuario)
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -276,21 +277,21 @@ fun FriendItem(
 
             Spacer(modifier = Modifier.width(15.dp)) // Añadido un espacio entre elementos
 
-            // Información del amigo (nombre de usuario y correo electrónico)
+            // Información del amigo (nombre visible y nombre de usuario)
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .align(Alignment.CenterVertically) // Alinea verticalmente los textos al centro
             ) {
                 Text(
-                    text = username,
+                    text = displayName,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Amigo",
+                    text = username,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1,

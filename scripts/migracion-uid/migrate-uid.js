@@ -1,15 +1,19 @@
 /*
  * Migración ADR-0008: clave de identidad email → uid.
  *
- * Uso:  node migrate-uid.js <ruta-service-account.json> [--dry-run]
+ * Uso:  node migrate-uid.js <ruta-service-account.json> [--commit | --dry-run] [--backup-dir <ruta>]
  *
- * Qué hace (con BACKUP JSON previo en .openclaw/tmp/migration-backup/):
+ * SEGURIDAD: por defecto es DRY-RUN (no escribe ni borra nada). Para escribir hay que
+ * decirlo explícitamente con --commit, igual que `b3-limpieza`. Olvidarse de un flag
+ * nunca destruye datos.
+ *
+ * Qué hace (con BACKUP JSON por usuario, escrito ANTES de borrar, en `.secrets/`):
  *  1. Lista los documentos raíz de `users` (los antiguos tienen id = email).
  *  2. Resuelve email → uid con Identity Toolkit (admin).
  *  3. Copia el perfil a `users/{uid}` añadiendo el campo `email`.
  *  4. Migra subcolecciones heredadas (friends/messages) resolviendo emails a uid.
  *  5. Crea los índices `email_index/{email}` y `usernames/{username}`.
- *  6. (Solo si no es dry-run) borra el documento antiguo `users/{email}`.
+ *  6. (Solo con --commit) borra el documento antiguo `users/{email}`.
  *
  * Idempotente: si ya existe `users/{uid}`, no lo pisa con datos vacíos.
  */
@@ -20,10 +24,21 @@ const https = require('https');
 const crypto = require('crypto');
 
 const SA_PATH = process.argv[2];
-const DRY = process.argv.includes('--dry-run');
+// Dry-run POR DEFECTO (igual que scripts/b3-limpieza). `--dry-run` se acepta por compatibilidad.
+const DRY = !process.argv.includes('--commit');
+if (!DRY) console.log('⚠️  --commit: se va a ESCRIBIR y BORRAR en Firestore.\n');
+else console.log('· DRY-RUN por defecto: no se escribe nada. Usa --commit para ejecutar.\n');
+
+// Backup FUERA del repo: son datos reales de usuarios, no deben pisar un commit.
+// Por defecto va a `.secrets/` (raíz del workspace); `--backup-dir` lo cambia.
+function argValue(flag) {
+  const i = process.argv.indexOf(flag);
+  return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : null;
+}
+const DEFAULT_BACKUP = path.resolve(__dirname, '..', '..', '..', '.secrets', 'migracion-uid-backup');
 const sa = JSON.parse(fs.readFileSync(SA_PATH, 'utf8'));
 const PROJ = sa.project_id;
-const BACKUP_DIR = path.resolve(__dirname, 'migration-backup');
+const BACKUP_DIR = argValue('--backup-dir') || DEFAULT_BACKUP;
 
 function req(options, body) {
   return new Promise((resolve, reject) => {
@@ -102,6 +117,10 @@ async function getUserByEmail(email, token) {
 
 (async () => {
   if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  console.log('Backup en: ' + BACKUP_DIR);
+  if (BACKUP_DIR.startsWith(__dirname)) {
+    console.log('⚠️  el backup cae dentro del repo: muévelo a .secrets/ antes de commitear.\n');
+  }
   const token = await getToken();
 
   const users = await listCollection('users', token);

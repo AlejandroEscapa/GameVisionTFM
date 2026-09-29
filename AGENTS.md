@@ -36,7 +36,7 @@ App Android 100% Jetpack Compose (cero layouts XML) para consultar videojuegos
 ```bash
 export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # JDK 21; NO usar ~/.jdks/ms-17.0.17 (corrupto)
 ./gradlew assembleDebug            # APK debug
-./gradlew testDebugUnitTest        # tests unitarios (37 verdes)
+./gradlew testDebugUnitTest        # tests unitarios (88 verdes, 29/09/2026)
 ./gradlew connectedDebugAndroidTest # tests UI (requiere emulador/dispositivo)
 ./gradlew assembleRelease          # APK release R8 (~7,5 MB; sin firmar si no hay keystore)
 ```
@@ -45,6 +45,21 @@ export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # JDK 21; NO us
   y opcionalmente `storeFile/storePassword/keyAlias/keyPassword`.
 - `app/google-services.json` es un **placeholder** (gitignored). Para runtime
   (Auth/Firestore/Google Sign-In) hay que poner el real de la consola de Firebase.
+
+### Verificación: lo que NO te dice el verde
+
+- **`testDebugUnitTest` puede salir `UP-TO-DATE`** si otra sesión ya compiló y nada cambió. Los
+  números reales están en `app/build/test-results/testDebugUnitTest/*.xml`; no te fíes del resumen.
+- **El verde de los unitarios no cubre Firestore.** Son lógica pura (Utils y ViewModels con fakes);
+  los repositorios siguen sin tests de integración. Compilar y ver verde no prueba el modelo de
+  datos: verifica en emulador (`connectedDebugAndroidTest` o a mano con el usuario QA).
+- **`firebase-tests/rules.test.mjs` NO descubre reglas nuevas.** Es un script lineal con checks
+  explícitos. Si tocas `firebase/firestore.rules` **sin añadir su check**, la suite sigue pasando
+  probando una versión que ya no es la que corre. Es la trampa más cara del repo: ya hizo que se
+  diera por cerrado D-S2 con una regla abierta.
+- **Los emuladores necesitan `java` en PATH**: `export PATH="/c/Program Files/Android/Android Studio/jbr/bin:$PATH"`
+  además de `JAVA_HOME`. Si no, `firebase emulators:exec` falla al arrancar.
+- **Las reglas de Firestore no se despliegan sin suite verde.** Ya corre contra datos reales.
 
 ## 3. Toolchain y restricciones de versiones (crítico)
 
@@ -84,14 +99,23 @@ app/src/main/java/es/androidtfm/gamevision/
 │   └── AppModule.kt                Singletons: Firestore (caché offline explícita), Auth,
 │                                   Storage, APIs Retrofit, CredentialManager, webClientId,
 │                                   ThemeDataStore, SessionPreferences, CoroutineScope de aplicación
-├── data/
-│   ├── model/                      Modelos de dominio: UserProfile, Friend, ChatMessage
-│   ├── session/
-│   │   ├── SessionState.kt         Anonymous | Guest | LoggedIn(uid, email)
-│   │   ├── SessionRepository.kt    SSOT DE SESIÓN + Firebase Auth + Credential Manager
-│   │   └── SavedPassword.kt        Credencial recuperada del gestor de contraseñas
-│   └── repository/
-│       └── UserRepository.kt       TODO el acceso a Firestore; devuelve Result
+├── data/                           11 paquetes (verificados 29/09/2026)
+│   ├── model/                      UserProfile · Social.kt (Friend, ChatMessage)
+│   ├── session/                    SessionState (Anonymous|Guest|LoggedIn(uid, email)) ·
+│   │                               SessionRepository (SSOT de sesión + Auth + CredentialManager) ·
+│   │                               SavedPassword
+│   ├── repository/                 UserRepository (perfil, amigos, muro; Result) ·
+│   │                               UserIndexPlan (lógia pura de los índices inversos)
+│   ├── library/                    LibraryRepository · LibraryModels · LibraryFilters ·
+│   │                               RatingUtils · DiaryUtils · StatisticsUtils · Platforms
+│   ├── hltb/                       HltbClient (aíslado, reintentos) · HltbModels · HltbRepository
+│   ├── storage/                    ProfileImageStorage (foto en profile_images/{uid})
+│   ├── analytics/                  AnalyticsLogger · FirebaseAnalyticsLogger
+│   ├── catalog/                    GameCatalog (interfaz) · CatalogGame · CachedGameCatalog
+│   │   ├── rawg/                   RawgGameCatalog ← implementación actual
+│   │   └── local/                  CatalogDatabase (Room, v2) · GameDao · GameEntity ·
+│   │                               SearchCacheEntity · HltbCacheEntity · Converters
+│   └── (modelos de biblioteca en LibraryModels.kt)
 ├── datastore/
 │   └── DataStoreSettings.kt        ThemeDataStore (tema claro/oscuro, Preferences)
 ├── retrofit/
@@ -117,8 +141,10 @@ app/src/main/java/es/androidtfm/gamevision/
 ```
 
 **Flujo de datos (SSOT):** Pantalla (Composable) → ViewModel (StateFlow) →
-repositorios. La identidad tiene UNA sola fuente:
-`SessionRepository.sessionState` (respaldada por Firebase Authentication).
+repositorios. La identidad tiene UNA sola fuente y es el **uid** (ADR-0008):
+`SessionRepository.sessionState` → `UserViewModel.currentUid`. El email es solo un campo del
+perfil: `email_index/{email}` y `usernames/{username}` son índices inversos, no identidad.
+Cualquier código que use el email como id de documento falla con `PERMISSION_DENIED`.
 El perfil tiene UNA sola fuente: `UserViewModel.profile`, un flujo EN VIVO del
 documento de Firestore (`addSnapshotListener`) que se re-suscribe al cambiar de
 usuario y actualiza todas las pantallas sin refetch manual.
