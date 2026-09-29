@@ -20,23 +20,29 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 
 ## Objetivos por horizonte
 
-### 🔴 Ahora (cierre de F0 — Cimientos de datos)
+### ✅ Cerrado (F0 — Cimientos de datos, 29/09/2026)
 | Objetivo | Criterio de éxito | Estado |
 |---|---|---|
 | Cerrar el adapter de catálogo | `GameCatalog` + `RawgGameCatalog` commiteados, UI sin DTOs de RAWG | ✅ Hecho |
 | Caché local de catálogo (Room) | App muestra fichas visitadas sin red (verificado en modo avión) | ✅ Hecha |
 | Modelo de biblioteca | `library`/`logs`/`sessions` + repositorio y adopción en pantallas | ✅ Hecho (B1/B2, E2E) |
 | Limpieza de datos (B3) | Datos de prueba borrados (verificación ✅) y E2E con cuenta QA verificado | ✅ Hecho |
-| Foto de perfil en Storage | La imagen viaja entre dispositivos | 🟡 Código hecho (T0.12): subida a Storage + URL persistida; falta E2E en dispositivo y publicar reglas de Storage |
-| Offline real | La app abre y funciona sin conexión con lo visitado | 🟡 Código hecho (T0.5/T0.14): caché + aviso UI; falta CA0.1/CA0.2 en emulador |
-| Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | ✅ Bloques 0–4 cerrados (29/09); quedan diferidos con disparador |
+| Foto de perfil (sin Storage) | La imagen viaja entre dispositivos | ✅ Hecho (ADR-0007, CA0.3 verificado en vivo) |
+| Offline real | La app abre y funciona sin conexión con lo visitado | ✅ CA0.1 y CA0.2 verificados en vivo |
+| Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | ✅ Bloques 0–4 cerrados; quedan diferidos con disparador |
+| Auditoría de cierre de F0 | Informe validado por el propietario | ✅ [Validada 29/09](../metodologia/auditoria-fase-0-2026.md) |
 
-### 🟠 Siguiente (cierre de F1 — El corazón del tracker)
+### 🔴 Ahora (F1 — El corazón del tracker, aprobada)
 Estados ricos, valoración con estrellas, reseñas, diario con sesiones, múltiples
-partidas, duración del juego y estadísticas de perfil. **Bloqueo activo:** decidir
-la fuente de la duración (bloquea T1.11).
+partidas, duración del juego y estadísticas de perfil. **Decisiones D1.1–D1.7 cerradas** →
+lista para ejecutar. **Antes de F2:** ejecutar la migración de identidad a `uid` ([ADR-0008](adr/0008-clave-unica-uid.md), aprobado).
 
-### 🟡 Después (F2 Social · F3 Wow · F4 Nativo)
+### 🟠 Siguiente inmediato (tras arrancar F1)
+- **Instrumentación** (Analytics + Crashlytics) al cerrar F1 — mide el embudo real (tiempo hasta el primer registro, retención).
+- **Migración de identidad a `uid`** ([ADR-0008](adr/0008-clave-unica-uid.md)) — obligatoria **antes de F2**.
+- **Abrir F5 en borrador** (cuenta de desarrollador, privacidad, Data Safety) en paralelo.
+
+### 🟡 Después (F2 Social · F3 Wow · F4 Nativo · F4.5 Diseño y animaciones)
 Perfil público y buscar por username · "¿Qué juego ahora?" + Rewind · widget y
 notificaciones.
 

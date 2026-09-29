@@ -2,11 +2,11 @@
 
 > Aplica el [protocolo de auditoría de cierre](auditoria-de-cierre.md).
 > **Ejecutada por:** agente (GameVision Agent) en modo autónomo · **Fecha:** 29/09/2026 (tarde/noche)
-> **Validación del propietario:** ⬜ pendiente
+> **Validación del propietario:** ✅ **validada el 29/09/2026** (informe aprobado)
 
 ```
 Fase: F0 — Cimientos de datos        Fecha: 29/09/2026
-Resultado: 🟡 Apta con reservas (código y experiencia OK; queda la validación del propietario)
+Resultado: ✅ APTA — validada por el propietario (29/09/2026)
 Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 ✅  6 ✅
 ```
 
@@ -113,7 +113,7 @@ que el perfil también use `uid`, o documentar por qué el email sigue siendo la
 1. ~~CA0.3~~ → **hecho** (ADR-0007, verificado en vivo).
 2. ~~Decisión H1~~ → **hecho** (corregido y verificado).
 3. **Demostración de CA0.5** (swap de binding que compile sin tocar UI). Opcional para cerrar, recomendable.
-4. **Validación del propietario** de esta auditoría (firma).
+4. ~~Validación del propietario~~ → ✅ **validada (29/09/2026)**.
 
 > **Nota de arquitectura (ADR-0008, propuesto):** hoy el **perfil** vive en `users/{email}` y la
 > **biblioteca** en `users/{uid}/…`. Conviene unificar la identidad en **`uid`** antes de F2; propuesta

@@ -2,7 +2,7 @@
 
 - **ADR:** 0008
 - **Título:** Unificar la identidad en `uid`; el email pasa a ser un campo, no una clave
-- **Estado:** **Propuesto** (pendiente de aprobación del propietario)
+- **Estado:** **Propuesto** (pendiente de aprobación del propietario) → ✅ **Aprobado (29/09/2026)**
 - **Fecha:** 2026-09-29
 - **Decisores:** Alejandro Olivares Escapa (propietario)
 - **Fase relacionada:** F0/F2 — debe cerrarse **antes de F2 (Social)**
@@ -35,6 +35,9 @@ Es la deuda que se anotó en la auditoría de F0. **Funciona hoy**, pero es un p
 5. **Renombrar/duplicar**: migrar una colección entera si el email cambia es carísimo.
 
 ## Decisión propuesta
+
+> ✅ **Aprobado por el propietario el 29/09/2026.** Se ejecutará como bloque cerrado **antes de F2**
+> (ver plan de migración abajo).
 
 **Una sola clave de identidad: `uid` de Firebase Auth.** El email deja de ser clave y pasa a ser
 **un campo más del documento de perfil**.
@@ -118,4 +121,4 @@ verificada + `AGENTS.md`/roadmap actualizados.
 ## Seguimiento
 
 - Cerrar antes de F2 (ver [fase-2](../../roadmap/fase-2-social.md) y [D0.5/F0-B](../../plan/F0B-propuesta-modelo-datos.md)).
-- Registrar el cierre en el roadmap y eliminar este estado "Propuesto" cuando se apruebe y ejecute.
+- ✅ **Aprobado (29/09/2026)**; pendiente de **ejecutar** la migración antes de abrir F2.

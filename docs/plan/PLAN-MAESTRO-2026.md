@@ -1,4 +1,4 @@
-# Plan Maestro 2026 — GameVision
+# Plan Maestro 2026 - GameVision
 
 > **Qué es.** El plan único que ordena **todos los frentes** de GameVision: producto, diseño,
 > datos, comercial, publicación, crecimiento, proceso y filosofía del negocio. Es el documento
@@ -97,7 +97,7 @@ ventaja **nativa Android**. El catálogo es solo la entrada.
 - Como **producto**: excelente. Resuelve un dolor real (abundancia/backlog), en un nicho sin
   dueño, con una ventaja clara (nativo) y un motor viral probado (Rewind).
 - Como **negocio**: **sostenible, no hiperescalable**. La meta realista es un producto
-  **gratuito con premium barato (15–25 $/año) + micromecenazgo**, capaz de cubrirse solo y de
+  **gratuito con premium barato (15-25 $/año) + micromecenazgo**, capaz de cubrirse solo y de
   crecer por comunidad. Quien te prometa que esto factura como un AAA te está mintiendo.
 - Como **escaparate profesional**: sobresaliente. Un producto publicado, con usuarios y con un
   trabajo de investigación y diseño detrás, vale más que cualquier portfolio.
@@ -119,7 +119,7 @@ maximizar ingresos. Si se gana el nicho, la monetización viene sola; al revés,
 
 ## 4. Fases del plan
 
-Ocho fases (F4.5 incluida). Las **F0–F4 son el roadmap de producto** ya existente; se añaden **F5
+Ocho fases (F4.5 incluida). Las **F0-F4 son el roadmap de producto** ya existente; se añaden **F5
 (Publicación)** y **F6 (Crecimiento)**, y se refuerza lo transversal.
 
 ```
@@ -130,30 +130,30 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
                                         └──> F6 CRECIMIENTO (tras publicar)
 ```
 
-### F0 · Cimientos de datos — 🟢 En ejecución
+### F0 · Cimientos de datos - ✅ Completada (29/09/2026)
 - **Vertientes:** V3, V1
 - **Objetivo:** dejar de depender en exclusiva de RAWG, tener modelo de biblioteca real, arreglar la deuda de imágenes y **añadir import/export** (D-C3).
 - **Entregable:** app que registra un juego offline, muestra catálogo cacheado si RAWG cae, y la foto de perfil viaja entre dispositivos.
 - **Extra de este análisis:** **import/export universal** (Steam/HLTB/Backloggd/CSV) sube a requisito de F0/F1.
 
-### F1 · El corazón del tracker — ⬜ Pendiente
+### F1 · El corazón del tracker - 🔵 Aprobada (lista para ejecutar)
 - **Vertientes:** V1, V2, V3
 - **Objetivo:** biblioteca rica (estados, notas, reseñas, diario, sesiones, stats).
 - **Añadido por el análisis:** cerrar la **escala de nota** (D-C1), **avisos de contenido** (S11), y **estimaciones personalizadas** de duración.
 - **Bloqueo activo:** fuente de la duración de los juegos.
 
-### F2 · Social — ⬜ Pendiente
+### F2 · Social - ⬜ Pendiente
 - **Vertientes:** V1, V6
 - **Objetivo:** perfil público, buscar por username, seguir, feed de hitos, Top 4, listas.
 - **Añadido:** **reacciones**, **listas colaborativas**, **roadmap público con votación** (D-C10), **import desde otras apps**.
 
-### F3 · El "wow": decidir y celebrar — ⬜ Pendiente
+### F3 · El "wow": decidir y celebrar - ⬜ Pendiente
 - **Vertientes:** V1, V2
 - **Objetivo:** "¿Qué juego ahora?" explicado + GameVision Rewind compartible.
 - **Añadido (la combinación que nadie tiene):** **mood tags** (S10), **Rewind story vertical** con export 9:16 (S9), **duelos ELO** (S15).
 - **Regla:** el Rewind básico **nunca se cobra** (D-C4).
 
-### F4 · Nativo y pulido — ⬜ Pendiente
+### F4 · Nativo y pulido - ⬜ Pendiente
 - **Vertientes:** V1, V2
 - **Objetivo:** widget, notificaciones, offline afinado, estantería visual, list-detail adaptativo (Nav3).
 - **Añadido:** **gamificación ética** (S18), **accesibilidad** auditada.
@@ -164,9 +164,9 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 - **Por qué antes de F5:** monetizar una experiencia sin pulir es el peor orden posible; el cuidado del detalle es parte del argumento del producto.
 
 ### Auditoría de cierre de cada fase (transversal)
-Cada fase (F0–F6) cierra con una **auditoría de código y experiencia** validada por el propietario, según el [protocolo](../metodologia/auditoria-de-cierre.md). Una fase no pasa a ✅ Completada sin ella.
+Cada fase (F0-F6) cierra con una **auditoría de código y experiencia** validada por el propietario, según el [protocolo](../metodologia/auditoria-de-cierre.md). Una fase no pasa a ✅ Completada sin ella.
 
-### F5 · Publicación en Play Store — 📄 Nueva (transversal)
+### F5 · Publicación en Play Store - 📄 Nueva (transversal)
 - **Vertientes:** V4, V5, V7
 - **Objetivo:** app **publicada, monetizada y estable** en Google Play.
 - **Contenido:**
@@ -176,9 +176,9 @@ Cada fase (F0–F6) cierra con una **auditoría de código y experiencia** valid
   4. **Integración de monetización**: AdMob discreto (banner/native/rewarded) + UMP (consentimiento) + "quitar anuncios" con Play Billing v8.
   5. **Beta cerrada** (12 testers/14 días si cuenta personal) y **staged rollout** 5 %→10 %→50 %→100 %.
   6. **SLO de calidad**: crash-free ≥ 99,7 % con Crashlytics.
-- **Arranca:** al cerrar F1 (en paralelo a F2–F4).
+- **Arranca:** al cerrar F1 (en paralelo a F2-F4).
 
-### F6 · Crecimiento — 📄 Nueva (tras publicar)
+### F6 · Crecimiento - 📄 Nueva (tras publicar)
 - **Vertientes:** V6, V8
 - **Objetivo:** tracción orgánica sostenible.
 - **Contenido:** ASO continuo, comunidad (Reddit/Discord/creadores), **Rewind viral**, import/export como captación, roadmap público, y análisis de datos reales de uso.
@@ -193,8 +193,8 @@ Cada fase (F0–F6) cierra con una **auditoría de código y experiencia** valid
 |---|---|---|
 | **Lanzamiento** | Gratis + **micromecenazgo** opcional | Core completo gratis; Patreon/donaciones para quien quiera apoyar |
 | **Crecimiento** | **+ "Quitar anuncios"** (pago único) | AdMob discreto en la capa gratis; el pago único lo elimina |
-| **Escala** | **+ Premium anual 15–25 $** | Tipo Letterboxd Pro: stats avanzadas, temas, multi-colección, export extra |
-| **Nunca** | — | Cobrar el registro, las listas, el feed o el Rewind básico |
+| **Escala** | **+ Premium anual 15-25 $** | Tipo Letterboxd Pro: stats avanzadas, temas, multi-colección, export extra |
+| **Nunca** | - | Cobrar el registro, las listas, el feed o el Rewind básico |
 
 **Reglas de oro:** UMP desde el día uno; anuncios de prueba en desarrollo; nada de
 interstitial/app-open agresivos; precio estable (no "bait-and-switch").
@@ -219,15 +219,15 @@ interstitial/app-open agresivos; precio estable (no "bait-and-switch").
 
 ## 7. Próximos pasos (lo que toca ahora)
 
-1. **Decisiones bloqueantes cerradas (29/09):** escala de nota **ratificada** (0,5–5,0 →
+1. **Decisiones bloqueantes cerradas (29/09):** escala de nota **ratificada** (0,5-5,0 →
    [ADR-0003](../metodologia/adr/0003-escala-medias-estrellas.md)), monetización **por etapas con
    disparadores** ([ADR-0005](../metodologia/adr/0005-monetizacion-por-etapas.md)) y cuenta Play
    **personal** ([ADR-0006](../metodologia/adr/0006-cuenta-play-personal.md)).
-2. **Terminar F0**: caché Room, modelo de biblioteca, Storage, import/export.
+2. **Terminar F0**: caché Room, modelo de biblioteca, Storage, import/export. → ✅ **cerrado (29/09)**; la foto va a Firestore (ADR-0007), no a Storage.
 3. **Abrir F5 en borrador**: cuenta de desarrollador + política de privacidad + Data Safety.
 4. **Instrumentar** (Analytics + Crashlytics) al cerrar F1.
 5. **✅ Mapa de integraciones por vistas ratificado (29/09):**
-   `integracion-por-vistas-2026.md` — las 20 micro-decisiones D-V1…D-V20 adoptadas en bloque.
+   `integracion-por-vistas-2026.md` - las 20 micro-decisiones D-V1...D-V20 adoptadas en bloque.
 
 ---
 
@@ -235,7 +235,7 @@ interstitial/app-open agresivos; precio estable (no "bait-and-switch").
 
 - [Análisis competitivo y de mercado (cierre)](../investigacion-2026/analisis-competitivo-2026.md)
 - [Investigación técnica y de publicación 2026](../investigacion-2026/sintesis-2026.md)
-- [Integraciones y APIs aceptadas (P1–P4)](../investigacion-2026/integraciones-apis-2026.md)
-- [Mapa de integración por vistas (D-V1…D-V20)](integracion-por-vistas-2026.md)
+- [Integraciones y APIs aceptadas (P1-P4)](../investigacion-2026/integraciones-apis-2026.md)
+- [Mapa de integración por vistas (D-V1...D-V20)](integracion-por-vistas-2026.md)
 - [Framework de desarrollo (GDF)](../metodologia/README.md)
 - [Visión de producto](../product-vision-2026.md)
