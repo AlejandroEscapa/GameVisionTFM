@@ -61,6 +61,26 @@ export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # JDK 21; NO us
   además de `JAVA_HOME`. Si no, `firebase emulators:exec` falla al arrancar.
 - **Las reglas de Firestore no se despliegan sin suite verde.** Ya corre contra datos reales.
 
+### Desplegar las reglas de Firestore
+
+```bash
+node scripts/deploy-rules/deploy-rules.js <ruta-service-account.json>            # dry-run
+node scripts/deploy-rules/deploy-rules.js <ruta-service-account.json> --commit   # despliega
+```
+
+**No uses `firebase deploy`.** Con la service key falla en el pre-flight (403 sobre
+`serviceusage.googleapis.com`, permiso que no tiene) **antes** de tocar las reglas, y el error
+hace pensar que la key no sirve: sí sirve, le sobra un paso. El script usa la Rules API directa.
+
+Dos detalles que cuestan intentos si no los sabes:
+
+1. **El release de Firestore se llama `cloud.firestore`.** Crear un release con otro nombre parece
+   un despliegue correcto y **no lo es**: Firestore sigue sirviendo las reglas viejas.
+2. **El PATCH envuelve el cuerpo**: `{ release: { name, rulesetName } }`, y **sin** `updateMask`.
+   Un Release a secas devuelve `400 Unknown name "rulesetName": Cannot find field`.
+
+Los rulesets son inmutables y no se borran: el anterior queda como rollback (el script lo imprime).
+
 ## 3. Toolchain y restricciones de versiones (crítico)
 
 Definido todo en `gradle/libs.versions.toml` (única fuente de verdad, sin versiones

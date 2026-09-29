@@ -110,11 +110,33 @@ estados vacío/carga/error/offline. Es el único bloque sin cerrar.
 | Re-ejecutar `connectedDebugAndroidTest` (7) tras los cambios de UI y de `UserRepository` | agente + propietario | Antes de cerrar F1 |
 | Recorrido visual de la lista de amigos y del muro en emulador, con estados vacío/carga/error | agente | Antes de cerrar F1 |
 | Validación formal de la auditoría por el propietario | **propietario** | Al firmar esta fase |
-| Desplegar las reglas corregidas (`firebase deploy --only firestore:rules`) | propietario / agente | **Urgente**: la corrección de seguridad aún no está en producción |
+
+## ✅ Despliegue de las reglas (29/09/2026, 21:21 UTC)
+
+La corrección de seguridad **ya está en producción**, con permiso explícito del propietario.
+
+| | |
+|---|---|
+| Proyecto | `gamevision-tfm-b1b4d` |
+| Release activo | `projects/gamevision-tfm-b1b4d/releases/cloud.firestore` |
+| Ruleset activo | `projects/gamevision-tfm-b1b4d/rulesets/efc02946-866a-4923-acd4-9d3eb08e9590` |
+| Ruleset anterior (rollback) | `projects/gamevision-tfm-b1b4d/rulesets/f1c53dd3-7cdd-4270-8a3a-8fd630becbb6` |
+| Verificación | **4/4** comprobaciones sobre el contenido servido, idéntico byte a byte al local (3704) |
+
+**Cómo se desplegó** y por qué no con `firebase deploy`: la service key no tiene permiso sobre
+`serviceusage.googleapis.com`, así que el pre-flight de firebase-tools falla con 403 **antes** de
+tocar las reglas. Nuevo script [`scripts/deploy-rules/`](../../scripts/deploy-rules/deploy-rules.js),
+que usa la Firebase Rules API directamente, con **dry-run por defecto**.
+
+Dos detalles no evidentes que costaron dos intentos fallidos:
+
+1. **El release de Firestore se llama `cloud.firestore`.** Crear un release con otro nombre
+   *parece* un despliegue válido y **no lo es**: Firestore sigue usando las viejas.
+2. **El PATCH exige el cuerpo envuelto** en `{ release: { name, rulesetName } }` y **sin**
+   `updateMask`. Un Release a secas devuelve `400 Unknown name "rulesetName"`.
 
 ## Acciones
 
-1. **Desplegar las reglas corregidas.** El agujero de secuestro de índices está arreglado en el
-   árbol pero **puede seguir corriendo en producción** (release 200). Es lo más urgente de esta lista.
-2. Cerrar las tres reservas de arriba.
-3. Firmar por el propietario. Tras eso, F1 pasa a ✅ Completada sin reservas y **F2 se abre**.
+1. ~~Desplegar las reglas corregidas~~ → **hecho y verificado** (ver arriba).
+2. Cerrar las dos reservas de arriba: tests instrumentados y recorrido visual.
+3. Firma del propietario. Tras eso, F1 pasa a ✅ Completada sin reservas y **F2 se abre**.
