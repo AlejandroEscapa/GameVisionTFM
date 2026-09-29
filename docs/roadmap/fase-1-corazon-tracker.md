@@ -1,6 +1,10 @@
 # Fase 1 — El corazón del tracker
 
-**Estado:** ✅ **Completada** (pendiente de validación del propietario) · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
+**Estado:** ✅ **Completada** (validada por el propietario el 29/09/2026) · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
+
+> **Cierre:** los 6 bloques de la auditoría en ✅, incluido el Bloque 5 (ADR-0008). Re-auditoría:
+> [`auditoria-fase-1-bloque-5-2026.md`](../metodologia/auditoria-fase-1-bloque-5-2026.md). Se encontró y
+> corrigió un crash preexistente en la pestaña Social (ver ese informe).
 
 ## Progreso por bloques
 

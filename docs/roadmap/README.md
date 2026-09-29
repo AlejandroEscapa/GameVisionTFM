@@ -41,7 +41,7 @@
 | Fase | Título | Estimación | Estado | Depende de |
 |---|---|---|---|---|
 | [F0](fase-0-cimientos-datos.md) | Cimientos de datos | 1 semana | ✅ Completada (29/09) | — |
-| [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | ✅ Completada (pendiente de validación) | F0 ✅ |
+| [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | ✅ Completada (29/09) | F0 ✅ |
 | [F2](fase-2-social.md) | Social | 1 semana | ⬜ Pendiente | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | ⬜ Pendiente | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |

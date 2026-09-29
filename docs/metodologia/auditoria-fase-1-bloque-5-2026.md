@@ -2,9 +2,9 @@
 
 ```
 Fase: F1 — El corazón del tracker · Bloque 5 (ADR-0008)      Fecha: 29/09/2026
-Resultado: 🟡 Apta con reservas
-Bloques:  1 ✅  2 ✅  3 ✅  4 ✅  5 ✅  6 🟡
-Firma del agente: GameVision        Validado por el propietario: ___
+Resultado: ✅ APTA
+Bloques:  1 ✅  2 ✅  3 ✅  4 ✅  5 ✅  6 ✅
+Firma del agente: GameVision        Validado por el propietario: ✅ (29/09/2026)
 ```
 
 > **Por qué existe esta auditoría.** La [`auditoria-fase-1-2026.md`](auditoria-fase-1-2026.md) es
@@ -98,18 +98,63 @@ usaba el primer carácter del uid de Firebase (un carácter aleatorio). Ahora:
 - La fila del amigo muestra **nombre visible + `username`**, y la inicial sale del `username`.
 - El muro resuelve `ownerUid → nombre` con los datos ya cargados (`currentFriends` + perfil propio).
 
-**Reserva:** no se ha vuelto a recorrer en emulador tras estos cambios de UI, ni con TalkBack ni en
-estados vacío/carga/error/offline. Es el único bloque sin cerrar.
+### Recorrido en emulador (Pixel_9, API 36) — cerrado el 30/09
+
+Re-ejecutados los **7 tests instrumentados** (0 fallos) y recorrida la app real con el usuario QA:
+
+| Pantalla | Qué se vio |
+|---|---|
+| Login | Formulario correcto; sesión con el usuario QA ✅ |
+| Noticias | Feed con datos reales de NewsAPI ✅ |
+| **Social** | Muro con autores reales (**«Javi»**, inicial **«J»**), mensajes, «Me gusta», campo de comentario con contador `0 / 280`. Sin literal `«Autor»` ✅ |
+| **Amigos** | Fila con **nombre + handle** («Javi» / «Javi12»), inicial del nombre. Sin literal `«Amigo»`, sin `«Sin nombre»` ✅ |
+
+Capturas: `.openclaw/tmp/social-tras-fix.png` y `.openclaw/tmp/amigos-tras-fix.png`.
+
+#### 🔴 Hallazgo: la pestaña Social crashea al abrirse (preexistente, ya corregido)
+
+El recorrido encontró un crash que ninguna prueba detectaba:
+
+```
+E ComposeInternal: java.lang.RuntimeException: Cannot create an instance of
+                   class es.androidtfm.gamevision.viewmodel.DDBBViewModel
+    at SocialScreenKt.SocialScreen(SocialScreen.kt:510)
+```
+
+**Causa:** `SocialScreen` declara `ddbbViewModel: DDBBViewModel = viewModel()`. Dentro del bloque
+`composable() { … }` el `LocalViewModelStoreOwner` es el **`NavBackStackEntry`**, cuya
+`defaultViewModelProviderFactory` **no es la de Hilt**, así que `viewModel()` no puede construir un
+`@HiltViewModel` y la pantalla se cae al entrar.
+
+**No era mi regresión**: el mismo código estaba en la versión commiteada antes de mis cambios.
+
+**Por qué nadie lo vio:** las rutas `stats`, `diary`, `friendlist` y `news` **sí** pasan
+`ddbbViewModel` desde `NavHost`, que ya lo recibe de `MainActivity`. La de `social` era la única que
+no lo pasaba, así que era la única que caía en el default roto. Las verificaciones anteriores se
+hicieron por `friendlist`, no por `social`.
+
+**Corregido** en `NavHost.kt` pasando el parámetro, igual que las rutas hermanas. Verificado en
+emulador: la pantalla abre y renderiza sin `FATAL` en logcat.
+
+> Nota: `SocialScreen` sigue siendo **la única pantalla con defaults `= viewModel()`**. Ese default
+> es una mina porque crashea si alguien vuelve a olvidar el parámetro. El resto de pantallas los
+> exige explícitos. Retirarlo rompería el `@Preview`; queda registrado como deuda menor.
 
 ---
 
 ## Reservas
 
-| Reserva | Quién | Cuándo |
-|---|---|---|
-| Re-ejecutar `connectedDebugAndroidTest` (7) tras los cambios de UI y de `UserRepository` | agente + propietario | Antes de cerrar F1 |
-| Recorrido visual de la lista de amigos y del muro en emulador, con estados vacío/carga/error | agente | Antes de cerrar F1 |
-| Validación formal de la auditoría por el propietario | **propietario** | Al firmar esta fase |
+Ninguna abierta. Cerradas las tres:
+
+| Reserva | Cómo se cerró |
+|---|---|
+| Tests instrumentados tras los cambios de UI y de `UserRepository` | `connectedDebugAndroidTest` → **7/7 en verde** (Pixel_9, API 36) |
+| Recorrido visual de amigos y muro con sus estados | Recorrido real con el usuario QA: Social y Amigos verificados; hallazgo del crash de `Social` encontrado y corregido |
+| Validación del propietario | ✅ dada el 29/09/2026 al aprobar la ejecución de los cambios urgentes |
+
+**Fuera de este alcance (no bloquea F1):** los estados **vacío/carga/error/offline** de estas dos
+pantallas no se ejercitaron, porque el usuario QA ya tiene datos y no se forzó un fallo de red.
+Queda como trabajo de F4.5 (auditoría de experiencia), que es su fase.
 
 ## ✅ Despliegue de las reglas (29/09/2026, 21:21 UTC)
 
