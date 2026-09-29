@@ -32,7 +32,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 | D0.3 | **Alcance de la caché** | ✅ **CERRADA** (27/09/2026): **fichas visitadas + búsquedas recientes** (descarta cachear todo el catálogo: RAWG no lo permite y no cabe en el dispositivo) | ✅ |
 | D0.4 | **Cloud Functions ahora o después** | ✅ **CERRADA** (27/09/2026): **posponer a F2**, cuando la búsqueda de usuarios y el feed las necesiten de verdad | ✅ |
 | D0.5 | **Modelo de amigos** | (a) Dejar el actual (simétrico, por email) · (b) Rediseñar a "seguir" (asimétrico) | **Debatir en F2**, no en F0: aquí sólo se decide si el modelo actual bloquea algo (no lo hace) | ⬜ |
-| D0.6 | **Duración de los juegos** | 🟡 **PARCIAL** (27/09/2026): el **campo existirá** en el modelo de datos en F0 (no bloquea nada); **la fuente de los datos queda PENDIENTE DE DECIDIR** por el propietario y **debe cerrarse antes de la tarea T1.11 de F1** | 🟡 |
+| D0.6 | **Duración de los juegos** | ✅ **CERRADA**: el campo existe en el modelo de datos de F0 y la **fuente quedó cerrada el 29/09 en la D1.4 de fase-1** (scraper HLTB + respaldo manual). T1.11 ya puede empezar | ✅ |
 
 > **Cómo se cierra una decisión:** se escribe la opción elegida, la fecha y una línea de
 > porqué en el "Registro de decisiones" del final. Mientras haya una decisión sin cerrar,
@@ -162,7 +162,7 @@ en F0: la migración futura es añadir una clase y cambiar una línea de inyecci
 | D0.3 | Caché: fichas visitadas + búsquedas recientes |
 | D0.4 | Cloud Functions se posponen a F2 |
 | D0.5 | Modelo social: se decide en F2 |
-| D0.6 | Estructura de duración sí (F0); **fuente pendiente de decidir** (bloquea T1.11) |
+| D0.6 | Estructura de duración sí (F0); **fuente cerrada (29/09/2026)**: scraper HLTB con caché + respaldo manual — [D1.4 de fase-1](fase-1-corazon-tracker.md) e [investigación](../investigacion-2026/hltb-verificacion-2026.md) |
 
 ## Riesgos
 
@@ -197,10 +197,11 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
   piezas que desplegar y depurar ahora.
 - **D0.5 — Diferida a F2 (27/09/2026)** — el modelo de amigos (simétrico vs seguir) se
   decide en la fase social, que es donde tiene consecuencias. No bloquea F0.
-- **D0.6 — Estructura sí, fuente pendiente (27/09/2026)** — el campo de duración se crea en
-  el modelo; **el propietario decidirá más adelante de dónde salen los datos** (scraper de
-  HowLongToBeat, dato manual, IGDB u otra vía). Marca de bloqueo: **T1.11 no puede empezar
-  sin esta decisión**. Se deja anotado también en el README del roadmap.
+- **D0.6 — Estructura sí; fuente cerrada (29/09/2026)** — el campo de duración se crea en
+  el modelo; la fuente de los datos quedó decidida ese mismo día en la **D1.4 de fase-1**:
+  scraper ligero de HowLongToBeat con caché + respaldo manual (verificación en
+  [hltb-verificacion-2026](../investigacion-2026/hltb-verificacion-2026.md)). IGDB queda como
+  candidato futuro. **T1.11 ya puede empezar.**
 - **F0-B — propuesta de modelo aprobada (28/09/2026)** — clave `uid` (el email pasa a campo),
   histórico local en el dispositivo, estadísticas agregadas (`stats/summary`) y migración de listas
   (`playedlist`→`jugando`, `wishlist`→`deseado`, `favorites`→flag `favorite`; `history` se descarta).
