@@ -2,7 +2,7 @@
 
 > **Qué es:** el diseño de DÓNDE y CÓMO se integra todo lo adoptado (P1–P4) en cada vista de la
 > app, incluidas las vistas nuevas, el flujo completo de vinculación de Steam y el onboarding.
-> **Fecha:** 29/09/2026 · **Estado:** propuesta para validación por secciones.
+> **Fecha:** 29/09/2026 · **Estado:** ✅ **Ratificado en bloque por el propietario (29/09/2026)** — las 20 micro-decisiones D-V quedan adoptadas con su recomendación.
 > **Habilitado por:** P1–P4 aceptados íntegramente + D1.5/D1.6/D1.7 cerrados
 > (`fase-1-corazon-tracker.md` e `integraciones-apis-2026.md` §6).
 > **Método:** análisis del código real (rutas de navegación y composables existentes) + razonamiento
@@ -19,7 +19,7 @@
   login en Steam (Chrome Custom Tab con OpenID 2.0), y desde ahí importación real de biblioteca+horas.
 - Las horas reales de Steam viven en la **ficha** ("47 h jugadas · de ~60 h") y solo se muestran si
   existen; si no hay dato, el bloque **se oculta** (regla del propietario).
-- El documento desglosa **20 micro-decisiones (D-V1…D-V20)** para ratificar cláusula a cláusula.
+- El documento desglosa **20 micro-decisiones (D-V1…D-V20)**, ratificadas en bloque el 29/09/2026.
 
 ## 1. Los 6 principios de cohesión (gobiernan todas las vistas)
 
@@ -318,9 +318,12 @@ en el dispositivo: steamId64 y horas en el perfil del usuario; Room cachea catá
 | **F4** | Widget (progreso + oferta) |
 | **F5** | Gates de monetización (IGDB partner, PriceCharting) — modelo "Pro anual barato" estilo Letterboxd (~19 $/año, free sin castraciones) |
 
-## 7. Micro-decisiones D-V (para ratificar)
+## 7. Micro-decisiones D-V (ratificadas en bloque, 29/09/2026)
 
-| # | Cláusula | Recomendación |
+> Ratificación del propietario: se adoptan las 20 cláusulas con la recomendación indicada.
+> Cualquier revisión futura de una cláusula concreta se documenta en su sección (§3.x) o en un ADR si es cara de revertir.
+
+| # | Cláusula | Recomendación adoptada |
 |---|---|---|
 | D-V1 | Onboarding: 6 pantallas máx (Self-Select + importer en wizard), skippable, Steam opcional, checklist post-onboarding | Sí |
 | D-V2 | Tabs al español; "Home"→"Inicio" con Sigue jugando + fila Ofertas + Noticias | Sí |
