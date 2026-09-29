@@ -42,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -98,7 +99,14 @@ fun ProfileScreen(
     // cuando cambia el documento en Firestore, sin refetch manual por pantalla.
     val profile by userViewModel.profile.collectAsState()
     val isLoading by userViewModel.isLoading.collectAsState()
+    val profileImageData by userViewModel.profileImageData.collectAsState()
+    val imageError by userViewModel.imageError.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    // Imagen a mostrar: la gestionada por la app (data URI desde Firestore) o, si no,
+    // una URL antigua que ya estuviera guardada en el perfil.
+    val imageModel: String? = profileImageData
+        ?: profile.imageUri.takeIf { it.isNotBlank() && !it.startsWith("firestore://") }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -173,10 +181,19 @@ fun ProfileScreen(
                             .offset(y = (-25).dp)
                     ) {
                         ProfileImage(
-                            imageUri = profile.imageUri,
+                            imageUri = imageModel,
                             onImagePicked = { uri ->
                                 coroutineScope.launch { userViewModel.updateProfileImage(uri) }
                             }
+                        )
+                    }
+
+                    // Aviso si la foto elegida no cumple el límite de tamaño (escalabilidad del plan gratuito).
+                    if (imageError != null) {
+                        ProfileImageErrorBanner(
+                            message = imageError.orEmpty(),
+                            onDismiss = { userViewModel.clearImageError() },
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
 
@@ -243,6 +260,36 @@ fun ProfileImage(
                     .size(48.dp)
                     .clickable { pickImageLauncher.launch("image/*") }
             )
+        }
+    }
+}
+
+@Composable
+private fun ProfileImageErrorBanner(
+    message: String,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar", color = MaterialTheme.colorScheme.onErrorContainer)
+            }
         }
     }
 }

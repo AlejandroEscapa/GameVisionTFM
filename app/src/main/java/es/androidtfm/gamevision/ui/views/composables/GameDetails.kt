@@ -137,7 +137,7 @@ fun GameDetails(
 
         when {
             isLoading -> FullScreenLoader()
-            error != null -> ErrorMessage(error)
+            error != null -> ErrorMessage(error, onRetry = { viewModel.fetchGameDetails(gameId) })
             game == null -> EmptyState()
             else -> {
                 Column(
@@ -464,9 +464,12 @@ private fun FullScreenLoader() {
  * @param error Mensaje de error a mostrar.
  */
 @Composable
-private fun ErrorMessage(error: String?) {
+private fun ErrorMessage(error: String?, onRetry: () -> Unit = {}) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
             Icon(
                 imageVector = Icons.Default.Clear,
                 contentDescription = "Error",
@@ -475,10 +478,15 @@ private fun ErrorMessage(error: String?) {
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = error ?: "Error desconocido",
+                text = error ?: "No se pudo cargar la información",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
+            Spacer(Modifier.height(16.dp))
+            Button(onClick = onRetry) {
+                Text("Reintentar")
+            }
         }
     }
 }

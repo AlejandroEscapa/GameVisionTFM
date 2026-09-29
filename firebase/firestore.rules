@@ -49,6 +49,13 @@ service cloud.firestore {
       match /{document=**} { allow read, write: if false; }
     }
 
+    // Fotos de perfil (ADR-0007): un documento por usuario; el dueño escribe y
+    // cualquier usuario autenticado lee (los avatares se ven en la capa social desde F2).
+    match /profile_images/{userId} {
+      allow read: if request.auth != null;
+      allow write, delete: if isOwner(userId);
+    }
+
     // El resto de la base queda cerrado.
     match /{document=**} {
       allow read, write: if false;

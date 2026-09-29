@@ -95,9 +95,23 @@ class SearchViewModelTest {
 
         viewModel.fetchGames("zelda")
 
-        assertTrue(viewModel.error.value?.contains("Error al cargar juegos") == true)
+        assertTrue(viewModel.error.value?.contains("No se pudo cargar la información") == true)
         assertTrue(viewModel.games.value.isEmpty())
         assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `fetchGames sin conexion da un mensaje claro sin detalle tecnico`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.failure(java.net.UnknownHostException("api.rawg.io"))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.fetchGames("halo")
+
+        val msg = viewModel.error.value.orEmpty()
+        assertTrue(msg.contains("Sin conexión"))
+        assertFalse(msg.contains("api.rawg.io"))
     }
 
     @Test
@@ -123,8 +137,22 @@ class SearchViewModelTest {
 
         viewModel.fetchGameDetails(99)
 
-        assertTrue(viewModel.errorDetails.value?.contains("Error al cargar detalles") == true)
+        assertTrue(viewModel.errorDetails.value?.contains("No se pudo cargar la información") == true)
         assertNull(viewModel.gameDetails.value)
+    }
+
+    @Test
+    fun `fetchGameDetails sin conexion no expone el host del proveedor`() = runTest {
+        val catalog = FakeGameCatalog(
+            detailsResult = Result.failure(java.net.UnknownHostException("api.rawg.io"))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.fetchGameDetails(1)
+
+        val msg = viewModel.errorDetails.value.orEmpty()
+        assertTrue(msg.contains("Sin conexión"))
+        assertFalse(msg.contains("api.rawg.io"))
     }
 
     // ---- Modo degradado visible (F0/T0.5) ----

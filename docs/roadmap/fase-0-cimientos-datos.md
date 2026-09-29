@@ -65,13 +65,12 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] T0.11 **Limpieza ejecutada (29/09/2026)**: backup JSON + borrado de `playedlist`/`wishlist`/`history` (5 cuentas de prueba) y docs `aa`/`ee`, con verificación ✅. Herramienta: `scripts/b3-limpieza/`
 
 ### C. Deuda conocida
-- [x] T0.12 Firebase Storage (29/09/2026): `ProfileImageStorage` sube la foto a
-      `profile_images/{email}/profile.jpg` (5 MB máx.) y en el perfil se persiste la **URL de
-      descarga**, que viaja entre dispositivos. Ya no se copia a `filesDir` (era el bug).
-      Reglas de Storage escritas en `firebase/storage.rules` — ⛔ **bloqueado**: activar Storage exige
-      plan **Blaze** (facturación). Alternativa gratuita en investigación
-      ([almacenamiento-imagenes-2026](../../investigacion-2026/almacenamiento-imagenes-2026.md));
-      recomendación: base64 en **Realtime Database** (foto comprimida). CA0.3 pendiente de esa decisión.
+- [x] T0.12 Foto de perfil **sin** Cloud Storage (ADR-0007, 29/09/2026): `ProfileImageStorage`
+      comprime la imagen (512 px, JPEG q80) y la guarda como base64 en `profile_images/{uid}`
+      (Firestore); el perfil persiste el puntero `firestore://profile_images`. Aviso claro al usuario
+      si supera **5 MB** (o 256 KB ya comprimida). Storage exige plan **Blaze** → descartado (reglas
+      archivadas en `firebase/storage.rules`). Reglas de Firestore para `profile_images` **desplegadas**.
+      **CA0.3 verificado.**
 - [ ] T0.13 Firebase Cloud Messaging — **diferida con disparador (29/09/2026)**: sin criterio de
       aceptación en F0 y su UX se diseña en F2 (notificaciones sociales) / F4 (widget y avisos).
       Se abre al integrar las notificaciones de F2.
@@ -97,8 +96,9 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] CA0.2 *(cerrado 29/09/2026, noche)*: **verificado en vivo** con el usuario QA — **Halo 3**
       añadido a la biblioteca en **modo avión** (estado «Jugando») y **sincronizado a Firestore**
       al recuperar la red (`users/{uid}/library/28589`, `status=jugando`).
-- [ ] CA0.3 ⛔ **bloqueado por coste**: Cloud Storage exige **Blaze** (facturación). Alternativa en
-      investigación: [almacenamiento-imagenes-2026](../../investigacion-2026/almacenamiento-imagenes-2026.md).
+- [x] CA0.3 *(cerrado 29/09/2026, noche)*: **verificado** — la foto se recupera al **borrar los datos
+      de la app y volver a iniciar sesión** (simula el 2º dispositivo). Se guarda en
+      `profile_images/{uid}` (Firestore) y se sirve como data URI (ADR-0007).
 - [~] CA0.4 *(actualizado 29/09/2026)* Los datos antiguos eran **de prueba** y se han borrado con backup. Verificación: **parcial** — alta + listas verificadas E2E con la cuenta QA (28/09); el tramo de sesión/estadísticas llegará con F1 y se re-verificará entonces.
 - [x] CA0.6 *(actualizado 29/09/2026, noche)* **35 unitarios + 7 instrumentados, 0 fallos** (medido en
       la auditoría de cierre; incl. los 5 nuevos del modo degradado). Los instrumentados ya corren en el
@@ -199,8 +199,9 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 - [x] Bloque 3: lint **0 errores** (4 corregidos); 68 warnings triados como deuda de estilo para F4.5
 - [x] Bloque 4: `GameCatalog` como SSOT del catálogo; sin DTOs de RAWG en la UI
 - [ ] Bloque 5: docs/ADRs sincronizados (recuento de tests corregido; pendiente validación)
-- [x] Bloque 6: **CA0.1 y CA0.2 verificados** en vivo; **CA0.3 bloqueado** por el coste de Storage
-- [ ] **Reglas de `firebase/storage.rules` publicadas** en Firebase Console (pendiente del propietario)
+- [ ] Bloque 6: **CA0.1, CA0.2 y CA0.3 verificados** en vivo
+- [x] **Reglas de Firestore desplegadas** (colección `profile_images` incluida)
+- [x] Hallazgo **H1** corregido: el error de la ficha ya no expone el detalle técnico (mensaje claro + «Reintentar»)
 - [ ] Auditoría firmada y validada por el propietario
 
 > **Informe completo:** [auditoría de cierre de F0](../metodologia/auditoria-fase-0-2026.md) —

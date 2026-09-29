@@ -86,7 +86,7 @@ class SearchViewModel @Inject constructor(
                     _fromCache.value = catalog.isServingFromCache()
                 }
                 .onFailure {
-                    _error.value = "Error al cargar juegos: ${it.message}"
+                    _error.value = it.toCatalogUserMessage()
                     _fromCache.value = false
                 }
             _isLoading.value = false
@@ -108,7 +108,7 @@ class SearchViewModel @Inject constructor(
                     _fromCache.value = catalog.isServingFromCache()
                 }
                 .onFailure {
-                    _errorDetails.value = "Error al cargar detalles: ${it.message}"
+                    _errorDetails.value = it.toCatalogUserMessage()
                     _fromCache.value = false
                 }
             _isLoadingDetails.value = false
@@ -137,3 +137,15 @@ class SearchViewModel @Inject constructor(
         gamesMap.remove(gameId) // Elimina el juego del mapa
     }
 }
+
+/**
+ * Traduce los fallos del catálogo a un mensaje claro para el usuario.
+ * Nunca se muestra el detalle técnico (antes salía, p. ej.,
+ * 'Unable to resolve host "api.rawg.io"' — hallazgo H1 de la auditoría de F0).
+ */
+private fun Throwable.toCatalogUserMessage(): String =
+    if (this is java.io.IOException || cause is java.io.IOException) {
+        "Sin conexión. Comprueba tu red e inténtalo de nuevo."
+    } else {
+        "No se pudo cargar la información. Inténtalo de nuevo."
+    }

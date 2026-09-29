@@ -18,7 +18,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -104,6 +106,35 @@ class UserViewModel @Inject constructor(
 
     private val _message = MutableStateFlow("")
     val message: StateFlow<String> = _message.asStateFlow()
+
+    // ---- Foto de perfil (ADR-0007: guardada en Firestore; se sirve como data URI) ----
+    /** Cada incremento fuerza recargar la foto tras una subida. */
+    private val imageRefresh = MutableStateFlow(0)
+
+    /** Foto del usuario actual como data URI, o null si no tiene. Se recarga al cambiar de usuario o tras subir. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val profileImageData: StateFlow<String?> = combine(currentUid, imageRefresh) { uid, _ -> uid }
+        .flatMapLatest { uid ->
+            flow {
+                emit(
+                    if (uid.isNullOrBlank()) null
+                    else profileImageStorage.loadProfileImageDataUri(uid).getOrNull()
+                )
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Error de la última operación con la foto de perfil (lo muestra el Snackbar del perfil). */
+    private val _imageError = MutableStateFlow<String?>(null)
+    val imageError: StateFlow<String?> = _imageError.asStateFlow()
+
+    fun clearImageError() {
+        _imageError.value = null
+    }
+
+    private fun setImageError(msg: String) {
+        _imageError.value = msg
+    }
 
     // ------------------------------------------------------------------------
     // Acciones de sesión
@@ -227,21 +258,22 @@ class UserViewModel @Inject constructor(
      * Todo en viewModelScope (si la pantalla sale de composición a mitad, no se cancela).
      */
     fun updateProfileImage(uri: android.net.Uri) {
+        val uid = currentUid.value
         val email = currentEmail.value
-        if (email.isNullOrBlank()) {
-            setMessage("No hay sesión iniciada")
+        if (uid.isNullOrBlank() || email.isNullOrBlank()) {
+            setImageError("No hay sesión iniciada")
             return
         }
         viewModelScope.launch {
             _isLoading.value = true
-            profileImageStorage.uploadProfileImage(email, uri)
-                .onSuccess { url ->
-                    userRepository.updateProfileImage(email, url)
-                        .onFailure { setMessage("No se pudo actualizar la foto de perfil") }
+            profileImageStorage.uploadProfileImage(uid, uri)
+                .onSuccess { pointer ->
+                    // El perfil guarda solo un puntero; la imagen vive en profile_images/{uid}.
+                    userRepository.updateProfileImage(email, pointer)
+                        .onFailure { setImageError("No se pudo actualizar la foto de perfil") }
+                    imageRefresh.value += 1
                 }
-                .onFailure {
-                    setMessage(it.message ?: "No se pudo actualizar la foto de perfil")
-                }
+                .onFailure { setImageError(it.message ?: "No se pudo actualizar la foto de perfil") }
             _isLoading.value = false
         }
     }
@@ -277,6 +309,7 @@ class UserViewModel @Inject constructor(
         clearFormFields()
         _message.value = ""
         _profileError.value = null
+        _imageError.value = null
     }
 
     private fun isRegisterFormValid(): Boolean =

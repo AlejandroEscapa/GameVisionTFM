@@ -6,9 +6,13 @@
 
 ```
 Fase: F0 — Cimientos de datos        Fecha: 29/09/2026
-Resultado: 🟡 Apta con reservas
-Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 ✅  6 🟡
+Resultado: 🟡 Apta con reservas (código y experiencia OK; queda la validación del propietario)
+Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 ✅  6 ✅
 ```
+
+> **Actualización 29/09/2026 (noche, 3ª pasada):** **CA0.3 verificado** con la alternativa a Storage
+> (ADR-0007: base64 en Firestore) → los **tres CA grandes (CA0.1, CA0.2, CA0.3) quedan cerrados**.
+> **H1 corregido** (sin detalle técnico + «Reintentar»). Suite: **37 unitarios** + 7 instrumentados.
 
 > **Actualización 29/09/2026 (noche, 2ª pasada):** CA0.2 **verificado en vivo** con el usuario QA
 > (escritura offline sincronizada a Firestore). CA0.3 sigue bloqueado por el **coste de Storage**
@@ -21,7 +25,7 @@ Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 ✅  6 🟡
 | # | Bloque | Resultado | Evidencia |
 |---|---|---|---|
 | 1 | Compilación y build | ✅ | `assembleDebug` **y** `assembleRelease` (R8, minify + shrink) en verde. Sin warnings nuevos de código (solo los de toolchain ya conocidos: `android.builtInKotlin`/`newDsl` deprecados, propios de AGP 9). |
-| 2 | Tests | ✅ | `testDebugUnitTest`: **35 unitarios, 0 fallos** (6 suites). `connectedDebugAndroidTest` en emulador `Pixel_9` (API 36): **7 instrumentados, 0 fallos**. |
+| 2 | Tests | ✅ | `testDebugUnitTest`: **37 unitarios, 0 fallos** (6 suites; +2 del copy de error H1). `connectedDebugAndroidTest` en emulador `Pixel_9` (API 36): **7 instrumentados, 0 fallos**. `assembleRelease` (R8) OK, APK ~7,5 MB. |
 | 3 | Calidad estática | ✅ (con deuda anotada) | `lintDebug`: **0 errores** tras corregir los 4 detectados. Quedan **68 warnings**, triados (ver §3). |
 | 4 | Arquitectura y consistencia | ✅ | Catálogo detrás de `GameCatalog` (SSOT); la UI no usa DTOs de RAWG; sin saltos de capa. `SearchViewModel` depende solo de la interfaz. |
 | 5 | Documentación y trazabilidad | 🟡 | Docs sincronizadas salvo **dos discrepancias de recuento de tests** (corregidas, ver §3). |
@@ -29,19 +33,18 @@ Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 ✅  6 🟡
 
 ## 2. Hallazgos
 
-### H1 — La ficha sin caché y sin red muestra un **error técnico crudo** al usuario 🟠
-- **Qué pasa:** abrir una ficha **no cacheada** con el dispositivo sin conexión muestra el texto
-  *«Error al cargar detalles: Unable to resolve host "api.rawg.io": No address associated with hostname»*.
-- **Por qué:** el `OfflineBanner` de `GameDetails` solo aparece cuando `fromCache == true` (había copia
-  guardada). Si no hay copia, cae en el estado `ErrorMessage(error)` y este pinta **la excepción tal cual**
-  (el `ViewModel` compone `"Error al cargar detalles: ${it.message}"`).
-- **Impacto:** fuga de detalle técnico a la UI y experiencia pobre en el caso más común de primer uso sin red.
-- **Arreglo propuesto (no aplicado — depende del criterio de diseño del propietario):**
-  - **(a)** Mapa de errores: si el fallo es de conectividad (`UnknownHostException`/`IOException`), mostrar un
-    mensaje humano reutilizando el tono del banner («Sin conexión · no hay copia guardada de esta ficha»).
-  - **(b)** Reutilizar `ErrorMessage` con copy genérico («No se pudo cargar la ficha. Revisa tu conexión e inténtalo de nuevo») + botón «Reintentar».
-  - Recomendación del auditor: **(a) + botón Reintentar**, y **no** concatenar `it.message` en la UI.
-- **Estado:** ⬜ pendiente de decisión del propietario (es copy/UX: varias salidas razonables).
+### H1 — La ficha sin caché y sin red mostraba el **error técnico crudo** al usuario ✅ (corregido)
+- **Qué pasaba:** abrir una ficha **no cacheada** sin conexión mostraba
+  *«Error al cargar detalles: Unable to resolve host "api.rawg.io"…»*.
+- **Arreglo aplicado (29/09/2026, noche):**
+  - `SearchViewModel` traduce los fallos con `toCatalogUserMessage()`: los de conectividad son
+    «Sin conexión. Comprueba tu red e inténtalo de nuevo.» y el resto un mensaje genérico. **Nunca**
+    se muestra el detalle técnico.
+  - El estado de error de la ficha (`ErrorMessage`) ahora es un bloque con icono, mensaje y botón
+    **«Reintentar»**.
+- **Verificado:** con la red cortada y sin caché, la búsqueda muestra «Sin conexión…» (sin host);
+  y 2 tests nuevos cubren el caso (`SearchViewModelTest`).
+- **Estado:** ✅ cerrado.
 
 ### H2 — Recuento de tests desactualizado en la documentación 🟡 (corregido)
 - Los docs decían **«38 unitarios»** (AGENTS.md, fase-0) y **«17 unitarios + 6 instrumentados»** (CA0.6).
@@ -78,7 +81,7 @@ limpieza en F4.5 (diseño y pulido)** para que la app llegue a la fase comercial
 |---|---|---|
 | **CA0.1** RAWG caído → sirve caché y avisa | ✅ **Verificado en vivo** | Emulador con **modo avión real** (`airplane_mode_on=1`): la búsqueda «Halo» devuelve los resultados cacheados y muestra el banner **«Sin conexión · mostrando resultados guardados»**. (Antes, con red: búsqueda real de RAWG OK.) |
 | **CA0.2** Registro en modo avión → aparece en biblioteca al volver la red | ✅ **Verificado en vivo** | Con el **usuario QA** autenticado: se añadió **Halo 3** a la biblioteca **en modo avión** (estado «Jugando»); al recuperar la red, el juego **persistió y se sincronizó a Firestore** (`users/{uid}/library/28589`, `status=jugando`). La lista offline lo mostró ya sin conexión (escritura local) y siguió tras el sync. |
-| **CA0.3** Foto de perfil viaja entre dispositivos | ⛔ **Bloqueado por coste** | La consola exige **plan Blaze** (facturación) para activar **Cloud Storage**. Se investiga alternativa gratuita: [almacenamiento-imagenes-2026](../../investigacion-2026/almacenamiento-imagenes-2026.md). |
+| **CA0.3** Foto de perfil viaja entre dispositivos | ✅ **Verificado en vivo** | **ADR-0007**: la foto se comprime y se guarda en `profile_images/{uid}` (Firestore). Verificado: se sube desde la app, se **borran los datos** (simula 2º dispositivo) y al volver a iniciar sesión **la foto aparece**. En Firestore: `profile_images/{uid}` con base64 de ~164 KB (cabecera JPEG válida) y `imageUri=firestore://profile_images`. |
 | **CA0.5** Cambiar de proveedor de catálogo no toca la UI | 🟡 Parcial | Estructuralmente cumplido (adapter `GameCatalog` + inyección en `AppModule`; `SearchViewModel` solo conoce la interfaz). Falta la demostración explícita (swap de binding que compile sin tocar UI). |
 | **CA0.6** Tests en verde | ✅ | **35 unitarios + 7 instrumentados**, 0 fallos. |
 
@@ -105,24 +108,24 @@ mientras la **biblioteca** se guarda en `users/{uid}/…` (LibraryRepository, mo
 intencional (clave por uid en la biblioteca), pero **conviene unificar el criterio** antes de F2:
 que el perfil también use `uid`, o documentar por qué el email sigue siendo la clave del perfil.
 
-## 5. Reservas y bloqueos para cerrar F0
+## 5. Reservas para cerrar F0
 
-1. **Publicar `firebase/storage.rules`** en Firebase Console (acción del propietario) → desbloquea CA0.3.
-   ⚠️ **Bloqueado**: Storage exige **Blaze** (facturación). Ver
-   [investigación de alternativas](../../investigacion-2026/almacenamiento-imagenes-2026.md) y decidir
-   (recomendado: base64 en **Realtime Database**, gratis en Spark).
-2. ~~Sesión de emulador autenticada para CA0.2~~ → **hecho**: CA0.2 verificado con el usuario QA.
-3. **Decisión sobre H1** (copy del estado de error de la ficha).
-4. **Demostración de CA0.5** (swap de binding). Opcional para cerrar, recomendable.
+1. ~~CA0.3~~ → **hecho** (ADR-0007, verificado en vivo).
+2. ~~Decisión H1~~ → **hecho** (corregido y verificado).
+3. **Demostración de CA0.5** (swap de binding que compile sin tocar UI). Opcional para cerrar, recomendable.
+4. **Validación del propietario** de esta auditoría (firma).
+
+> **Nota de arquitectura (ADR-0008, propuesto):** hoy el **perfil** vive en `users/{email}` y la
+> **biblioteca** en `users/{uid}/…`. Conviene unificar la identidad en **`uid`** antes de F2; propuesta
+> detallada en [ADR-0008](../metodologia/adr/0008-clave-unica-uid.md).
 
 ## 6. Conclusión
 
 El **código de F0 está sano**: compila (debug y release con R8), la suite completa pasa
-(42 tests), lint sin errores y la arquitectura respeta el adapter. El **modo degradado** y la
-**persistencia offline** funcionan de verdad (probados con la red cortada y con una cuenta real).
-No se cierra la fase al 100 % porque **CA0.3 depende de Storage** (bloqueado por coste) y queda un
-**hallazgo de UX (H1)** que es decisión de diseño del propietario.
+(**37 unitarios + 7 instrumentados**), lint sin errores y la arquitectura respeta el adapter. Los
+**tres criterios grandes (CA0.1, CA0.2, CA0.3) están verificados en vivo** con el emulador y una
+cuenta real, incluida la foto que viaja entre dispositivos tras un borrado de datos.
 
-**Recomendación del auditor:** decidir la alternativa a Storage (recomendado: base64 en Realtime
-Database), resolver H1 y cerrar F0; CA0.3 se verifica cuando la foto funcione por esa vía. El lint
-de estilo puede arrastrarse como deuda a F4.5 sin bloquear F1.
+**Recomendación del auditor:** F0 puede darse por cerrada una vez el propietario valide este informe
+y (opcional) se demuestre CA0.5. La **unificación de la clave de identidad (ADR-0008)** debe cerrarse
+antes de F2; el lint de estilo puede arrastrarse a F4.5.

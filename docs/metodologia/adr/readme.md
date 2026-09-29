@@ -16,6 +16,8 @@
 | [0004](0004-upgrade-toolchain.md) | Upgrade del toolchain: micro-mejoras hoy, salto Kotlin bloqueado (con disparador) | Aceptado | 2026-09-28 |
 | [0005](0005-monetizacion-por-etapas.md) | Monetización por etapas con disparadores medibles | Aceptado | 2026-09-29 |
 | [0006](0006-cuenta-play-personal.md) | Cuenta de desarrollador de Google Play: personal | Aceptado | 2026-09-29 |
+| [0007](0007-foto-perfil-firestore.md) | Foto de perfil: base64 comprimido en Firestore (sin Cloud Storage) | Aceptado | 2026-09-29 |
+| [0008](0008-clave-unica-uid.md) | Clave única de identidad: `uid` en lugar de email | Propuesto | 2026-09-29 |
 
 ## Cuándo crear un ADR
 

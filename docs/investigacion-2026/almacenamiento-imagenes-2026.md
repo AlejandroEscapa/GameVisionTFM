@@ -75,11 +75,24 @@ La diferencia es *dónde* vive el binario (RTDB en vez de Storage).
 - La **UI** (sigue leyendo una URL/`imageUri` del perfil).
 - El **plan gratuito** (seguimos en Spark).
 
-## 6. Decisión propuesta
+## 6. Decisión
 
-Escribir **ADR-0007 — «Imágenes de perfil: base64 en Realtime Database (sin Storage/Blaze)»**
-que supersede el uso de Firebase Storage introducido en T0.12. Pendiente de aprobación del
-propietario.
+**Elegida: base64 en Firestore** (`profile_images/{uid}`), con compresión en el cliente y aviso al
+usuario si la imagen supera el máximo. Escrita y aprobada como
+[**ADR-0007**](../metodologia/adr/0007-foto-perfil-firestore.md) e **implementada** (F0/T0.12).
+
+**Por qué Firestore y no RTDB:** RTDB también es gratis, pero exige **habilitar la API y crear la
+instancia** (pasos en consola); la API estaba deshabilitada y la cuenta de servicio no puede
+habilitarla. Firestore **ya está activo** → cero pasos nuevos y **verificable hoy** (CA0.3). Se deja
+RTDB como plan alternativo documentado.
+
+### Límites (escalabilidad del plan gratuito)
+
+| Límite | Valor | Motivo |
+|---|---|---|
+| Archivo elegido | **5 MB** | Evita cargar en memoria fotos enormes; mensaje claro si se supera |
+| Resultado guardado | **256 KB** | Mantiene las ~8.000 fotos en 1 GiB y muy por debajo del límite de 1 MiB/documento |
+| Compresión | 512 px, JPEG q80 | Una foto de perfil no necesita más; el resultado típico es ~100 KB |
 
 ## 7. Seguimiento
 
