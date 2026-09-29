@@ -34,9 +34,14 @@ a cuáles toca.
 
 ## 2. Estado de partida (28/09/2026)
 
-| Vertiente | Estado | Evidencia |
+> **Histórico.** Foto del 28/09 tomada al redactar este plan; se conserva como línea base
+> para medir lo avanzado desde entonces. **Este documento no declara el estado actual de
+> las fases**: vive en [`docs/roadmap/`](../roadmap/README.md) (índice) y en el fichero de
+> cada fase, que es su única fuente de verdad.
+
+| Vertiente | Estado de partida (28/09) | Evidencia |
 |---|---|---|
-| V1 Producto | 🟢 F0 en ejecución | Adapter `GameCatalog` escrito (sin commitear) |
+| V1 Producto | 🟢 App funcional; F0 arrancando | Adapter `GameCatalog` escrito |
 | V2 Diseño | ✅ Base sólida | DESIGN.md + `ui/designsystem/` completos |
 | V3 Datos | 🟢 En curso | `data/catalog/` creado; falta caché y modelo de biblioteca |
 | V4 Comercial | ✅ Decidido (29/09) | [ADR-0005](../metodologia/adr/0005-monetizacion-por-etapas.md) (D-C6/D-E2/D-E3) · [ADR-0006](../metodologia/adr/0006-cuenta-play-personal.md) (D-E1) |
@@ -49,8 +54,8 @@ a cuáles toca.
 limpia con SSOT, 11 tests verdes, documentación de fases, **emulador `Pixel_9` (API 36)
 operativo**, y una investigación de mercado/competencia profunda.
 
-**Deuda conocida:** Kotlin 2.2.10 (vs 2.4.20), Nav2 (vs Nav3), release sin firmar, cambios de
-F0 sin commitear.
+**Deuda conocida (28/09):** Kotlin desfasado ([ADR-0004](../metodologia/adr/0004-upgrade-toolchain.md)
+lo resolvió con KGP externo), Nav2 (vs Nav3), release sin firmar.
 
 ---
 
@@ -134,35 +139,35 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
                                         └──> F6 CRECIMIENTO (tras publicar)
 ```
 
-### F0 · Cimientos de datos - ✅ Completada (29/09/2026)
+### F0 · Cimientos de datos
 - **Vertientes:** V3, V1
 - **Objetivo:** dejar de depender en exclusiva de RAWG, tener modelo de biblioteca real, arreglar la deuda de imágenes y **añadir import/export** (D-C3).
 - **Entregable:** app que registra un juego offline, muestra catálogo cacheado si RAWG cae, y la foto de perfil viaja entre dispositivos.
 - **Extra de este análisis:** **import/export universal** (Steam/HLTB/Backloggd/CSV) sube a requisito de F0/F1.
 
-### F1 · El corazón del tracker - ✅ Completada (29/09, pendiente de validación)
+### F1 · El corazón del tracker
 - **Vertientes:** V1, V2, V3
 - **Objetivo:** biblioteca rica (estados, notas, reseñas, diario, sesiones, stats).
 - **Añadido por el análisis:** cerrar la **escala de nota** (D-C1), **avisos de contenido** (S11), y **estimaciones personalizadas** de duración.
 - **Bloqueo activo:** fuente de la duración de los juegos.
 
-### F2 · Social - ⬜ Pendiente
+### F2 · Social
 - **Vertientes:** V1, V6
 - **Objetivo:** perfil público, buscar por username, seguir, feed de hitos, Top 4, listas.
 - **Añadido:** **reacciones**, **listas colaborativas**, **roadmap público con votación** (D-C10), **import desde otras apps**.
 
-### F3 · El "wow": decidir y celebrar - ⬜ Pendiente
+### F3 · El "wow": decidir y celebrar
 - **Vertientes:** V1, V2
 - **Objetivo:** "¿Qué juego ahora?" explicado + GameVision Rewind compartible.
 - **Añadido (la combinación que nadie tiene):** **mood tags** (S10), **Rewind story vertical** con export 9:16 (S9), **duelos ELO** (S15).
 - **Regla:** el Rewind básico **nunca se cobra** (D-C4).
 
-### F4 · Nativo y pulido - ⬜ Pendiente
+### F4 · Nativo y pulido
 - **Vertientes:** V1, V2
 - **Objetivo:** widget, notificaciones, offline afinado, estantería visual, list-detail adaptativo (Nav3).
 - **Añadido:** **gamificación ética** (S18), **accesibilidad** auditada.
 
-### F4.5 · Diseño, animaciones y auditoría de experiencia - ⬜ Nueva (antes de la comercial)
+### F4.5 · Diseño, animaciones y auditoría de experiencia (transversal, antes que lo comercial)
 - **Vertientes:** V2, V1
 - **Objetivo:** auditar y pulir la experiencia **pantalla a pantalla** (diseño, estados y **animaciones**) antes de abrir la monetización. Ver [fase-4-5](../roadmap/fase-4-5-diseno-animaciones.md).
 - **Por qué antes de F5:** monetizar una experiencia sin pulir es el peor orden posible; el cuidado del detalle es parte del argumento del producto.
@@ -171,7 +176,7 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 ### Auditoría de cierre de cada fase (transversal)
 Cada fase (F0-F6) cierra con una **auditoría de código y experiencia** validada por el propietario, según el [protocolo](../metodologia/auditoria-de-cierre.md). Una fase no pasa a ✅ Completada sin ella.
 
-### F5 · Publicación en Play Store - 📄 Nueva (transversal)
+### F5 · Publicación en Play Store (transversal, arranca al cerrar F1)
 - **Vertientes:** V4, V5, V7
 - **Objetivo:** app **publicada, monetizada y estable** en Google Play.
 - **Contenido:**
@@ -183,7 +188,7 @@ Cada fase (F0-F6) cierra con una **auditoría de código y experiencia** validad
   6. **SLO de calidad**: crash-free ≥ 99,7 % con Crashlytics.
 - **Arranca:** al cerrar F1 (en paralelo a F2-F4).
 
-### F6 · Crecimiento - 📄 Nueva (tras publicar)
+### F6 · Crecimiento (tras publicar)
 - **Vertientes:** V6, V8
 - **Objetivo:** tracción orgánica sostenible.
 - **Contenido:** ASO continuo, comunidad (Reddit/Discord/creadores), **Rewind viral**, import/export como captación, roadmap público, y análisis de datos reales de uso.
