@@ -1,6 +1,5 @@
 package es.androidtfm.gamevision.data.repository
 
-import android.net.Uri
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import es.androidtfm.gamevision.data.model.ChatMessage
@@ -92,9 +91,9 @@ class UserRepository @Inject constructor(
         Unit
     }.onFailure { Log.e(TAG, "Error actualizando perfil $email: ${it.message}") }
 
-    /** Actualiza la imagen de perfil. */
-    suspend fun updateProfileImage(email: String, imageUri: Uri): Result<Unit> = runCatching {
-        userDoc(email).update("imageUri", imageUri.toString()).await()
+    /** Persiste la URL de la foto de perfil ya subida a Storage (F0/T0.12). */
+    suspend fun updateProfileImage(email: String, imageUrl: String): Result<Unit> = runCatching {
+        userDoc(email).update("imageUri", imageUrl).await()
         Unit
     }.onFailure { Log.e(TAG, "Error actualizando imagen de $email: ${it.message}") }
 

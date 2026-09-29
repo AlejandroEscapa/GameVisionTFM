@@ -62,6 +62,7 @@ import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameGridSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
+import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 
 /*
@@ -97,6 +98,7 @@ fun SearchScreen(
     val games by viewModel.games.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val fromCache by viewModel.fromCache.collectAsState()
 
     // Cálculo de la lista ordenada según el criterio y orden especificado.
     val sortedGames = when (sortCriteria) {
@@ -126,6 +128,14 @@ fun SearchScreen(
                         }
                     }
                 )
+
+                // F0/T0.5: aviso discreto de modo degradado (datos servidos desde caché)
+                if (fromCache && !isLoading) {
+                    OfflineBanner(
+                        text = "Sin conexión · mostrando resultados guardados",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
 
                 // Mensaje inicial cuando aún no se ha realizado ninguna búsqueda
                 if (!hasSearched && games.isEmpty()) {

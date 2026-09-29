@@ -11,6 +11,7 @@ import es.androidtfm.gamevision.data.session.SavedPassword
 import es.androidtfm.gamevision.data.session.SessionRepository
 import es.androidtfm.gamevision.data.session.SessionState
 import es.androidtfm.gamevision.data.session.toAuthUserMessage
+import es.androidtfm.gamevision.data.storage.ProfileImageStorage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -42,7 +43,8 @@ import javax.inject.Inject
 @HiltViewModel
 class UserViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val profileImageStorage: ProfileImageStorage
 ) : ViewModel() {
 
     private val emptyForm = mutableMapOf(
@@ -219,7 +221,11 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    /** Actualiza la imagen de perfil del usuario actual (en viewModelScope). */
+    /**
+     * Actualiza la foto de perfil del usuario actual (F0/T0.12): sube la imagen
+     * elegida a Firebase Storage y persiste su URL de descarga en el perfil.
+     * Todo en viewModelScope (si la pantalla sale de composición a mitad, no se cancela).
+     */
     fun updateProfileImage(uri: android.net.Uri) {
         val email = currentEmail.value
         if (email.isNullOrBlank()) {
@@ -227,8 +233,16 @@ class UserViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            userRepository.updateProfileImage(email, uri)
-                .onFailure { setMessage("No se pudo actualizar la foto de perfil") }
+            _isLoading.value = true
+            profileImageStorage.uploadProfileImage(email, uri)
+                .onSuccess { url ->
+                    userRepository.updateProfileImage(email, url)
+                        .onFailure { setMessage("No se pudo actualizar la foto de perfil") }
+                }
+                .onFailure {
+                    setMessage(it.message ?: "No se pudo actualizar la foto de perfil")
+                }
+            _isLoading.value = false
         }
     }
 

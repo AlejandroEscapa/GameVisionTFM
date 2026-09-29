@@ -130,4 +130,55 @@ class CachedGameCatalogTest {
 
         assertTrue(result.isFailure)
     }
+
+    // ---- Modo degradado visible (F0/T0.5) ----
+
+    @Test
+    fun `search desde cache marca el modo degradado y la red lo apaga`() = runTest {
+        val dao = FakeDao()
+        catalog(FakeCatalog(Result.success(listOf(game(1, "A"))), Result.success(null)), dao).search("zelda")
+        val offline = catalog(
+            FakeCatalog(Result.failure(RuntimeException("sin conexion")), Result.success(null)),
+            dao
+        )
+
+        offline.search("zelda")
+
+        assertTrue(offline.isServingFromCache())
+
+        // Con red de nuevo, la respuesta es directa y el aviso desaparece
+        val online = catalog(
+            FakeCatalog(Result.success(listOf(game(1, "A"), game(3, "C"))), Result.success(null)),
+            dao
+        )
+        online.search("zelda")
+
+        assertTrue(!online.isServingFromCache())
+    }
+
+    @Test
+    fun `details desde cache marca el modo degradado`() = runTest {
+        val dao = FakeDao()
+        catalog(FakeCatalog(Result.success(emptyList()), Result.success(game(7, "G"))), dao).getDetails(7)
+        val offline = catalog(
+            FakeCatalog(Result.success(emptyList()), Result.failure(RuntimeException("sin conexion"))),
+            dao
+        )
+
+        offline.getDetails(7)
+
+        assertTrue(offline.isServingFromCache())
+    }
+
+    @Test
+    fun `sin cache el modo degradado no se activa`() = runTest {
+        val sut = catalog(
+            FakeCatalog(Result.failure(RuntimeException("sin conexion")), Result.success(null)),
+            FakeDao()
+        )
+
+        sut.search("nunca-buscado")
+
+        assertTrue(!sut.isServingFromCache())
+    }
 }

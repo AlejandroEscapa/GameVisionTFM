@@ -47,9 +47,10 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] T0.2 Implementar `RawgGameCatalog` envolviendo lo actual (sin cambiar comportamiento)
 - [x] T0.3 Mapear las respuestas al modelo de dominio (dejar de usar DTOs de RAWG en la UI)
 - [x] T0.4 Añadir caché local con Room para fichas y búsquedas
-- [~] T0.5 Modo degradado: si la red/RAWG falla, mostrar lo cacheado. **Hecho en la capa de datos**
-      (`CachedGameCatalog` sirve lo cacheado); **pendiente el aviso claro en la UI** (indicador de
-      "sin conexión, mostrando datos guardados").
+- [x] T0.5 Modo degradado completo (29/09/2026): la capa de datos (`CachedGameCatalog`) sirve lo
+      cacheado y ahora **expone el estado** (`isServingFromCache()` en `GameCatalog`); la UI muestra
+      un `OfflineBanner` del design system en Búsqueda y Ficha («Sin conexión · mostrando datos
+      guardados»). Verificado con 3 tests unitarios nuevos del decorador + 2 del ViewModel.
 
 ### B. Modelo de datos de la biblioteca
 
@@ -64,10 +65,19 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] T0.11 **Limpieza ejecutada (29/09/2026)**: backup JSON + borrado de `playedlist`/`wishlist`/`history` (5 cuentas de prueba) y docs `aa`/`ee`, con verificación ✅. Herramienta: `scripts/b3-limpieza/`
 
 ### C. Deuda conocida
-- [ ] T0.12 Firebase Storage: subir la foto de perfil y guardar la URL (arregla el bug
-      de que la imagen es una ruta local que no viaja entre dispositivos)
-- [ ] T0.13 Firebase Cloud Messaging: dependencia, permiso `POST_NOTIFICATIONS` y token
-- [ ] T0.14 Habilitar persistencia offline de Firestore
+- [x] T0.12 Firebase Storage (29/09/2026): `ProfileImageStorage` sube la foto a
+      `profile_images/{email}/profile.jpg` (5 MB máx.) y en el perfil se persiste la **URL de
+      descarga**, que viaja entre dispositivos. Ya no se copia a `filesDir` (era el bug).
+      Reglas de Storage escritas en `firebase/storage.rules` — **pendientes de publicar** por el
+      propietario (Firebase Console → Storage → Rules). Verificación E2E (CA0.3) pendiente en
+      dispositivo con el `google-services.json` real.
+- [ ] T0.13 Firebase Cloud Messaging — **diferida con disparador (29/09/2026)**: sin criterio de
+      aceptación en F0 y su UX se diseña en F2 (notificaciones sociales) / F4 (widget y avisos).
+      Se abre al integrar las notificaciones de F2.
+- [x] T0.14 Persistencia offline de Firestore (29/09/2026): caché persistente declarada
+      **explícitamente** en `AppModule` (`PersistentCacheSettings`) — el default del SDK ya la
+      activa, pero así un cambio de default no la apaga por debajo de la app. Verificación de
+      CA0.2 (registro en modo avión) pendiente en emulador.
 - [x] T0.15 **Modo degradado en Noticias** (bug offline encontrado el 28/09/2026): sin red,
       `fetchFilteredNews` lanzaba `UnknownHostException` y **crasheaba la app**. Arreglado:
       el ViewModel captura el fallo y la pantalla muestra un estado de error con "Reintentar".
@@ -83,7 +93,12 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       al recuperar la conexión (persistencia offline).
 - [ ] CA0.3 La foto de perfil subida desde el **dispositivo A** se ve al entrar desde el
       **dispositivo B** (o tras borrar datos de la app).
+- [~] CA0.1: capa de datos verificada con tests unitarios (sirve caché y expone el estado); falta la
+      verificación en emulador con RAWG bloqueado para darla por cerrada.
 - [~] CA0.4 *(actualizado 29/09/2026)* Los datos antiguos eran **de prueba** y se han borrado con backup. Verificación: **parcial** — alta + listas verificadas E2E con la cuenta QA (28/09); el tramo de sesión/estadísticas llegará con F1 y se re-verificará entonces.
+- [~] CA0.6 *(actualizado 29/09/2026)* **38 tests unitarios verdes** (incl. 5 nuevos del modo
+      degradado y los del ViewModel); los instrumentados quedan pendientes de la próxima sesión de
+      emulador.
 - [ ] CA0.5 Cambiar de proveedor de catálogo no toca ni una pantalla (demostrable:
       sustituir la implementación en el módulo de Hilt compila sin tocar UI).
 - [ ] CA0.6 Tests: los 17 unitarios + 6 instrumentados siguen verdes; nuevos tests para
@@ -201,4 +216,9 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 - **B3 ejecutado (29/09/2026, madrugada)** — backup automático en `scripts/b3-limpieza/backups/`;
   borradas 12 subcolecciones antiguas de 5 cuentas de prueba y los documentos `aa`/`ee`; verificación ✅.
   Perfiles y social intactos (llegan a su rediseño en F2).
+- **Cierre de código de F0 (29/09/2026, tarde)** — T0.5 (modo degradado visible con
+  `OfflineBanner`), T0.12 (foto en Storage + reglas escritas, pendiente publicarlas) y T0.14
+  (caché persistente explícita). T0.13 (FCM) **diferida a F2** con disparador. Compilación y
+  **38 unitarios en verde**; CA0.1–CA0.3 quedan para la sesión de emulador (requieren el
+  `google-services.json` real, claves API en `local.properties` y reglas de Storage publicadas).
 

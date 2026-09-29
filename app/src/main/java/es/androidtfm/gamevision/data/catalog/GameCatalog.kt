@@ -18,4 +18,11 @@ interface GameCatalog {
 
     /** Detalle de un juego. `null` en el Result si el juego no existe. */
     suspend fun getDetails(gameId: Int): Result<CatalogGame?>
+
+    /**
+     * true si la última operación se respondió desde caché (modo degradado:
+     * el proveedor remoto falló y sirvió datos guardados). La UI lo usa para
+     * avisar con discreción; por defecto false (respuesta directa del remoto).
+     */
+    suspend fun isServingFromCache(): Boolean = false
 }

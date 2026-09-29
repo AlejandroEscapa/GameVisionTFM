@@ -36,7 +36,7 @@ App Android 100% Jetpack Compose (cero layouts XML) para consultar videojuegos
 ```bash
 export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # JDK 21; NO usar ~/.jdks/ms-17.0.17 (corrupto)
 ./gradlew assembleDebug            # APK debug
-./gradlew testDebugUnitTest        # tests unitarios (11 verdes)
+./gradlew testDebugUnitTest        # tests unitarios (38 verdes)
 ./gradlew connectedDebugAndroidTest # tests UI (requiere emulador/dispositivo)
 ./gradlew assembleRelease          # APK release R8 (~7,5 MB; sin firmar si no hay keystore)
 ```
@@ -81,9 +81,9 @@ app/src/main/java/es/androidtfm/gamevision/
 ├── GameVisionApplication.kt        @HiltAndroidApp
 ├── MainActivity.kt                 @AndroidEntryPoint; edge-to-edge; MainScreen
 ├── di/
-│   └── AppModule.kt                Singletons: Firestore, Auth, APIs Retrofit,
-│                                   CredentialManager, webClientId, ThemeDataStore,
-│                                   SessionPreferences, CoroutineScope de aplicación
+│   └── AppModule.kt                Singletons: Firestore (caché offline explícita), Auth,
+│                                   Storage, APIs Retrofit, CredentialManager, webClientId,
+│                                   ThemeDataStore, SessionPreferences, CoroutineScope de aplicación
 ├── data/
 │   ├── model/                      Modelos de dominio: UserProfile, Friend, ChatMessage
 │   ├── session/

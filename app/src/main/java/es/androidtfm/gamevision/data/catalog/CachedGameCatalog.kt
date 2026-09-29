@@ -25,8 +25,15 @@ class CachedGameCatalog(
     private val clock: () -> Long = System::currentTimeMillis
 ) : GameCatalog {
 
+    /** Última operación respondida desde caché (F0/T0.5: modo degradado visible). */
+    @Volatile
+    private var cacheServed = false
+
+    override suspend fun isServingFromCache(): Boolean = cacheServed
+
     override suspend fun search(query: String): Result<List<CatalogGame>> =
         withContext(ioDispatcher) {
+            cacheServed = false
             remote.search(query).fold(
                 onSuccess = { games ->
                     // Cachea juegos + la búsqueda (con orden) para poder servirla sin red.
@@ -41,21 +48,27 @@ class CachedGameCatalog(
                     Result.success(games)
                 },
                 onFailure = { error ->
-                    cachedSearch(query)?.let { Result.success(it) } ?: Result.failure(error)
+                    cachedSearch(query)?.let {
+                        cacheServed = true
+                        Result.success(it)
+                    } ?: Result.failure(error)
                 }
             )
         }
 
     override suspend fun getDetails(gameId: Int): Result<CatalogGame?> =
         withContext(ioDispatcher) {
+            cacheServed = false
             remote.getDetails(gameId).fold(
                 onSuccess = { game ->
                     game?.let { dao.upsertGames(listOf(it.toEntity(clock()))) }
                     Result.success(game)
                 },
                 onFailure = { error ->
-                    dao.game(gameId)?.let { Result.success(it.toDomain()) }
-                        ?: Result.failure(error)
+                    dao.game(gameId)?.let {
+                        cacheServed = true
+                        Result.success(it.toDomain())
+                    } ?: Result.failure(error)
                 }
             )
         }

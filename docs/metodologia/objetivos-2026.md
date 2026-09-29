@@ -27,8 +27,8 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 | Caché local de catálogo (Room) | App muestra fichas visitadas sin red (verificado en modo avión) | ✅ Hecha |
 | Modelo de biblioteca | `library`/`logs`/`sessions` + repositorio y adopción en pantallas | ✅ Hecho (B1/B2, E2E) |
 | Limpieza de datos (B3) | Datos de prueba borrados (verificación ✅) y E2E con cuenta QA verificado | ✅ Hecho |
-| Foto de perfil en Storage | La imagen viaja entre dispositivos | ⬜ |
-| Offline real | La app abre y funciona sin conexión con lo visitado | ⬜ |
+| Foto de perfil en Storage | La imagen viaja entre dispositivos | 🟡 Código hecho (T0.12): subida a Storage + URL persistida; falta E2E en dispositivo y publicar reglas de Storage |
+| Offline real | La app abre y funciona sin conexión con lo visitado | 🟡 Código hecho (T0.5/T0.14): caché + aviso UI; falta CA0.1/CA0.2 en emulador |
 | Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | ✅ Bloques 0–4 cerrados (29/09); quedan diferidos con disparador |
 
 ### 🟠 Siguiente (cierre de F1 — El corazón del tracker)

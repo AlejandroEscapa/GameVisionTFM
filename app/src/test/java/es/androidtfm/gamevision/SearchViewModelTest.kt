@@ -126,4 +126,41 @@ class SearchViewModelTest {
         assertTrue(viewModel.errorDetails.value?.contains("Error al cargar detalles") == true)
         assertNull(viewModel.gameDetails.value)
     }
+
+    // ---- Modo degradado visible (F0/T0.5) ----
+
+    /** Fake que replica el flag del decorador de caché. */
+    private class FakeCachedCatalog(
+        private val searchResult: Result<List<CatalogGame>>,
+        private val servingFromCache: Boolean = false
+    ) : GameCatalog {
+        override suspend fun search(query: String): Result<List<CatalogGame>> = searchResult
+        override suspend fun getDetails(gameId: Int): Result<CatalogGame?> = Result.success(null)
+        override suspend fun isServingFromCache(): Boolean = servingFromCache
+    }
+
+    @Test
+    fun `fetchGames refleja el modo degradado del catalogo`() = runTest {
+        val catalog = FakeCachedCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda"))),
+            servingFromCache = true
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.fetchGames("zelda")
+
+        assertTrue(viewModel.fromCache.value)
+    }
+
+    @Test
+    fun `fetchGames con fallo apaga el modo degradado`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.failure(RuntimeException("sin conexión"))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.fetchGames("zelda")
+
+        assertFalse(viewModel.fromCache.value)
+    }
 }

@@ -2,7 +2,6 @@ package es.androidtfm.gamevision.ui.views.composables
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -57,7 +56,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,7 +68,6 @@ import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
-import java.io.File
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -217,26 +214,13 @@ fun ProfileScreen(
 fun ProfileImage(
     imageUri: String?,
     onImagePicked: (Uri) -> Unit
-) {
-    val context = LocalContext.current
-
-    // Guarda localmente la imagen elegida y devuelve su ruta
-    fun saveImageLocally(uri: Uri): String {
-        val file = File(context.filesDir, "profile_image_${System.currentTimeMillis()}.jpg")
-        try {
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                file.outputStream().use { output -> input.copyTo(output) }
-            }
-        } catch (e: Exception) {
-            Log.e("ProfileImage", "Error guardando la imagen localmente: ${e.message}")
-        }
-        return file.absolutePath
-    }
-
-    val pickImageLauncher = rememberLauncherForActivityResult(
+) {    val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { onImagePicked(Uri.fromFile(File(saveImageLocally(it)))) }
+        // F0/T0.12: la imagen se sube a Storage desde el ViewModel; aquí solo se
+        // entrega el Uri de contenido. La foto ya no se copia a filesDir (antes la
+        // ruta local se guardaba en Firestore y no viajaba entre dispositivos).
+        uri?.let(onImagePicked)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

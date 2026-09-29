@@ -50,6 +50,10 @@ class SearchViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    /** true si la última respuesta del catálogo salió de caché (F0/T0.5). */
+    private val _fromCache = MutableStateFlow(false)
+    val fromCache: StateFlow<Boolean> = _fromCache
+
     // Estado para almacenar múltiples juegos por ID
     private val _gamesMap = mutableStateMapOf<Int, CatalogGame>()
     val gamesMap: SnapshotStateMap<Int, CatalogGame> = _gamesMap
@@ -77,8 +81,14 @@ class SearchViewModel @Inject constructor(
             val cleanedQuery = query.trim().replace("\"", "")
 
             catalog.search(cleanedQuery)
-                .onSuccess { _games.value = it }
-                .onFailure { _error.value = "Error al cargar juegos: ${it.message}" }
+                .onSuccess { games ->
+                    _games.value = games
+                    _fromCache.value = catalog.isServingFromCache()
+                }
+                .onFailure {
+                    _error.value = "Error al cargar juegos: ${it.message}"
+                    _fromCache.value = false
+                }
             _isLoading.value = false
         }
     }
@@ -93,8 +103,14 @@ class SearchViewModel @Inject constructor(
             _errorDetails.value = null     // Limpia cualquier error previo
 
             catalog.getDetails(gameId)
-                .onSuccess { _gameDetails.value = it }
-                .onFailure { _errorDetails.value = "Error al cargar detalles: ${it.message}" }
+                .onSuccess { game ->
+                    _gameDetails.value = game
+                    _fromCache.value = catalog.isServingFromCache()
+                }
+                .onFailure {
+                    _errorDetails.value = "Error al cargar detalles: ${it.message}"
+                    _fromCache.value = false
+                }
             _isLoadingDetails.value = false
         }
     }

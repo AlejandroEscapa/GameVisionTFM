@@ -62,6 +62,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -108,6 +109,7 @@ fun GameDetails(
     val game by viewModel.gameDetails.collectAsState()
     val isLoading by viewModel.isLoadingDetails.collectAsState()
     val error by viewModel.errorDetails.collectAsState()
+    val fromCache by viewModel.fromCache.collectAsState()
 
     // Ficha en vivo del juego en la biblioteca (para añadir/cambiar estado/favorito).
     val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
@@ -125,6 +127,14 @@ fun GameDetails(
             .padding(paddingValues)
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // F0/T0.5: aviso discreto de modo degradado (ficha servida desde caché)
+        if (fromCache && !isLoading) {
+            OfflineBanner(
+                text = "Sin conexión · mostrando la ficha guardada",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+
         when {
             isLoading -> FullScreenLoader()
             error != null -> ErrorMessage(error)
