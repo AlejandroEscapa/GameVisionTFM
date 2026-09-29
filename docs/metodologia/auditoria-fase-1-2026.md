@@ -20,7 +20,7 @@ Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 🟡  6 ✅
 | 2 | Tests | ✅ | **70 unitarios + 7 instrumentados**, 0 fallos (10 suites JVM). |
 | 3 | Calidad estática | ✅ | `lintDebug`: **0 errores**. |
 | 4 | Arquitectura y consistencia | ✅ | Lógica pura extraída (`RatingUtils`, `DiaryUtils`, `StatisticsUtils`, `HltbUtils`, `LibraryFilters`); analítica tras interfaz `AnalyticsLogger`; el dominio no conoce Firebase salvo en sus implementaciones. |
-| 5 | Documentación y trazabilidad | 🟡 | Roadmap y objetivos al día; ADRs 0001–0008 registrados. Pendiente: validación del propietario y cerrar algún fleco de deuda. |
+| 5 | Documentación y trazabilidad | ✅ | Roadmap, objetivos y ADRs al día (0001–0008). Bloque 5 (uid) ejecutado y documentado. Falta solo la validación del propietario. |
 | 6 | Experiencia y estados | ✅ | Verificado en emulador: biblioteca (7 estados, nota, reseña), diario, duración HLTB, estadísticas, filtros/búsqueda y estados vacíos. |
 
 ## 2. Qué se ha construido en F1
@@ -32,6 +32,7 @@ Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 🟡  6 ✅
 | 2b · Duración HLTB | Cliente HLTB con caché 90 d + valor manual | T1.11 |
 | 3 · Estadísticas | Pantalla de stats + «Tu año en un vistazo» | T1.12, T1.13 |
 | 4 · Navegación + cierre | Filtros combinados, búsqueda en biblioteca, instrumentación | T1.14, T1.15 |
+| 5 · Migración `uid` | Clave única de identidad (ADR-0008) | — |
 
 ## 3. Criterios de aceptación (evidencia real)
 
@@ -60,7 +61,7 @@ Bloques:  1 ✅  2 ✅  3 ✅ (0 errores)  4 ✅  5 🟡  6 ✅
 
 1. **CA1.1 (<60 s)**: verificado funcionalmente, pero **sin cronometraje formal**. Cerrar en la próxima sesión de QA con cronómetro.
 2. **Crashlytics mapping**: activar cuando haya entorno de release con credenciales.
-3. **Migración `uid` (ADR-0008)**: **obligatoria antes de F2** (Bloque 5).
+| **Migración `uid` (ADR-0008)** | ✅ **Hecho** (29/09, Bloque 5): clave única `uid`; migrados 9 usuarios con backup; reglas sin el parche de email. |
 4. **Copia de seguridad de credenciales + SHA-1 en Firebase**: pendiente del hito de publicación (F5).
 
 ## 6. Conclusión

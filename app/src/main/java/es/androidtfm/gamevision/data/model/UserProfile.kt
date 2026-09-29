@@ -19,14 +19,15 @@ data class UserProfile(
 ) {
     companion object {
         /**
-         * Construye el perfil desde un documento de Firestore, normalizando los
-         * nulos a cadena vacía (evita el clásico "null" como texto en pantalla).
+         * Construye el perfil desde un documento de Firestore (clave = uid; el
+         * email es un CAMPO). Normaliza los nulos a cadena vacía para evitar el
+         * clásico "null" como texto en pantalla.
          */
-        fun fromMap(email: String, data: Map<String, Any?>?): UserProfile {
-            if (data == null) return UserProfile(email = email)
+        fun fromMap(data: Map<String, Any?>?): UserProfile {
+            if (data == null) return UserProfile()
             fun value(key: String): String = data[key]?.toString().orEmpty()
             return UserProfile(
-                email = email,
+                email = value("email"),
                 nameSurname = value("nameSurname"),
                 username = value("username"),
                 description = value("description"),

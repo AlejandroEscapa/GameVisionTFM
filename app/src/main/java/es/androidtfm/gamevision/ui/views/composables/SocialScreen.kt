@@ -103,8 +103,8 @@ fun SocialScreen(
     ddbbViewModel: DDBBViewModel = viewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    // Identidad desde el SSOT de sesión
-    val email by userViewModel.currentEmail.collectAsState()
+    // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
+    val uid by userViewModel.currentUid.collectAsState()
 
     var friendsList by remember { mutableStateOf(emptyList<Friend>()) }
     var messageList by remember { mutableStateOf(emptyList<ChatMessage>()) }
@@ -114,9 +114,9 @@ fun SocialScreen(
     var refreshTrigger by remember { mutableIntStateOf(0) }
 
     // Carga amigos y mensajes (modelos tipados; los fallos se muestran al usuario)
-    LaunchedEffect(email, refreshTrigger) {
-        val userEmail = email
-        if (userEmail.isNullOrBlank()) {
+    LaunchedEffect(uid, refreshTrigger) {
+        val userUid = uid
+        if (userUid.isNullOrBlank()) {
             friendsList = emptyList()
             messageList = emptyList()
             isLoading = false
@@ -124,7 +124,7 @@ fun SocialScreen(
         }
         isLoading = true
 
-        val currentFriends = ddbbViewModel.getFriends(userEmail).getOrElse { error ->
+        val currentFriends = ddbbViewModel.getFriends(userUid).getOrElse { error ->
             userViewModel.setMessage("No se pudieron cargar tus amigos: ${error.message}")
             emptyList()
         }
@@ -132,9 +132,9 @@ fun SocialScreen(
 
         // Muro: mensajes propios y de cada amigo
         val allMessages = mutableListOf<ChatMessage>()
-        ddbbViewModel.getMessages(userEmail).onSuccess { allMessages.addAll(it) }
+        ddbbViewModel.getMessages(userUid).onSuccess { allMessages.addAll(it) }
         currentFriends.forEach { friend ->
-            ddbbViewModel.getMessages(friend.email).onSuccess { allMessages.addAll(it) }
+            ddbbViewModel.getMessages(friend.uid).onSuccess { allMessages.addAll(it) }
         }
         val formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
         messageList = allMessages.sortedByDescending {
@@ -162,8 +162,8 @@ fun SocialScreen(
             ) {
                 items(messageList) { message ->
                     SocialCard(
-                        userEmail = email.orEmpty(),
-                        friendEmail = message.ownerEmail,
+                        userUid = uid.orEmpty(),
+                        ownerUid = message.ownerUid,
                         message = message.text,
                         hora = message.time,
                         messageID = message.id,
@@ -179,12 +179,12 @@ fun SocialScreen(
                     if (newText.length <= commentMaxLength) comment = newText
                 },
                 onSendClick = {
-                    email?.let { userEmail ->
+                    uid?.let { userUid ->
                         val formattedDateTime = LocalDateTime.now().format(
                             DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
                         )
                         coroutineScope.launch {
-                            ddbbViewModel.publishMessage(userEmail, comment, formattedDateTime)
+                            ddbbViewModel.publishMessage(userUid, comment, formattedDateTime)
                                 .onSuccess {
                                     comment = ""
                                     refreshTrigger++
@@ -258,8 +258,8 @@ fun SocialHeader(
 
 @Composable
 fun SocialCard(
-    userEmail: String,
-    friendEmail: String,
+    userUid: String,
+    ownerUid: String,
     message: String,
     hora: String,
     messageID: String,
@@ -297,7 +297,7 @@ fun SocialCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = friendEmail.first().toString(),
+                        text = ownerUid.take(1).uppercase(),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -306,7 +306,7 @@ fun SocialCard(
                 // Nombre y hora
                 Column {
                     Text(
-                        text = friendEmail,
+                        text = "Autor",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -345,13 +345,13 @@ fun SocialCard(
                     isDarkMode = isDarkMode
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                if (userEmail == friendEmail) {
+                if (userUid == ownerUid) {
                     InteractionButton(
                         icon = Icons.Default.Delete,
                         text = "Borrar",
                         onClick = {
                             coroutineScope.launch {
-                                ddbbViewModel.deleteMessage(friendEmail, messageID)
+                                ddbbViewModel.deleteMessage(ownerUid, messageID)
                                     .onSuccess { onMessageDeleted() }
                             }
                         },

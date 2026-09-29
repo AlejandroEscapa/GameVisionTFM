@@ -94,12 +94,13 @@ class UserViewModel @Inject constructor(
     /**
      * Perfil del usuario actual. Se re-suscribe automáticamente al cambiar de
      * usuario y refleja los cambios de Firestore sin refetch manual.
+     * Clave: uid (ADR-0008).
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val profile: StateFlow<UserProfile> = currentEmail
-        .flatMapLatest { email ->
-            if (email.isNullOrBlank()) flowOf(Result.success(UserProfile()))
-            else userRepository.observeProfile(email)
+    val profile: StateFlow<UserProfile> = currentUid
+        .flatMapLatest { uid ->
+            if (uid.isNullOrBlank()) flowOf(Result.success(UserProfile()))
+            else userRepository.observeProfile(uid)
         }
         .map { result -> result.getOrElse { UserProfile() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserProfile())
@@ -247,15 +248,15 @@ class UserViewModel @Inject constructor(
     // Perfil
     // ------------------------------------------------------------------------
 
-    /** Actualiza campos del perfil del usuario actual (en viewModelScope). */
+    /** Actualiza campos del perfil del usuario actual (en viewModelScope). Clave: uid. */
     fun updateProfile(fields: Map<String, Any?>, onSuccess: () -> Unit = {}) {
-        val email = currentEmail.value
-        if (email.isNullOrBlank()) {
+        val uid = currentUid.value
+        if (uid.isNullOrBlank()) {
             setMessage("No hay sesión iniciada")
             return
         }
         viewModelScope.launch {
-            userRepository.updateProfile(email, fields)
+            userRepository.updateProfile(uid, fields)
                 .onSuccess {
                     setMessage("Perfil actualizado")
                     onSuccess()
@@ -271,8 +272,7 @@ class UserViewModel @Inject constructor(
      */
     fun updateProfileImage(uri: android.net.Uri) {
         val uid = currentUid.value
-        val email = currentEmail.value
-        if (uid.isNullOrBlank() || email.isNullOrBlank()) {
+        if (uid.isNullOrBlank()) {
             setImageError("No hay sesión iniciada")
             return
         }
@@ -281,7 +281,7 @@ class UserViewModel @Inject constructor(
             profileImageStorage.uploadProfileImage(uid, uri)
                 .onSuccess { pointer ->
                     // El perfil guarda solo un puntero; la imagen vive en profile_images/{uid}.
-                    userRepository.updateProfileImage(email, pointer)
+                    userRepository.updateProfileImage(uid, pointer)
                         .onFailure { setImageError("No se pudo actualizar la foto de perfil") }
                     imageRefresh.value += 1
                 }

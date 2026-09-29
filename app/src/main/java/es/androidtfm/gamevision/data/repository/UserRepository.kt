@@ -14,15 +14,21 @@ import javax.inject.Singleton
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 27/09/2026 (reescritura: Frente 2 — SSOT y propagación de errores)
- * Descripción: acceso a datos en Firestore.
+ * Fecha: 27/09/2026 (Frente 2 — SSOT y propagación de errores)
+ *        actualizado 29/09/2026 (ADR-0008: clave única = uid)
+ *
+ * Acceso a datos en Firestore.
+ *
+ * CLAVE ÚNICA (ADR-0008): todo cuelga del **uid** de Firebase Auth. El email deja
+ * de ser clave y pasa a ser un CAMPO del perfil. Se mantienen dos índices para
+ * poder resolver «email → uid» (alta de amigos) y «username → uid» (búsqueda, F2)
+ * sin exponer ni recorrer toda la colección de usuarios.
  *
  * Reglas de esta capa:
  *  - TODOS los métodos devuelven Result: nunca se traga un error en silencio.
- *  - El perfil se expone como Flow en vivo (addSnapshotListener) para que la UI
- *    tenga una única fuente de verdad y se actualice sola.
+ *  - El perfil se expone como Flow en vivo (addSnapshotListener).
  *  - El password NO existe aquí: vive en Firebase Authentication.
- *  - Los juegos ya NO viven aquí: la biblioteca está en LibraryRepository (F0-B).
+ *  - Los juegos viven en LibraryRepository.
  */
 
 @Singleton
@@ -32,84 +38,125 @@ class UserRepository @Inject constructor(
 
     companion object {
         private const val TAG = "UserRepository"
-        private const val USERS_COLLECTION = "users"
-        private const val FRIENDS_COLLECTION = "friends"
-        private const val MESSAGES_COLLECTION = "messages"
+        private const val USERS = "users"
+        private const val FRIENDS = "friends"
+        private const val MESSAGES = "messages"
+        private const val EMAIL_INDEX = "email_index"
+        private const val USERNAMES = "usernames"
     }
 
-    private fun userDoc(email: String) = db.collection(USERS_COLLECTION).document(email)
+    private fun userDoc(uid: String) = db.collection(USERS).document(uid)
 
     // ------------------------------------------------------------------------
-    // Perfil
+    // Perfil (clave: uid; el email es un campo)
     // ------------------------------------------------------------------------
 
-    /**
-     * Flujo en vivo del perfil: única fuente de verdad de los datos de usuario.
-     * Se actualiza automáticamente ante cualquier cambio en Firestore.
-     */
-    fun observeProfile(email: String): Flow<Result<UserProfile>> = callbackFlow {
-        if (email.isBlank()) {
+    /** Flujo en vivo del perfil: única fuente de verdad de los datos de usuario. */
+    fun observeProfile(uid: String): Flow<Result<UserProfile>> = callbackFlow {
+        if (uid.isBlank()) {
             trySend(Result.success(UserProfile()))
             close()
             return@callbackFlow
         }
-        val registration = userDoc(email).addSnapshotListener { snapshot, error ->
+        val registration = userDoc(uid).addSnapshotListener { snapshot, error ->
             when {
                 error != null -> trySend(Result.failure(error))
                 snapshot != null && snapshot.exists() ->
-                    trySend(Result.success(UserProfile.fromMap(email, snapshot.data)))
-                else -> trySend(Result.success(UserProfile(email = email)))
+                    trySend(Result.success(UserProfile.fromMap(snapshot.data)))
+                else -> trySend(Result.success(UserProfile()))
             }
         }
         awaitClose { registration.remove() }
     }
 
     /** Lectura puntual del perfil. */
-    suspend fun getProfile(email: String): Result<UserProfile> = runCatching {
-        val document = userDoc(email).get().await()
-        UserProfile.fromMap(email, document.data)
-    }.onFailure { Log.e(TAG, "Error obteniendo perfil de $email: ${it.message}") }
+    suspend fun getProfile(uid: String): Result<UserProfile> = runCatching {
+        val document = userDoc(uid).get().await()
+        UserProfile.fromMap(document.data)
+    }.onFailure { Log.e(TAG, "Error obteniendo perfil de $uid: ${it.message}") }
 
-    /** Crea el documento de perfil (sin password). */
-    suspend fun createProfile(profile: UserProfile): Result<Unit> = runCatching {
-        userDoc(profile.email).set(
+    /**
+     * Crea el documento de perfil (sin password) en `users/{uid}` y sus índices
+     * (`email_index`, `usernames`). El email se guarda como CAMPO.
+     */
+    suspend fun createProfile(uid: String, profile: UserProfile): Result<Unit> = runCatching {
+        require(uid.isNotBlank()) { "Usuario no autenticado" }
+        val email = profile.email.trim().lowercase()
+        userDoc(uid).set(
             mapOf(
+                "email" to email,
                 "nameSurname" to profile.nameSurname,
                 "username" to profile.username,
                 "description" to profile.description,
                 "country" to profile.country
             )
         ).await()
+        writeIndexes(uid, email, profile.username)
         Unit
-    }.onFailure { Log.e(TAG, "Error creando perfil ${profile.email}: ${it.message}") }
+    }.onFailure { Log.e(TAG, "Error creando perfil $uid: ${it.message}") }
 
     /** Actualiza campos del perfil. */
-    suspend fun updateProfile(email: String, fields: Map<String, Any?>): Result<Unit> = runCatching {
+    suspend fun updateProfile(uid: String, fields: Map<String, Any?>): Result<Unit> = runCatching {
+        require(uid.isNotBlank()) { "Usuario no autenticado" }
         val cleaned = fields.filterValues { it != null }
         if (cleaned.isEmpty()) return@runCatching Unit
-        userDoc(email).update(cleaned).await()
+        userDoc(uid).update(cleaned).await()
+        // Si cambió el nombre de usuario, se reindexa (el índice viejo se retira aparte).
+        (cleaned["username"] as? String)?.takeIf { it.isNotBlank() }?.let { newUsername ->
+            db.collection(USERNAMES).document(newUsername).set(mapOf("uid" to uid)).await()
+        }
         Unit
-    }.onFailure { Log.e(TAG, "Error actualizando perfil $email: ${it.message}") }
+    }.onFailure { Log.e(TAG, "Error actualizando perfil $uid: ${it.message}") }
 
-    /** Persiste la URL de la foto de perfil ya subida a Storage (F0/T0.12). */
-    suspend fun updateProfileImage(email: String, imageUrl: String): Result<Unit> = runCatching {
-        userDoc(email).update("imageUri", imageUrl).await()
+    /**
+     * Persiste la URL de la foto de perfil ya subida (F0/T0.12).
+     * Puntero estable: la imagen vive en `profile_images/{uid}`.
+     */
+    suspend fun updateProfileImage(uid: String, imageUrl: String): Result<Unit> = runCatching {
+        require(uid.isNotBlank()) { "Usuario no autenticado" }
+        userDoc(uid).update("imageUri", imageUrl).await()
         Unit
-    }.onFailure { Log.e(TAG, "Error actualizando imagen de $email: ${it.message}") }
+    }.onFailure { Log.e(TAG, "Error actualizando imagen de $uid: ${it.message}") }
 
-    /** Comprueba si existe un perfil (usado al añadir amigos). */
-    suspend fun profileExists(email: String): Result<Boolean> = runCatching {
-        userDoc(email).get().await().exists()
-    }.onFailure { Log.e(TAG, "Error comprobando existencia de $email: ${it.message}") }
+    /** Comprueba si existe un perfil. */
+    suspend fun profileExists(uid: String): Result<Boolean> = runCatching {
+        userDoc(uid).get().await().exists()
+    }.onFailure { Log.e(TAG, "Error comprobando existencia de $uid: ${it.message}") }
+
+    /**
+     * Resuelve un email a uid usando el índice `email_index` (no expone ni recorre
+     * la colección de usuarios; coherente con D2.4). null si no existe.
+     */
+    suspend fun findUidByEmail(email: String): Result<String?> = runCatching {
+        val key = email.trim().lowercase()
+        if (key.isBlank()) return@runCatching null
+        db.collection(EMAIL_INDEX).document(key).get().await().getString("uid")
+    }.onFailure { Log.e(TAG, "Error resolviendo email→uid: ${it.message}") }
+
+    /** Perfil público por uid (nombre de usuario visible sin exponer datos privados). */
+    suspend fun getUsername(uid: String): Result<String> = runCatching {
+        userDoc(uid).get().await().getString("username").orEmpty()
+    }.onFailure { Log.e(TAG, "Error obteniendo username de $uid: ${it.message}") }
+
+    private suspend fun writeIndexes(uid: String, email: String, username: String) {
+        if (email.isNotBlank()) {
+            db.collection(EMAIL_INDEX).document(email).set(mapOf("uid" to uid)).await()
+        }
+        if (username.isNotBlank()) {
+            db.collection(USERNAMES).document(username).set(mapOf("uid" to uid)).await()
+        }
+    }
 
     // ------------------------------------------------------------------------
-    // Amigos
+    // Amigos (clave: uid; el id del documento es el uid del amigo)
     // ------------------------------------------------------------------------
 
-    /** Añade un amigo (idempotente: si ya existe devuelve éxito sin duplicar). */
-    suspend fun addFriend(email: String, friendEmail: String): Result<Unit> = runCatching {
-        require(email.isNotEmpty()) { "Usuario no autenticado" }
-        val ref = userDoc(email).collection(FRIENDS_COLLECTION).document(friendEmail)
+    /** Añade un amigo (idempotente). */
+    suspend fun addFriend(uid: String, friendUid: String): Result<Unit> = runCatching {
+        require(uid.isNotEmpty()) { "Usuario no autenticado" }
+        require(friendUid.isNotEmpty()) { "Amigo no válido" }
+        require(uid != friendUid) { "No puedes añadirte a ti mismo" }
+        val ref = userDoc(uid).collection(FRIENDS).document(friendUid)
         if (!ref.get().await().exists()) {
             ref.set(emptyMap<String, Any>()).await()
         }
@@ -117,54 +164,52 @@ class UserRepository @Inject constructor(
     }.onFailure { Log.e(TAG, "Error añadiendo amigo: ${it.message}") }
 
     /** Elimina un amigo. */
-    suspend fun removeFriend(email: String, friendEmail: String): Result<Unit> = runCatching {
-        require(email.isNotEmpty()) { "Usuario no autenticado" }
-        userDoc(email).collection(FRIENDS_COLLECTION).document(friendEmail).delete().await()
+    suspend fun removeFriend(uid: String, friendUid: String): Result<Unit> = runCatching {
+        require(uid.isNotEmpty()) { "Usuario no autenticado" }
+        userDoc(uid).collection(FRIENDS).document(friendUid).delete().await()
         Unit
     }.onFailure { Log.e(TAG, "Error eliminando amigo: ${it.message}") }
 
-    /** Lista de amigos con su nombre de usuario. */
-    suspend fun getFriends(email: String): Result<List<Friend>> = runCatching {
-        val snapshot = userDoc(email).collection(FRIENDS_COLLECTION).get().await()
+    /** Lista de amigos con su nombre de usuario (el email NO se expone). */
+    suspend fun getFriends(uid: String): Result<List<Friend>> = runCatching {
+        val snapshot = userDoc(uid).collection(FRIENDS).get().await()
         snapshot.documents.map { friendDoc ->
-            val profile = getProfile(friendDoc.id).getOrNull()
-            Friend(
-                email = friendDoc.id,
-                username = profile?.username?.takeIf { it.isNotBlank() } ?: "Sin nombre"
-            )
+            val friendUid = friendDoc.id
+            val username = getUsername(friendUid).getOrNull()?.takeIf { it.isNotBlank() } ?: "Sin nombre"
+            Friend(uid = friendUid, username = username)
         }
     }.onFailure { Log.e(TAG, "Error obteniendo amigos: ${it.message}") }
 
     // ------------------------------------------------------------------------
-    // Mensajes
+    // Mensajes (clave: uid del dueño del muro)
     // ------------------------------------------------------------------------
 
     /** Publica un mensaje en el muro del usuario. */
-    suspend fun publishMessage(email: String, message: String, time: String): Result<Unit> =
+    suspend fun publishMessage(uid: String, message: String, time: String): Result<Unit> =
         runCatching {
-            require(email.isNotEmpty()) { "Usuario no autenticado" }
-            userDoc(email).collection(MESSAGES_COLLECTION)
+            require(uid.isNotEmpty()) { "Usuario no autenticado" }
+            userDoc(uid).collection(MESSAGES)
                 .add(mapOf("texto" to message, "hora" to time)).await()
             Unit
         }.onFailure { Log.e(TAG, "Error publicando mensaje: ${it.message}") }
 
     /** Elimina un mensaje del usuario. */
-    suspend fun deleteMessage(email: String, messageId: String): Result<Unit> = runCatching {
-        require(email.isNotEmpty()) { "Usuario no autenticado" }
-        userDoc(email).collection(MESSAGES_COLLECTION).document(messageId).delete().await()
+    suspend fun deleteMessage(uid: String, messageId: String): Result<Unit> = runCatching {
+        require(uid.isNotEmpty()) { "Usuario no autenticado" }
+        userDoc(uid).collection(MESSAGES).document(messageId).delete().await()
         Unit
     }.onFailure { Log.e(TAG, "Error eliminando mensaje: ${it.message}") }
 
     /** Mensajes del muro de un usuario. */
-    suspend fun getMessages(email: String): Result<List<ChatMessage>> = runCatching {
-        if (email.isBlank()) return@runCatching emptyList()
-        val snapshot = userDoc(email).collection(MESSAGES_COLLECTION).get().await()
+    suspend fun getMessages(uid: String): Result<List<ChatMessage>> = runCatching {
+        if (uid.isBlank()) return@runCatching emptyList()
+        val snapshot = userDoc(uid).collection(MESSAGES).get().await()
         snapshot.documents.map { document ->
             ChatMessage(
                 id = document.id,
                 text = document.getString("texto").orEmpty(),
                 time = document.getString("hora").orEmpty(),
-                ownerEmail = email
+                ownerUid = uid
             )
         }
     }.onFailure { Log.e(TAG, "Error obteniendo mensajes: ${it.message}") }

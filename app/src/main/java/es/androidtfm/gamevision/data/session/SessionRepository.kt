@@ -116,7 +116,7 @@ class SessionRepository @Inject constructor(
                 nameSurname = nameSurname,
                 username = username
             )
-            userRepository.createProfile(profile).getOrElse { error ->
+            userRepository.createProfile(user.uid, profile).getOrElse { error ->
                 Log.e(TAG, "Perfil no creado, se revierte la cuenta: ${error.message}")
                 runCatching { user.delete().await() }
                 throw error

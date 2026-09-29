@@ -159,30 +159,33 @@ class DDBBViewModel @Inject constructor(
     }
 
     // ------------------------------------------------------------------------
-    // Amigos (rutas heredadas por email hasta F2)
+    // Amigos (ADR-0008: clave uid; el id del amigo es su uid)
     // ------------------------------------------------------------------------
 
-    suspend fun addFriend(email: String, friendEmail: String): Result<Unit> =
-        repository.addFriend(email, friendEmail)
+    /** Resuelve un email a uid (para añadir amigos por email sin exponer la colección). */
+    suspend fun findUidByEmail(email: String): Result<String?> = repository.findUidByEmail(email)
 
-    suspend fun removeFriend(email: String, friendEmail: String): Result<Unit> =
-        repository.removeFriend(email, friendEmail)
+    suspend fun addFriend(uid: String, friendUid: String): Result<Unit> =
+        repository.addFriend(uid, friendUid)
 
-    suspend fun getFriends(email: String): Result<List<Friend>> = repository.getFriends(email)
+    suspend fun removeFriend(uid: String, friendUid: String): Result<Unit> =
+        repository.removeFriend(uid, friendUid)
 
-    /** true si existe un perfil con ese email (para añadir amigos). */
-    suspend fun profileExists(email: String): Result<Boolean> = repository.profileExists(email)
+    suspend fun getFriends(uid: String): Result<List<Friend>> = repository.getFriends(uid)
+
+    /** true si existe un perfil con ese uid. */
+    suspend fun profileExists(uid: String): Result<Boolean> = repository.profileExists(uid)
 
     // ------------------------------------------------------------------------
-    // Mensajes (rutas heredadas por email hasta F2)
+    // Mensajes (ADR-0008: clave uid del dueño del muro)
     // ------------------------------------------------------------------------
 
-    suspend fun publishMessage(email: String, message: String, time: String): Result<Unit> =
-        repository.publishMessage(email, message, time)
+    suspend fun publishMessage(uid: String, message: String, time: String): Result<Unit> =
+        repository.publishMessage(uid, message, time)
 
-    suspend fun deleteMessage(email: String, messageId: String): Result<Unit> =
-        repository.deleteMessage(email, messageId)
+    suspend fun deleteMessage(uid: String, messageId: String): Result<Unit> =
+        repository.deleteMessage(uid, messageId)
 
-    suspend fun getMessages(email: String): Result<List<ChatMessage>> =
-        repository.getMessages(email)
+    suspend fun getMessages(uid: String): Result<List<ChatMessage>> =
+        repository.getMessages(uid)
 }

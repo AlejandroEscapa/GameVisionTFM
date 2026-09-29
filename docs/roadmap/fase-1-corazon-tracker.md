@@ -1,6 +1,6 @@
 # Fase 1 — El corazón del tracker
 
-**Estado:** 🟡 En cierre — bloques 1–4 hechos; falta el Bloque 5 (uid) antes de F2 · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
+**Estado:** ✅ **Completada** (pendiente de validación del propietario) · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
 
 ## Progreso por bloques
 
@@ -11,7 +11,18 @@
 | **2b · Duración HLTB** | Scraper HLTB con caché + respaldo manual (T1.11) | ✅ **Hecho y verificado** (29/09/2026) |
 | **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ✅ **Hecho y verificado** (29/09/2026) |
 | **4 · Navegación + cierre** | Filtros (T1.14), búsqueda (T1.15), instrumentación + auditoría | ✅ **Hecho y verificado** (29/09/2026) |
-| **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ⬜ Pendiente |
+| **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ✅ **Hecho y verificado** (29/09/2026) |
+
+### Bloque 5 cerrado (29/09/2026) — Migración de identidad a `uid` (ADR-0008)
+- **Clave única `uid`** en todo el modelo: perfil (`users/{uid}`, el email pasa a CAMPO), biblioteca,
+  social y foto. Se retira el parche de reglas `uid == id || email == id`.
+- **Índices** `email_index/{email} → uid` (añadir amigos sin exponer la colección) y
+  `usernames/{username} → uid` (búsqueda, F2).
+- **Migración ejecutada** con script Admin SDK y **backup JSON previo**: 9 usuarios migrados
+  (perfil + amigos + mensajes), 0 fallos. Reglas nuevas desplegadas.
+- **Verificado E2E**: login con el usuario QA → perfil («QA Game Vision»), biblioteca, foto y
+  alta de amigo por email (índice `email_index`) funcionando con la nueva clave.
+- **Reglas de Firestore** ahora exigen `request.auth.uid == userId` (sin email).
 
 ### Bloque 4 cerrado (29/09/2026) — Navegación + cierre de F1
 - **Filtros combinados** (T1.14): estado (pestañas) + género + plataforma, y orden por alfabético,

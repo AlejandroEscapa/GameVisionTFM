@@ -40,11 +40,11 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 | 2 · Diario y tiempo | Partidas, diario, horas | ✅ Hecho (29/09) |
 | 3 · Estadísticas | Pantalla de stats + «Tu año en un vistazo» | ✅ Hecho (29/09; T1.12/T1.13) |
 | 4 · Navegación + cierre | Filtros, búsqueda, instrumentación, auditoría | ✅ Hecho (29/09; T1.14/T1.15) |
-| 5 · Migración `uid` | [ADR-0008](adr/0008-clave-unica-uid.md) (antes de F2) | ⬜ Pendiente |
+| 5 · Migración `uid` | [ADR-0008](adr/0008-clave-unica-uid.md) (antes de F2) | ✅ Hecho (29/09) |
 
 Estados ricos, valoración con estrellas, reseñas, diario con sesiones, múltiples
 partidas, duración del juego y estadísticas de perfil. **Decisiones D1.1–D1.7 cerradas**.
-**Antes de F2:** ejecutar la migración de identidad a `uid` ([ADR-0008](adr/0008-clave-unica-uid.md), aprobado).
+✅ **Migración de identidad a `uid` ejecutada** ([ADR-0008](adr/0008-clave-unica-uid.md), 29/09): F2 puede abrirse.
 
 ### 🟠 Siguiente inmediato (tras arrancar F1)
 - **Instrumentación** (Analytics + Crashlytics) al cerrar F1 — mide el embudo real (tiempo hasta el primer registro, retención).

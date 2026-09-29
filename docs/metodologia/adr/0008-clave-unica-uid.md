@@ -2,7 +2,7 @@
 
 - **ADR:** 0008
 - **Título:** Unificar la identidad en `uid`; el email pasa a ser un campo, no una clave
-- **Estado:** **Propuesto** (pendiente de aprobación del propietario) → ✅ **Aprobado (29/09/2026)**
+- **Estado:** ✅ **Ejecutado (29/09/2026)** — aprobado y migrado en el Bloque 5 de F1
 - **Fecha:** 2026-09-29
 - **Decisores:** Alejandro Olivares Escapa (propietario)
 - **Fase relacionada:** F0/F2 — debe cerrarse **antes de F2 (Social)**
@@ -36,8 +36,9 @@ Es la deuda que se anotó en la auditoría de F0. **Funciona hoy**, pero es un p
 
 ## Decisión propuesta
 
-> ✅ **Aprobado por el propietario el 29/09/2026.** Se ejecutará como bloque cerrado **antes de F2**
-> (ver plan de migración abajo).
+> ✅ **Aprobado y EJECUTADO el 29/09/2026** (Bloque 5 de F1). Migración aplicada a los 9 usuarios
+> existentes con backup previo; reglas desplegadas sin el parche de email. Detalle en
+> [auditoría de F1](../../metodologia/auditoria-fase-1-2026.md).
 
 **Una sola clave de identidad: `uid` de Firebase Auth.** El email deja de ser clave y pasa a ser
 **un campo más del documento de perfil**.
@@ -120,5 +121,7 @@ verificada + `AGENTS.md`/roadmap actualizados.
 
 ## Seguimiento
 
-- Cerrar antes de F2 (ver [fase-2](../../roadmap/fase-2-social.md) y [D0.5/F0-B](../../plan/F0B-propuesta-modelo-datos.md)).
-- ✅ **Aprobado (29/09/2026)**; pendiente de **ejecutar** la migración antes de abrir F2.
+- ✅ **Ejecutado (29/09/2026)**: perfil, biblioteca, social y foto usan `uid`; reglas sin el parche
+  `uid == id || email == id`; índices `email_index` y `usernames` creados. **F2 puede abrirse.**
+- Nota de alcance: amigos y mensajes se migraron a rutas por `uid`, pero **F2 rediseñará el modelo
+  social** (seguir asimétrico, búsqueda por username) — es el momento de revisar esas rutas.

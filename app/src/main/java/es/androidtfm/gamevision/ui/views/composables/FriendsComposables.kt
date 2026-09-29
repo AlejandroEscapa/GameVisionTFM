@@ -77,8 +77,8 @@ fun FriendsList(
     userViewModel: UserViewModel,
     ddbbViewModel: DDBBViewModel
 ) {
-    // Identidad desde el SSOT de sesión
-    val email by userViewModel.currentEmail.collectAsState()
+    // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
+    val uid by userViewModel.currentUid.collectAsState()
 
     var friendsList by remember { mutableStateOf(emptyList<Friend>()) }
     var searchField by remember { mutableStateOf("") }
@@ -86,15 +86,15 @@ fun FriendsList(
     var showNoFriendFound by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Efecto para cargar la lista de amigos cuando cambia el email
-    LaunchedEffect(email) {
-        val userEmail = email
-        if (userEmail.isNullOrBlank()) {
+    // Efecto para cargar la lista de amigos cuando cambia el usuario
+    LaunchedEffect(uid) {
+        val userUid = uid
+        if (userUid.isNullOrBlank()) {
             friendsList = emptyList()
             isLoading = false
             return@LaunchedEffect
         }
-        friendsList = ddbbViewModel.getFriends(userEmail).getOrElse { error ->
+        friendsList = ddbbViewModel.getFriends(userUid).getOrElse { error ->
             userViewModel.setMessage("No se pudieron cargar tus amigos: ${error.message}")
             emptyList()
         }
@@ -139,12 +139,12 @@ fun FriendsList(
                         }
                     }
                     // Lista de amigos
-                    val currentEmail = email
+                    val currentUid = uid
                     items(friendsList) { friend ->
-                        if (currentEmail != null) {
+                        if (currentUid != null) {
                             FriendItem(
                                 friend = friend,
-                                email = currentEmail,
+                                ownerUid = currentUid,
                                 ddbbViewModel = ddbbViewModel
                             ) { updatedFriendsList ->
                                 friendsList = updatedFriendsList
@@ -209,10 +209,12 @@ fun FriendsList(
                     onClick = {
                         coroutineScope.launch {
                             val friendEmail = searchField.trim()
-                            if (ddbbViewModel.profileExists(friendEmail).getOrDefault(false)) {
-                                ddbbViewModel.addFriend(email.orEmpty(), friendEmail)
+                            val myUid = uid.orEmpty()
+                            val friendUid = ddbbViewModel.findUidByEmail(friendEmail).getOrNull()
+                            if (!friendUid.isNullOrBlank()) {
+                                ddbbViewModel.addFriend(myUid, friendUid)
                                     .onSuccess {
-                                        friendsList = ddbbViewModel.getFriends(email.orEmpty())
+                                        friendsList = ddbbViewModel.getFriends(myUid)
                                             .getOrDefault(emptyList())
                                         searchField = ""
                                         showNoFriendFound = false
@@ -235,13 +237,13 @@ fun FriendsList(
 @Composable
 fun FriendItem(
     friend: Friend, // Datos del amigo
-    email: String, // Correo electrónico del usuario actual
+    ownerUid: String, // uid del usuario actual (ADR-0008)
     ddbbViewModel: DDBBViewModel, // ViewModel para manejar la base de datos
     onFriendRemoved: (List<Friend>) -> Unit // Callback para actualizar la lista
 ) {
     val coroutineScope = rememberCoroutineScope()
     val username = friend.username
-    val friendEmail = friend.email
+    val friendUid = friend.uid
 
     // Tarjeta que representa a un amigo en la lista
     Card(
@@ -264,7 +266,7 @@ fun FriendItem(
                     .background(MaterialTheme.colorScheme.surface)
             ) {
                 Text(
-                    text = friendEmail.first().toString(),
+                    text = username.take(1).uppercase(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
@@ -288,7 +290,7 @@ fun FriendItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = friendEmail,
+                    text = "Amigo",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1,
@@ -300,8 +302,8 @@ fun FriendItem(
             IconButton(
                 onClick = {
                     coroutineScope.launch {
-                        ddbbViewModel.removeFriend(email, friendEmail)
-                        val updatedFriendsList = ddbbViewModel.getFriends(email)
+                        ddbbViewModel.removeFriend(ownerUid, friendUid)
+                        val updatedFriendsList = ddbbViewModel.getFriends(ownerUid)
                             .getOrDefault(emptyList())
                         onFriendRemoved(updatedFriendsList)
                     }

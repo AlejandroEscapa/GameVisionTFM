@@ -6,7 +6,7 @@ package es.androidtfm.gamevision.data.model
  */
 
 data class Friend(
-    val email: String,
+    val uid: String,
     val username: String
 )
 
@@ -14,6 +14,6 @@ data class ChatMessage(
     val id: String,
     val text: String,
     val time: String,
-    /** Email del autor del mensaje (el propio usuario o un amigo). */
-    val ownerEmail: String
+    /** uid del autor del mensaje (el propio usuario o un amigo). */
+    val ownerUid: String
 )
