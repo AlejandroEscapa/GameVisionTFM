@@ -14,6 +14,8 @@
 | [0002](0002-escala-valoracion.md) | Escala de valoración: 1–10 entero | Superseded por [0003](0003-escala-medias-estrellas.md) | 2026-09-28 |
 | [0003](0003-escala-medias-estrellas.md) | Escala de valoración: 0,5–5,0 con medias estrellas | Aceptado | 2026-09-28 |
 | [0004](0004-upgrade-toolchain.md) | Upgrade del toolchain: micro-mejoras hoy, salto Kotlin bloqueado (con disparador) | Aceptado | 2026-09-28 |
+| [0005](0005-monetizacion-por-etapas.md) | Monetización por etapas con disparadores medibles | Aceptado | 2026-09-29 |
+| [0006](0006-cuenta-play-personal.md) | Cuenta de desarrollador de Google Play: personal | Aceptado | 2026-09-29 |
 
 ## Cuándo crear un ADR
 

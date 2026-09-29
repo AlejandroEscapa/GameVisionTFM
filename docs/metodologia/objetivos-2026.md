@@ -51,10 +51,11 @@ cerradas obligatorias, integración de anuncios y entrega escalonada.
 
 | Decisión | Bloquea | Estado |
 |---|---|---|
-| Fuente de la duración de los juegos (HLTB / manual / IGDB) | T1.11 (F1) | ⬜ Pendiente del propietario |
+| Fuente de la duración de los juegos (HLTB / manual / IGDB) | T1.11 (F1) | ✅ Cerrada (29/09): scraper HLTB + respaldo manual — ver [fase-1](../roadmap/fase-1-corazon-tracker.md) D1.4 |
 | Integración parcial con IGDB | — | Marcada para el futuro (ver ADR-0001) |
 | Modelo social: amigos vs seguir | F2 | Diferida a F2 |
-| Modelo de monetización (anuncios + desbloqueo premium) | Hito de publicación | ⬜ A concretar |
+| Modelo de monetización (anuncios + desbloqueo premium) | Hito de publicación | ✅ [ADR-0005](adr/0005-monetizacion-por-etapas.md): por etapas con disparadores (29/09) |
+| Cuenta de Google Play (personal vs organización) | Hito de publicación | ✅ [ADR-0006](adr/0006-cuenta-play-personal.md): personal (29/09) |
 
 ---
 

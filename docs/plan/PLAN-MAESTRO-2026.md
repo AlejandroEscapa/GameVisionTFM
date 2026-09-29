@@ -39,7 +39,7 @@ a cuáles toca.
 | V1 Producto | 🟢 F0 en ejecución | Adapter `GameCatalog` escrito (sin commitear) |
 | V2 Diseño | ✅ Base sólida | DESIGN.md + `ui/designsystem/` completos |
 | V3 Datos | 🟢 En curso | `data/catalog/` creado; falta caché y modelo de biblioteca |
-| V4 Comercial | 📄 Investigado, sin decidir | Decisiones D-E1…D-E3, D-C6 pendientes |
+| V4 Comercial | ✅ Decidido (29/09) | [ADR-0005](../metodologia/adr/0005-monetizacion-por-etapas.md) (D-C6/D-E2/D-E3) · [ADR-0006](../metodologia/adr/0006-cuenta-play-personal.md) (D-E1) |
 | V5 Publicación | 📄 Investigado, sin empezar | Requisitos de Play mapeados |
 | V6 Crecimiento | 📄 Investigado, sin empezar | ASO y canales documentados |
 | V7 Proceso | ✅ GDF creado | `docs/metodologia/` (esta sesión) |
@@ -162,7 +162,7 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 - **Vertientes:** V4, V5, V7
 - **Objetivo:** app **publicada, monetizada y estable** en Google Play.
 - **Contenido:**
-  1. **Cuenta de desarrollador** y verificación (decidir personal vs. organización → D-E1).
+  1. **Cuenta de desarrollador** y verificación (cuenta **personal** → [ADR-0006](../metodologia/adr/0006-cuenta-play-personal.md); revalidar el requisito de testers vigente en Play Console al arrancar F5).
   2. **Ficha de tienda** (ASO: título, descripciones, capturas, icono, vídeo).
   3. **Data Safety + política de privacidad** (obligatorios; somos red social con UGC → moderación, reportar/bloquear, Child Safety).
   4. **Integración de monetización**: AdMob discreto (banner/native/rewarded) + UMP (consentimiento) + "quitar anuncios" con Play Billing v8.
@@ -179,7 +179,7 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 
 ## 5. Vertiente comercial en detalle (V4)
 
-**Modelo recomendado (D-C6), por etapas:**
+**Modelo adoptado (D-C6 → [ADR-0005](../metodologia/adr/0005-monetizacion-por-etapas.md)), por etapas con disparadores medibles:**
 
 | Etapa | Modelo | Detalle |
 |---|---|---|
@@ -211,8 +211,10 @@ interstitial/app-open agresivos; precio estable (no "bait-and-switch").
 
 ## 7. Próximos pasos (lo que toca ahora)
 
-1. **Aprobar este plan** y cerrar las decisiones pendientes que bloquean:
-   **D-C1** (escala de nota), **D-C6** (modelo de negocio), **D-E1** (tipo de cuenta).
+1. **Decisiones bloqueantes cerradas (29/09):** escala de nota **ratificada** (0,5–5,0 →
+   [ADR-0003](../metodologia/adr/0003-escala-medias-estrellas.md)), monetización **por etapas con
+   disparadores** ([ADR-0005](../metodologia/adr/0005-monetizacion-por-etapas.md)) y cuenta Play
+   **personal** ([ADR-0006](../metodologia/adr/0006-cuenta-play-personal.md)).
 2. **Terminar F0**: caché Room, modelo de biblioteca, Storage, import/export.
 3. **Abrir F5 en borrador**: cuenta de desarrollador + política de privacidad + Data Safety.
 4. **Instrumentar** (Analytics + Crashlytics) al cerrar F1.
