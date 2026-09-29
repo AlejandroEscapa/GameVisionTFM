@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -398,6 +399,21 @@ private fun ProfileActionsSection(
 ) {
     val coroutineScope = rememberCoroutineScope()
     Column(modifier = modifier) {
+        // Botón de estadísticas (F1/T1.12)
+        FilledTonalButton(
+            onClick = { navController?.navigate("stats") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Estadísticas")
+        }
+        Spacer(modifier = Modifier.height(12.dp))
         // Botón para ver la lista de amigos
         FilledTonalButton(
             onClick = { navController?.navigate("friendlist") },

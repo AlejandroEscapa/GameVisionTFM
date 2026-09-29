@@ -38,7 +38,7 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 | 1 · Biblioteca rica | 7 estados, nota, reseña, favorito | ✅ Hecho (29/09; T1.1–T1.4, T1.7) |
 | 2b · Duración HLTB | Scraper HLTB con caché + valor manual | ✅ Hecho (29/09; T1.11) |
 | 2 · Diario y tiempo | Partidas, diario, horas | ✅ Hecho (29/09) |
-| 3 · Estadísticas | Pantalla de stats + «Tu año en un vistazo» | ⬜ Pendiente |
+| 3 · Estadísticas | Pantalla de stats + «Tu año en un vistazo» | ✅ Hecho (29/09; T1.12/T1.13) |
 | 4 · Navegación + cierre | Filtros, instrumentación, auditoría de F1 | ⬜ Pendiente |
 | 5 · Migración `uid` | [ADR-0008](adr/0008-clave-unica-uid.md) (antes de F2) | ⬜ Pendiente |
 

@@ -26,6 +26,7 @@ import es.androidtfm.gamevision.ui.views.composables.ProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.RegisterScreen
 import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
+import es.androidtfm.gamevision.ui.views.composables.StatsScreen
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
@@ -180,6 +181,21 @@ fun NavHost(
                 navController = navController,
                 userViewModel = userViewModel
             )
+        }
+
+        // Pantalla de estadísticas (F1 — Bloque 3)
+        composable("stats") {
+            AppScaffold(
+                navController = navController,
+                userViewModel = userViewModel
+            ) { paddingValues ->
+                StatsScreen(
+                    navController = navController,
+                    paddingValues = paddingValues,
+                    ddbbViewModel = ddbbViewModel,
+                    userViewModel = userViewModel
+                )
+            }
         }
 
         // Pantalla del diario (F1 — Bloque 2)

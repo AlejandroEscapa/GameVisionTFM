@@ -9,9 +9,18 @@
 | **1 · Biblioteca rica** | Estados (T1.1/T1.2), nota (T1.3), reseña (T1.4), favorito (T1.7) | ✅ **Hecho y verificado** (29/09/2026) |
 | **2 · Diario y tiempo** | Partidas/rejugadas (T1.5/T1.6), diario (T1.8/T1.9), horas (T1.10) | ✅ **Hecho y verificado** (29/09/2026) |
 | **2b · Duración HLTB** | Scraper HLTB con caché + respaldo manual (T1.11) | ✅ **Hecho y verificado** (29/09/2026) |
-| **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ⬜ Pendiente |
+| **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ✅ **Hecho y verificado** (29/09/2026) |
 | **4 · Navegación + cierre** | Filtros/orden (T1.14/T1.15), instrumentación, auditoría de F1 | ⬜ Pendiente |
 | **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ⬜ Pendiente |
+
+### Bloque 3 cerrado (29/09/2026) — Estadísticas (T1.12/T1.13)
+- **Pantalla de estadísticas** (ruta `stats`, acceso desde el perfil): KPIs (juegos, horas, nota media),
+  distribución por estado y por nota, géneros y plataformas favoritos, y juegos por año.
+- **«Tu año en un vistazo»** (semilla del Rewind de F3): completados del año, añadidos, mejor nota y más jugado.
+- **Lógica pura** `StatisticsUtils` (todo se calcula en el cliente, decisión D1.5) + **8 tests nuevos** → **63 unitarios**.
+- **Verificado E2E** (usuario QA): juegos=3, horas=1 h, nota media=3,5, estados (2 jugando / 1 completado),
+  géneros (Action 2, RPG 2, …), plataformas y años — todo cuadra.
+- Lint 0 errores; debug + release OK.
 
 ### Bloque 2b cerrado (29/09/2026) — Duración HLTB (T1.11)
 - **Cliente HLTB aislado** (`HltbClient`, OkHttp): token + búsqueda, con **un reintento** si el token caduca (403).
@@ -91,8 +100,8 @@ como diferenciación directa.
 - [x] T1.11 Duración estimada (historia / +extras / completista) vía HLTB con caché de 90 días + valor manual que gana — HltbClient aislado, HltbRepository, tarjeta en la ficha
 
 ### C. Estadísticas
-- [ ] T1.12 Pantalla de estadísticas: horas totales, distribución de notas, géneros y plataformas favoritas, juegos por año
-- [ ] T1.13 "Tu año en un vistazo" (semilla del Rewind de F3)
+- [x] T1.12 Pantalla de estadísticas: horas, distribución de notas, géneros y plataformas favoritas, juegos por año — `StatsScreen` + `StatisticsUtils`
+- [x] T1.13 «Tu año en un vistazo» (semilla del Rewind de F3) — tarjeta con la actividad del año actual
 
 ### D. Navegación de la biblioteca
 - [ ] T1.14 Filtros y orden: por estado, nota, género, plataforma, fecha
@@ -107,7 +116,7 @@ como diferenciación directa.
 - [ ] CA1.2 Los 7 estados existen y son visibles en la ficha y en la lista.
 - [x] CA1.3 Una rejugada crea un segundo registro sin borrar el primero — `createLog` con `runIndex` (CA1.3).
 - [x] CA1.4 El diario muestra las sesiones ordenadas por fecha y suma las horas — verificado en emulador.
-- [ ] CA1.5 Las estadísticas cuadran con los datos introducidos (verificación manual con
+- [x] CA1.5 Las estadísticas cuadran con los datos introducidos — verificado E2E con el usuario QA (3 juegos, 1 completado, nota media 3,5).
       un usuario de prueba: 3 juegos, 2 completados, 1 abandonado → los números coinciden).
 - [ ] CA1.6 Los filtros combinados (estado + género) devuelven lo esperado.
 - [ ] CA1.7 Tests nuevos para el repositorio de biblioteca y el cálculo de estadísticas
