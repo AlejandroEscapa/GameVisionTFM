@@ -32,10 +32,18 @@ Se apoya en tres pilares de producto (ver [`../product-vision-2026.md`](../produ
 | Deuda técnica priorizada | [Plan de deuda](../plan/DEUDA-TECNICA-2026.md) ejecutado por bloques con evidencia | ✅ Bloques 0–4 cerrados; quedan diferidos con disparador |
 | Auditoría de cierre de F0 | Informe validado por el propietario | ✅ [Validada 29/09](../metodologia/auditoria-fase-0-2026.md) |
 
-### 🔴 Ahora (F1 — El corazón del tracker, aprobada)
+### 🔴 Ahora (F1 — El corazón del tracker, en ejecución)
+| Bloque | Contenido | Estado |
+|---|---|---|
+| 1 · Biblioteca rica | 7 estados, nota, reseña, favorito | ✅ Hecho (29/09; T1.1–T1.4, T1.7) |
+| 2 · Diario y tiempo | Partidas, diario, horas, duración HLTB | ⬜ Siguiente |
+| 3 · Estadísticas | Pantalla de stats + «Tu año en un vistazo» | ⬜ Pendiente |
+| 4 · Navegación + cierre | Filtros, instrumentación, auditoría de F1 | ⬜ Pendiente |
+| 5 · Migración `uid` | [ADR-0008](adr/0008-clave-unica-uid.md) (antes de F2) | ⬜ Pendiente |
+
 Estados ricos, valoración con estrellas, reseñas, diario con sesiones, múltiples
-partidas, duración del juego y estadísticas de perfil. **Decisiones D1.1–D1.7 cerradas** →
-lista para ejecutar. **Antes de F2:** ejecutar la migración de identidad a `uid` ([ADR-0008](adr/0008-clave-unica-uid.md), aprobado).
+partidas, duración del juego y estadísticas de perfil. **Decisiones D1.1–D1.7 cerradas**.
+**Antes de F2:** ejecutar la migración de identidad a `uid` ([ADR-0008](adr/0008-clave-unica-uid.md), aprobado).
 
 ### 🟠 Siguiente inmediato (tras arrancar F1)
 - **Instrumentación** (Analytics + Crashlytics) al cerrar F1 — mide el embudo real (tiempo hasta el primer registro, retención).

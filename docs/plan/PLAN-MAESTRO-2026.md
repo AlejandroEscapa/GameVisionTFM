@@ -136,7 +136,7 @@ F0 CIMIENTOS ──> F1 TRACKER ──┬──> F2 SOCIAL ──> F3 WOW ──
 - **Entregable:** app que registra un juego offline, muestra catálogo cacheado si RAWG cae, y la foto de perfil viaja entre dispositivos.
 - **Extra de este análisis:** **import/export universal** (Steam/HLTB/Backloggd/CSV) sube a requisito de F0/F1.
 
-### F1 · El corazón del tracker - 🔵 Aprobada (lista para ejecutar)
+### F1 · El corazón del tracker - 🟢 En ejecución (Bloque 1 hecho)
 - **Vertientes:** V1, V2, V3
 - **Objetivo:** biblioteca rica (estados, notas, reseñas, diario, sesiones, stats).
 - **Añadido por el análisis:** cerrar la **escala de nota** (D-C1), **avisos de contenido** (S11), y **estimaciones personalizadas** de duración.

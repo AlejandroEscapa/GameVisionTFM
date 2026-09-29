@@ -1,6 +1,26 @@
 # Fase 1 — El corazón del tracker
 
-**Estado:** ⬜ Pendiente · **Estimación:** 2 semanas · **Depende de:** F0 · **Bloquea a:** F2, F3, F4
+**Estado:** 🔵 Aprobada · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
+
+## Progreso por bloques
+
+| Bloque | Contenido | Estado |
+|---|---|---|
+| **1 · Biblioteca rica** | Estados (T1.1/T1.2), nota (T1.3), reseña (T1.4), favorito (T1.7) | ✅ **Hecho y verificado** (29/09/2026) |
+| **2 · Diario y tiempo** | Partidas/rejugadas (T1.5/T1.6), diario (T1.8/T1.9), horas (T1.10), duración HLTB (T1.11) | ⬜ Pendiente |
+| **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ⬜ Pendiente |
+| **4 · Navegación + cierre** | Filtros/orden (T1.14/T1.15), instrumentación, auditoría de F1 | ⬜ Pendiente |
+| **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ⬜ Pendiente |
+
+### Bloque 1 cerrado (29/09/2026)
+- **Panel de biblioteca en la ficha** (`LibraryPanel`): los 7 estados, nota con medias estrellas,
+  reseña, favorito y quitar.
+- **Pista de nota no bloqueante** (D1.2): al marcar Completado/Coleccionado sugiere puntuar.
+- **Lista** con pestañas para los 7 estados + Todos/Favoritos/Historial, y la nota visible en la tarjeta.
+- **Verificado E2E** con el usuario QA: estado `completado`, nota `3.5` y reseña persistidos en
+  Firestore (`users/{uid}/library`), con los **contadores correctos** (`stats/summary`: `gamesTotal=2`,
+  `gamesByStatus.completado=1`, `ratingSum=3.5`, `ratingCount=1`).
+- **Tests:** 7 nuevos (`RatingUtilsTest`) → **44 unitarios** en verde.
 
 ## Objetivo
 
@@ -41,13 +61,13 @@ como diferenciación directa.
 ## Tareas
 
 ### A. Biblioteca
-- [ ] T1.1 UI de estado: selector con los 7 estados (Jugando, Completado, Coleccionado, En pausa, Retirado, Abandonado, Deseado)
-- [ ] T1.2 Cambio de estado rápido desde la ficha del juego y desde la lista
-- [ ] T1.3 Valoración con medias estrellas (crear, editar, borrar)
-- [ ] T1.4 Reseña escrita por juego, con formato corto destacado (cultura "una línea" de Letterboxd)
-- [ ] T1.5 Múltiples partidas por juego (rejugada = nuevo `log`)
-- [ ] T1.6 Plataforma jugada por partida (PC, PS5, Switch…)
-- [ ] T1.7 Favorito (para el Top 4 de F2)
+- [x] T1.1 UI de estado: selector con los 7 estados (Jugando, Completado, Coleccionado, En pausa, Retirado, Abandonado, Deseado) — `LibraryStatusSelector` en la ficha (Bloque 1)
+- [x] T1.2 Cambio de estado rápido desde la ficha del juego y desde la lista (panel de biblioteca en la ficha + pestañas por estado en la lista)
+- [x] T1.3 Valoración con medias estrellas (crear, editar, borrar) — `RatingStars` + `RatingUtils` (0,5–5,0, con «Quitar»)
+- [x] T1.4 Reseña escrita por juego, con formato corto destacado — `ReviewEditor` (máx. 280, contador)
+- [~] T1.5 Múltiples partidas por juego (rejugada = nuevo `log`) — **modelo y repositorio listos** (`GameLog`, `createLog`); **UI en el Bloque 2 (diario)**
+- [~] T1.6 Plataforma jugada por partida (PC, PS5, Switch…) — **campo `platform` en `GameLog` listo**; **UI en el Bloque 2**
+- [x] T1.7 Favorito (para el Top 4 de F2) — corazón en el panel de biblioteca; `favorite` en la ficha y pestaña «Favoritos»
 
 ### B. Diario y tiempo
 - [ ] T1.8 Vista de diario cronológico (por mes, con carátulas)

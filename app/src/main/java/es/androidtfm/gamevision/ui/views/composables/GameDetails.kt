@@ -22,6 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
@@ -33,8 +36,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -98,7 +103,7 @@ fun GameDetails(
     )
 ) {
     val context = LocalContext.current
-    var addMenuExpanded by remember { mutableStateOf(false) }
+    var showLibraryPanel by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val uid by userViewModel.currentUid.collectAsState()
 
@@ -189,105 +194,89 @@ fun GameDetails(
                             Text("Compartir")
                         }
 
-                        // Botón Añadir con menú desplegable
-                        Box {
-                            Button(
-                                onClick = { addMenuExpanded = true },
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = "Añadir")
-                                Spacer(Modifier.width(8.dp))
-                                Text("Añadir")
-                            }
+                        // Botón que abre la gestión de biblioteca (estado, nota, reseña)
+                        Button(
+                            onClick = { showLibraryPanel = !showLibraryPanel },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (entry != null) Icons.Default.Star else Icons.Default.Add,
+                                contentDescription = "Biblioteca"
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(if (entry != null) entry!!.status.label else "Añadir")
+                        }
+                    }
 
-                            DropdownMenu(
-                                expanded = addMenuExpanded,
-                                onDismissRequest = { addMenuExpanded = false },
-                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                            ) {
-                                listOf(
-                                    "Jugando" to "playing",
-                                    "Deseado" to "wished",
-                                    "Favorito (marcar/desmarcar)" to "favorite"
-                                ).forEach { (label, action) ->
-                                    DropdownMenuItem(
-                                        text = { Text(label) },
-                                        onClick = {
-                                            addMenuExpanded = false
-                                            coroutineScope.launch {
-                                                val currentGame = game
-                                                val userId = uid
-                                                if (currentGame == null || userId.isNullOrBlank()) {
-                                                    userViewModel.setMessage("Inicia sesión para guardar juegos")
-                                                    return@launch
-                                                }
-                                                when (action) {
-                                                    "playing", "wished" -> {
-                                                        val target = if (action == "playing")
-                                                            LibraryStatus.PLAYING else LibraryStatus.WISHED
-                                                        val currentEntry = entry
-                                                        if (currentEntry == null) {
-                                                            ddbbViewModel.addToLibrary(
-                                                                userId,
-                                                                currentGame.toLibraryEntry(target)
-                                                            ).onSuccess {
-                                                                userViewModel.setMessage(
-                                                                    if (target == LibraryStatus.PLAYING) "Añadido a Jugando"
-                                                                    else "Añadido a Deseados"
-                                                                )
-                                                            }.onFailure { e ->
-                                                                userViewModel.setMessage("No se pudo añadir: ${e.message}")
-                                                            }
-                                                        } else if (currentEntry.status == target) {
-                                                            userViewModel.setMessage("Ya está en esa lista")
-                                                        } else {
-                                                            ddbbViewModel.updateStatus(
-                                                                userId,
-                                                                currentEntry.gameId,
-                                                                currentEntry.status,
-                                                                target
-                                                            ).onSuccess {
-                                                                userViewModel.setMessage(
-                                                                    if (target == LibraryStatus.PLAYING) "Ahora está en Jugando"
-                                                                    else "Ahora está en Deseados"
-                                                                )
-                                                            }.onFailure { e ->
-                                                                userViewModel.setMessage("No se pudo actualizar: ${e.message}")
-                                                            }
-                                                        }
-                                                    }
-                                                    "favorite" -> {
-                                                        val currentEntry = entry
-                                                        if (currentEntry == null) {
-                                                            // Aún no está en la biblioteca: entra en Deseados con el corazón marcado.
-                                                            ddbbViewModel.addToLibrary(
-                                                                userId,
-                                                                currentGame.toLibraryEntry(LibraryStatus.WISHED)
-                                                                    .copy(favorite = true)
-                                                            ).onSuccess {
-                                                                userViewModel.setMessage("Añadido a Deseados y marcado como favorito")
-                                                            }.onFailure { e ->
-                                                                userViewModel.setMessage("No se pudo añadir: ${e.message}")
-                                                            }
-                                                        } else {
-                                                            ddbbViewModel.setFavorite(userId, currentEntry.gameId, !currentEntry.favorite)
-                                                                .onSuccess {
-                                                                    userViewModel.setMessage(
-                                                                        if (!currentEntry.favorite) "Marcado como favorito"
-                                                                        else "Quitado de favoritos"
-                                                                    )
-                                                                }.onFailure { e ->
-                                                                    userViewModel.setMessage("No se pudo actualizar: ${e.message}")
-                                                                }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    )
+                    // Panel de gestión de la biblioteca (F1 — Bloque 1): los 7 estados,
+                    // nota con medias estrellas, reseña y favorito.
+                    if (showLibraryPanel) {
+                        LibraryPanel(
+                            entry = entry,
+                            onAdd = { status ->
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentGame = game
+                                    if (userId.isNullOrBlank() || currentGame == null) {
+                                        userViewModel.setMessage("Inicia sesión para guardar juegos")
+                                        return@launch
+                                    }
+                                    ddbbViewModel.addToLibrary(userId, currentGame.toLibraryEntry(status))
+                                        .onSuccess { userViewModel.setMessage("Añadido a ${status.label}") }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo añadir: ${e.message}") }
+                                }
+                            },
+                            onChangeStatus = { to ->
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.updateStatus(userId, currentEntry.gameId, currentEntry.status, to)
+                                        .onSuccess { userViewModel.setMessage("Estado: ${to.label}") }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo cambiar: ${e.message}") }
+                                }
+                            },
+                            onRate = { rating ->
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.setRating(userId, currentEntry.gameId, currentEntry.rating, rating)
+                                        .onSuccess { userViewModel.setMessage(if (rating == null) "Nota quitada" else "Nota guardada") }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo guardar la nota: ${e.message}") }
+                                }
+                            },
+                            onReview = { text ->
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.setReview(userId, currentEntry.gameId, text.ifBlank { null })
+                                        .onSuccess { userViewModel.setMessage("Reseña guardada") }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo guardar la reseña: ${e.message}") }
+                                }
+                            },
+                            onToggleFavorite = {
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.setFavorite(userId, currentEntry.gameId, !currentEntry.favorite)
+                                        .onSuccess { userViewModel.setMessage(if (!currentEntry.favorite) "Marcado como favorito" else "Quitado de favoritos") }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo actualizar: ${e.message}") }
+                                }
+                            },
+                            onRemove = {
+                                coroutineScope.launch {
+                                    val userId = uid
+                                    val currentEntry = entry ?: return@launch
+                                    if (userId.isNullOrBlank()) return@launch
+                                    ddbbViewModel.removeFromLibrary(userId, currentEntry)
+                                        .onSuccess { userViewModel.setMessage("Quitado de tu biblioteca") }
+                                        .onFailure { e -> userViewModel.setMessage("No se pudo quitar: ${e.message}") }
                                 }
                             }
-                        }
+                        )
                     }
                 }
             }
@@ -513,3 +502,98 @@ private fun EmptyState() {
         }
     }
 }
+
+/**
+ * Panel de gestiÃ³n de la biblioteca (F1 â€” Bloque 1).
+ *
+ * ReÃºne, en un mismo sitio, lo que define la "biblioteca rica":
+ *  - los 7 estados (T1.1/T1.2),
+ *  - la nota con medias estrellas (T1.3),
+ *  - la reseÃ±a escrita (T1.4),
+ *  - el favorito (T1.7) y quitar de la biblioteca.
+ *
+ * Si el juego aÃºn no estÃ¡ en la biblioteca, solo ofrece aÃ±adirlo eligiendo estado.
+ */
+@Composable
+private fun LibraryPanel(
+    entry: LibraryEntry?,
+    onAdd: (LibraryStatus) -> Unit,
+    onChangeStatus: (LibraryStatus) -> Unit,
+    onRate: (Double?) -> Unit,
+    onReview: (String) -> Unit,
+    onToggleFavorite: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (entry == null) {
+                Text(
+                    text = "AÃ±adir a tu biblioteca",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                LibraryStatusSelector(current = null, onSelect = onAdd)
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Tu biblioteca",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = onToggleFavorite) {
+                        Icon(
+                            imageVector = if (entry.favorite) Icons.Default.Favorite
+                            else Icons.Default.FavoriteBorder,
+                            contentDescription = if (entry.favorite) "Quitar de favoritos"
+                            else "Marcar como favorito",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onRemove) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Quitar de la biblioteca",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                LibraryStatusHint(entry.status)
+                LibraryStatusSelector(current = entry.status, onSelect = onChangeStatus)
+
+                HorizontalDivider()
+
+                Text(
+                    text = "Tu nota",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                RatingStars(rating = entry.rating, onRatingChange = onRate)
+
+                HorizontalDivider()
+
+                var reviewText by remember(entry.gameId) { mutableStateOf(entry.review.orEmpty()) }
+                ReviewEditor(value = reviewText, onValueChange = { reviewText = it })
+                Button(
+                    onClick = { onReview(reviewText) },
+                    modifier = Modifier.align(Alignment.End),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Guardar reseÃ±a")
+                }
+            }
+        }
+    }
+}
+

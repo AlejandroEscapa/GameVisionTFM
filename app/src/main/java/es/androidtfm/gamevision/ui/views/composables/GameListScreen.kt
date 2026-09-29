@@ -116,9 +116,13 @@ fun GameListScreen(
             entries
                 .filter { entry ->
                     when (selectedList) {
+                        "all" -> true
                         "playing" -> entry.status == LibraryStatus.PLAYING
                         "completed" -> entry.status == LibraryStatus.COMPLETED
                         "collected" -> entry.status == LibraryStatus.COLLECTED
+                        "paused" -> entry.status == LibraryStatus.PAUSED
+                        "retired" -> entry.status == LibraryStatus.RETIRED
+                        "abandoned" -> entry.status == LibraryStatus.ABANDONED
                         "wished" -> entry.status == LibraryStatus.WISHED
                         "favorites" -> entry.favorite
                         else -> true
@@ -203,11 +207,15 @@ fun LoadingIndicator() {
 @Composable
 fun GameListEmptyState(selectedList: String = "playing") {
     val (title, hint) = when (selectedList) {
+        "all" -> "Tu biblioteca" to "Busca un juego y añádelo cuando quieras"
         "playing" -> "No tienes juegos en curso" to "Busca un juego y añádelo como «Jugando»"
         "completed" -> "Aún no has completado ningún juego" to
             "Cuando termines uno, cámbiale el estado a «Completado»"
         "collected" -> "Aún no tienes juegos coleccionados" to
             "Marca «Coleccionado» cuando consigas todos sus logros"
+        "paused" -> "Nada en pausa ahora mismo" to "Pausa un juego que tengas en curso"
+        "retired" -> "Sin juegos retirados" to "Retira un juego del que te hayas cansado"
+        "abandoned" -> "Sin juegos abandonados" to "Aquí quedan los que dejaste a medias"
         "wished" -> "Tu lista de deseos está vacía" to "Busca un juego y añádelo como «Deseado»"
         "favorites" -> "Sin favoritos todavía" to "Marca el corazón en los juegos que más te gusten"
         "history" -> "Aún no has visto ningún juego" to "Abre la ficha de un juego y aparecerá aquí"
@@ -333,6 +341,13 @@ private fun GameListCard(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
+                            entry.rating?.let { nota ->
+                                Text(
+                                    text = "Tu nota: " + formatRating(nota),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                     // Solo las fichas de la biblioteca se pueden eliminar
@@ -372,9 +387,13 @@ private fun GameListCard(
 @Composable
 fun HeaderTitle(selectedList: String) {
     val title = when (selectedList) {
+        "all" -> "Biblioteca"
         "playing" -> "Jugando"
         "completed" -> "Completados"
         "collected" -> "Coleccionados"
+        "paused" -> "En pausa"
+        "retired" -> "Retirados"
+        "abandoned" -> "Abandonados"
         "wished" -> "Deseados"
         "favorites" -> "Favoritos"
         "history" -> "Historial"
@@ -394,9 +413,13 @@ fun SelectListButton(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val listas = listOf(
+        "Todos" to "all",
         "Jugando" to "playing",
         "Completados" to "completed",
         "Coleccionados" to "collected",
+        "En pausa" to "paused",
+        "Retirados" to "retired",
+        "Abandonados" to "abandoned",
         "Deseados" to "wished",
         "Favoritos" to "favorites",
         "Historial" to "history"

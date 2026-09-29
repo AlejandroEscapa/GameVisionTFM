@@ -3,9 +3,12 @@ package es.androidtfm.gamevision.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import es.androidtfm.gamevision.data.library.GameLog
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.LibraryRepository
+import es.androidtfm.gamevision.data.library.LibraryStats
 import es.androidtfm.gamevision.data.library.LibraryStatus
+import es.androidtfm.gamevision.data.library.PlaySession
 import es.androidtfm.gamevision.data.model.ChatMessage
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.repository.UserRepository
@@ -55,6 +58,18 @@ class DDBBViewModel @Inject constructor(
         to: LibraryStatus
     ): Result<Unit> = libraryRepository.updateStatus(uid, gameId, from, to)
 
+    /** Fija (o borra con `rating = null`) la nota personal (F1/T1.3). */
+    suspend fun setRating(
+        uid: String,
+        gameId: String,
+        previous: Double?,
+        rating: Double?
+    ): Result<Unit> = libraryRepository.updateRating(uid, gameId, previous, rating)
+
+    /** Fija (o borra con `review = null`) la reseña escrita (F1/T1.4). */
+    suspend fun setReview(uid: String, gameId: String, review: String?): Result<Unit> =
+        libraryRepository.updateReview(uid, gameId, review)
+
     /** Marca o desmarca el favorito. */
     suspend fun setFavorite(uid: String, gameId: String, favorite: Boolean): Result<Unit> =
         libraryRepository.updateFavorite(uid, gameId, favorite)
@@ -62,6 +77,26 @@ class DDBBViewModel @Inject constructor(
     /** Elimina una ficha (se pasa la ficha en vivo para ajustar contadores). */
     suspend fun removeFromLibrary(uid: String, entry: LibraryEntry): Result<Unit> =
         libraryRepository.removeGame(uid, entry)
+
+    // ------------------------------------------------------------------------
+    // Diario y partidas (F1/T1.5, T1.6, T1.8–T1.10)
+    // ------------------------------------------------------------------------
+
+    /** Sesiones del diario, más recientes primero (SSOT del diario). */
+    fun observeSessions(uid: String): Flow<Result<List<PlaySession>>> =
+        libraryRepository.observeSessions(uid)
+
+    /** Apunta una sesión del diario (ajusta contadores en el mismo lote). */
+    suspend fun addSession(uid: String, session: PlaySession): Result<Unit> =
+        libraryRepository.addSession(uid, session)
+
+    /** Crea una partida/rejugada (F1/T1.5) con su plataforma (F1/T1.6). */
+    suspend fun createLog(uid: String, log: GameLog): Result<Unit> =
+        libraryRepository.createLog(uid, log)
+
+    /** Agregados de la biblioteca (stats/summary), para la pantalla de F1/T1.12. */
+    fun observeStats(uid: String): Flow<Result<LibraryStats>> =
+        libraryRepository.observeStats(uid)
 
     // ------------------------------------------------------------------------
     // Historial local (recientes) — vive en el dispositivo
