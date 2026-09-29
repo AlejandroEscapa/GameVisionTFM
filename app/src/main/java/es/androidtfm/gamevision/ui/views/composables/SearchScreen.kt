@@ -440,6 +440,7 @@ fun SearchBar(
 
 @Preview(showBackground = true)
 @Composable
+@Suppress("ViewModelConstructorInComposable") // Aquí es un preview: SearchViewModel() usa su constructor explícito sin args para previsualización.
 fun SearchScreenPreview() {
 
     // Se crea un ViewModel de ejemplo para la vista previa.

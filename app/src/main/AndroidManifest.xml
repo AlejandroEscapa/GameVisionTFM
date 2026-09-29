@@ -15,7 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/Gamevision"
         tools:targetApi="31"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        tools:ignore="CredManMissingDal">
+        <!-- CredManMissingDal: solo usamos Credential Manager para "Sign in with Google";
+             no hay inicio de sesión por contraseña ni passkeys, así que el asset statements
+             (assetlinks.json) que exige la regla no aplica. Revisar si se añaden passkeys. -->
 
         <!-- Meta data para Google Sign-In -->
         <meta-data

@@ -93,16 +93,17 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       al recuperar la conexión (persistencia offline).
 - [ ] CA0.3 La foto de perfil subida desde el **dispositivo A** se ve al entrar desde el
       **dispositivo B** (o tras borrar datos de la app).
-- [~] CA0.1: capa de datos verificada con tests unitarios (sirve caché y expone el estado); falta la
-      verificación en emulador con RAWG bloqueado para darla por cerrada.
 - [~] CA0.4 *(actualizado 29/09/2026)* Los datos antiguos eran **de prueba** y se han borrado con backup. Verificación: **parcial** — alta + listas verificadas E2E con la cuenta QA (28/09); el tramo de sesión/estadísticas llegará con F1 y se re-verificará entonces.
-- [~] CA0.6 *(actualizado 29/09/2026)* **38 tests unitarios verdes** (incl. 5 nuevos del modo
-      degradado y los del ViewModel); los instrumentados quedan pendientes de la próxima sesión de
-      emulador.
+- [x] CA0.6 *(actualizado 29/09/2026, noche)* **35 unitarios + 7 instrumentados, 0 fallos** (medido en
+      la auditoría de cierre; incl. los 5 nuevos del modo degradado). Los instrumentados ya corren en el
+      emulador `Pixel_9`.
+- [x] CA0.1 *(cerrado 29/09/2026, noche)*: **verificado en vivo** en emulador con **modo avión real** —
+      la búsqueda «Halo» sirve los resultados cacheados y muestra el banner «Sin conexión · mostrando
+      resultados guardados».
 - [ ] CA0.5 Cambiar de proveedor de catálogo no toca ni una pantalla (demostrable:
       sustituir la implementación en el módulo de Hilt compila sin tocar UI).
-- [ ] CA0.6 Tests: los 17 unitarios + 6 instrumentados siguen verdes; nuevos tests para
-      el repositorio de biblioteca y el modo degradado.
+- [x] CA0.6 Tests: **35 unitarios + 7 instrumentados** en verde (auditoría 29/09/2026); tests nuevos
+      para el repositorio de biblioteca y el modo degradado.
 
 ---
 
@@ -187,13 +188,18 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 > **release firmada con R8** sigue compilando tras la modernización.
 
 - [ ] Bloque 1: `assembleDebug` y `assembleRelease` (R8) sin warnings nuevos
-- [ ] Bloque 2: **38 unitarios en verde** + instrumentados de la sesión de emulador
-- [ ] Bloque 3: sin código muerto (p. ej. restos de las tres listas planas antiguas)
-- [ ] Bloque 4: `GameCatalog` como SSOT del catálogo; sin DTOs de RAWG en la UI
-- [ ] Bloque 5: docs, ADRs y `AGENTS.md` sincronizados con el cierre de código del 29/09
-- [ ] Bloque 6: CA0.1–CA0.3 en emulador (RAWG caído, modo avión, foto entre dispositivos)
-- [ ] **Reglas de `firebase/storage.rules` publicadas** en Firebase Console
+- [x] Bloque 1: `assembleDebug` y `assembleRelease` (R8) sin warnings nuevos
+- [x] Bloque 2: **35 unitarios + 7 instrumentados en verde** (sesión de emulador 29/09/2026)
+- [x] Bloque 3: lint **0 errores** (4 corregidos); 68 warnings triados como deuda de estilo para F4.5
+- [x] Bloque 4: `GameCatalog` como SSOT del catálogo; sin DTOs de RAWG en la UI
+- [ ] Bloque 5: docs/ADRs sincronizados (recuento de tests corregido; pendiente validación)
+- [x] Bloque 6: **CA0.1 verificado** en vivo (modo avión real); **CA0.2 y CA0.3 pendientes**
+- [ ] **Reglas de `firebase/storage.rules` publicadas** en Firebase Console (pendiente del propietario)
 - [ ] Auditoría firmada y validada por el propietario
+
+> **Informe completo:** [auditoría de cierre de F0](../metodologia/auditoria-fase-0-2026.md) —
+> resultado **🟡 Apta con reservas** (29/09/2026). Hallazgo abierto **H1**: la ficha sin caché y sin red
+> muestra el error técnico crudo al usuario (decisión de copy del propietario).
 
 ---
 
@@ -238,6 +244,11 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 - **Cierre de código de F0 (29/09/2026, tarde)** — T0.5 (modo degradado visible con
   `OfflineBanner`), T0.12 (foto en Storage + reglas escritas, pendiente publicarlas) y T0.14
   (caché persistente explícita). T0.13 (FCM) **diferida a F2** con disparador. Compilación y
-  **38 unitarios en verde**; CA0.1–CA0.3 quedan para la sesión de emulador (requieren el
+  **35 unitarios + 7 instrumentados en verde**; CA0.2 y CA0.3 quedan para la sesión de emulador (requieren el
   `google-services.json` real, claves API en `local.properties` y reglas de Storage publicadas).
+- **Auditoría de cierre de F0 (29/09/2026, noche)** — ejecutada en modo autónomo. Resultado
+  **🟡 Apta con reservas** ([informe](../metodologia/auditoria-fase-0-2026.md)): build debug+release OK,
+  **35 unitarios + 7 instrumentados**, lint **0 errores**, **CA0.1 verificado en vivo** (modo avión real).
+  Quedan como reservas: publicar `storage.rules`, CA0.2/CA0.3 en emulador autenticado, y el hallazgo **H1**
+  (la ficha sin caché y sin red muestra el error técnico crudo → decisión de copy del propietario).
 
