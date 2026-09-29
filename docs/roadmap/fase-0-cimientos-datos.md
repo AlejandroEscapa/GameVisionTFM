@@ -68,9 +68,10 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 - [x] T0.12 Firebase Storage (29/09/2026): `ProfileImageStorage` sube la foto a
       `profile_images/{email}/profile.jpg` (5 MB máx.) y en el perfil se persiste la **URL de
       descarga**, que viaja entre dispositivos. Ya no se copia a `filesDir` (era el bug).
-      Reglas de Storage escritas en `firebase/storage.rules` — **pendientes de publicar** por el
-      propietario (Firebase Console → Storage → Rules). Verificación E2E (CA0.3) pendiente en
-      dispositivo con el `google-services.json` real.
+      Reglas de Storage escritas en `firebase/storage.rules` — ⛔ **bloqueado**: activar Storage exige
+      plan **Blaze** (facturación). Alternativa gratuita en investigación
+      ([almacenamiento-imagenes-2026](../../investigacion-2026/almacenamiento-imagenes-2026.md));
+      recomendación: base64 en **Realtime Database** (foto comprimida). CA0.3 pendiente de esa decisión.
 - [ ] T0.13 Firebase Cloud Messaging — **diferida con disparador (29/09/2026)**: sin criterio de
       aceptación en F0 y su UX se diseña en F2 (notificaciones sociales) / F4 (widget y avisos).
       Se abre al integrar las notificaciones de F2.
@@ -93,6 +94,11 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
       al recuperar la conexión (persistencia offline).
 - [ ] CA0.3 La foto de perfil subida desde el **dispositivo A** se ve al entrar desde el
       **dispositivo B** (o tras borrar datos de la app).
+- [x] CA0.2 *(cerrado 29/09/2026, noche)*: **verificado en vivo** con el usuario QA — **Halo 3**
+      añadido a la biblioteca en **modo avión** (estado «Jugando») y **sincronizado a Firestore**
+      al recuperar la red (`users/{uid}/library/28589`, `status=jugando`).
+- [ ] CA0.3 ⛔ **bloqueado por coste**: Cloud Storage exige **Blaze** (facturación). Alternativa en
+      investigación: [almacenamiento-imagenes-2026](../../investigacion-2026/almacenamiento-imagenes-2026.md).
 - [~] CA0.4 *(actualizado 29/09/2026)* Los datos antiguos eran **de prueba** y se han borrado con backup. Verificación: **parcial** — alta + listas verificadas E2E con la cuenta QA (28/09); el tramo de sesión/estadísticas llegará con F1 y se re-verificará entonces.
 - [x] CA0.6 *(actualizado 29/09/2026, noche)* **35 unitarios + 7 instrumentados, 0 fallos** (medido en
       la auditoría de cierre; incl. los 5 nuevos del modo degradado). Los instrumentados ya corren en el
@@ -193,7 +199,7 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
 - [x] Bloque 3: lint **0 errores** (4 corregidos); 68 warnings triados como deuda de estilo para F4.5
 - [x] Bloque 4: `GameCatalog` como SSOT del catálogo; sin DTOs de RAWG en la UI
 - [ ] Bloque 5: docs/ADRs sincronizados (recuento de tests corregido; pendiente validación)
-- [x] Bloque 6: **CA0.1 verificado** en vivo (modo avión real); **CA0.2 y CA0.3 pendientes**
+- [x] Bloque 6: **CA0.1 y CA0.2 verificados** en vivo; **CA0.3 bloqueado** por el coste de Storage
 - [ ] **Reglas de `firebase/storage.rules` publicadas** en Firebase Console (pendiente del propietario)
 - [ ] Auditoría firmada y validada por el propietario
 
