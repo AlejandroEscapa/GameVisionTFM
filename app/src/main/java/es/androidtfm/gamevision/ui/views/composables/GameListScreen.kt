@@ -2,6 +2,7 @@ package es.androidtfm.gamevision.ui.views.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +15,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -30,6 +35,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +59,7 @@ import androidx.navigation.NavController
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
+import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
@@ -94,6 +101,11 @@ fun GameListScreen(
 ) {
     var sortOption by rememberSaveable { mutableStateOf("Alfabético") }
     var selectedList by rememberSaveable { mutableStateOf("playing") }
+    // Filtros y búsqueda dentro de la biblioteca (F1 — Bloque 4, T1.14/T1.15)
+    var query by rememberSaveable { mutableStateOf("") }
+    var genreFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var platformFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    var filtersExpanded by rememberSaveable { mutableStateOf(false) }
 
     // Identidad desde el SSOT de sesión.
     val uid by userViewModel.currentUid.collectAsState()
@@ -132,13 +144,40 @@ fun GameListScreen(
         }
     }
 
-    val sortedItems: List<GameListItem> = remember(items, sortOption) {
-        val list = items.orEmpty()
+    // Filtros combinados (T1.14) + búsqueda en la biblioteca (T1.15).
+    val criteria = es.androidtfm.gamevision.data.library.LibraryFilters.Criteria(
+        query = query,
+        genre = genreFilter,
+        platform = platformFilter
+    )
+    val filteredItems: List<GameListItem>? = items?.filter { item ->
+        es.androidtfm.gamevision.data.library.LibraryFilters.matches(
+            name = item.name,
+            genres = item.genres,
+            platform = item.entry?.lastPlatform,
+            criteria = criteria
+        )
+    }
+
+    // Opciones de filtro disponibles: solo lo que el usuario tiene (sin ruido).
+    val availableGenres: List<String> = remember(library) {
+        library?.getOrNull().orEmpty().flatMap { it.genres }.map { it.trim() }
+            .filter { it.isNotBlank() }.distinct().sorted()
+    }
+    val availablePlatforms: List<String> = remember(library) {
+        library?.getOrNull().orEmpty().mapNotNull { it.lastPlatform?.takeIf { p -> p.isNotBlank() } }
+            .distinct().sorted()
+    }
+    val hasActiveFilters = criteria.isActive
+
+    val sortedItems: List<GameListItem> = remember(filteredItems, sortOption) {
+        val list = filteredItems.orEmpty()
         when (sortOption) {
             "Alfabético" -> list.sortedBy { it.name.lowercase() }
             "Año (Asc.)" -> list.sortedBy { it.released }
             "Año (Desc.)" -> list.sortedByDescending { it.released }
             "Más jugados" -> list.sortedByDescending { it.entry?.minutesTotal ?: 0 }
+            "Mejor nota" -> list.sortedByDescending { it.entry?.rating ?: 0.0 }
             else -> list
         }
     }
@@ -162,24 +201,111 @@ fun GameListScreen(
                     }
                 )
                 Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Filtros",
+                        tint = if (hasActiveFilters) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface
+                    )
+                }
                 SortMenuButton(currentSortOption = sortOption) { sortOption = it }
             }
         },
         content = { innerPadding ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                when {
-                    items == null -> LoadingIndicator()
-                    sortedItems.isEmpty() -> GameListEmptyState(selectedList)
-                    else -> GameList(
-                        gameItems = sortedItems,
-                        navController = navController,
-                        ddbbViewModel = ddbbViewModel,
-                        userViewModel = userViewModel
-                    )
+                // Búsqueda en la biblioteca (T1.15)
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = { Text("Buscar en tu biblioteca…") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { query = "" }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Borrar búsqueda")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                )
+
+                // Panel de filtros (T1.14): género y plataforma
+                if (filtersExpanded) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                        if (availableGenres.isNotEmpty()) {
+                            Text(
+                                "Género",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                availableGenres.forEach { g ->
+                                    GVChip(
+                                        text = g,
+                                        selected = genreFilter == g,
+                                        onClick = { genreFilter = if (genreFilter == g) null else g }
+                                    )
+                                }
+                            }
+                        }
+                        if (availablePlatforms.isNotEmpty()) {
+                            Text(
+                                "Plataforma",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 6.dp)
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                availablePlatforms.forEach { p ->
+                                    GVChip(
+                                        text = p,
+                                        selected = platformFilter == p,
+                                        onClick = { platformFilter = if (platformFilter == p) null else p }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when {
+                        items == null -> LoadingIndicator()
+                        sortedItems.isEmpty() && hasActiveFilters -> EmptyState(
+                            title = "Sin resultados",
+                            hint = "Prueba a cambiar la búsqueda o quitar los filtros",
+                            icon = Icons.Default.Search,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .wrapContentSize(Alignment.Center)
+                        )
+                        sortedItems.isEmpty() -> GameListEmptyState(selectedList)
+                        else -> GameList(
+                            gameItems = sortedItems,
+                            navController = navController,
+                            ddbbViewModel = ddbbViewModel,
+                            userViewModel = userViewModel
+                        )
+                    }
                 }
             }
         }
@@ -454,7 +580,8 @@ fun SortMenuButton(currentSortOption: String, onSortSelected: (String) -> Unit) 
         "Alfabético",
         "Año (Asc.)",
         "Año (Desc.)",
-        "Más jugados"
+        "Más jugados",
+        "Mejor nota"
     )
 
     Box {

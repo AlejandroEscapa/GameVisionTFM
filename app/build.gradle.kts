@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 // Propiedades locales (SDK, claves de API, keystore): nunca en el control de versiones
@@ -84,6 +85,14 @@ android {
     packaging.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
 }
 
+// Crashlytics: el runtime recoge crashes; la subida del mapping de símbolos
+// (de-ofuscación) se desactiva porque exige credenciales/red en el build y
+// aquí no están configuradas. Sin mapping, los informes llegan sin nombres de
+// método (no se pierden). Se activará al configurar el entorno de release.
+tasks.matching { it.name.startsWith("uploadCrashlyticsMappingFile") }.configureEach {
+    enabled = false
+}
+
 // KGP clásico (externo): fijamos jvmTarget 17 para alinear con compileOptions.
 kotlin {
     compilerOptions {
@@ -122,6 +131,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     // Dependency Injection
     implementation(libs.dagger.hilt.android)

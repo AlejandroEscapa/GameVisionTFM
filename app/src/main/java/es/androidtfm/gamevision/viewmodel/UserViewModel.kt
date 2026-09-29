@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import es.androidtfm.gamevision.data.analytics.AnalyticsEvents
+import es.androidtfm.gamevision.data.analytics.AnalyticsLogger
 import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.repository.UserRepository
 import es.androidtfm.gamevision.data.session.SavedPassword
@@ -46,7 +48,8 @@ import javax.inject.Inject
 class UserViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val userRepository: UserRepository,
-    private val profileImageStorage: ProfileImageStorage
+    private val profileImageStorage: ProfileImageStorage,
+    private val analytics: AnalyticsLogger
 ) : ViewModel() {
 
     private val emptyForm = mutableMapOf(
@@ -76,6 +79,11 @@ class UserViewModel @Inject constructor(
     val currentUid: StateFlow<String?> = session
         .map { (it as? SessionState.LoggedIn)?.uid }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    init {
+        // La analítica identifica al usuario por uid (nunca por email).
+        viewModelScope.launch { currentUid.collect { analytics.setUserId(it) } }
+    }
 
     /** true solo en modo invitado explícito. */
     val isGuest: StateFlow<Boolean> = session
@@ -163,7 +171,9 @@ class UserViewModel @Inject constructor(
                 password = password,
                 nameSurname = _formFields.value["nameSurname"].orEmpty(),
                 username = _formFields.value["username"].orEmpty()
-            ).onFailure { setMessage(it.toAuthUserMessage()) }
+            ).onSuccess {
+                analytics.log(AnalyticsEvents.SIGN_UP)
+            }.onFailure { setMessage(it.toAuthUserMessage()) }
             _isLoading.value = false
         }
     }
@@ -181,6 +191,7 @@ class UserViewModel @Inject constructor(
             _isLoading.value = true
             val result = sessionRepository.signIn(email, password)
             if (result.isSuccess) {
+                analytics.log(AnalyticsEvents.LOGIN, mapOf("method" to "password"))
                 sessionRepository.offerPasswordSave(context, email, password)
             } else {
                 setMessage(result.exceptionOrNull()?.toAuthUserMessage() ?: "No se pudo iniciar sesión")
@@ -194,6 +205,7 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             sessionRepository.signInWithGoogle(idToken)
+                .onSuccess { analytics.log(AnalyticsEvents.LOGIN, mapOf("method" to "google")) }
                 .onFailure { setMessage(it.toAuthUserMessage()) }
             _isLoading.value = false
         }

@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.room.Room
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
@@ -14,6 +15,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import es.androidtfm.gamevision.R
+import es.androidtfm.gamevision.data.analytics.AnalyticsLogger
+import es.androidtfm.gamevision.data.analytics.FirebaseAnalyticsLogger
 import es.androidtfm.gamevision.data.catalog.CachedGameCatalog
 import es.androidtfm.gamevision.data.catalog.GameCatalog
 import es.androidtfm.gamevision.data.catalog.local.CatalogDatabase
@@ -52,6 +55,13 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    /** Analítica de producto (F1 — instrumentación). */
+    @Provides
+    @Singleton
+    fun provideAnalyticsLogger(
+        @ApplicationContext context: Context
+    ): AnalyticsLogger = FirebaseAnalyticsLogger(FirebaseAnalytics.getInstance(context))
 
     @Provides
     @Singleton

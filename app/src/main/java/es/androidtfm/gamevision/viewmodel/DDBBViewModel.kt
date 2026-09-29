@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import es.androidtfm.gamevision.data.hltb.HltbPlaytimes
 import es.androidtfm.gamevision.data.hltb.HltbRepository
+import es.androidtfm.gamevision.data.analytics.AnalyticsEvents
+import es.androidtfm.gamevision.data.analytics.AnalyticsLogger
 import es.androidtfm.gamevision.data.library.GameLog
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.LibraryRepository
@@ -38,7 +40,8 @@ class DDBBViewModel @Inject constructor(
     private val repository: UserRepository,
     private val libraryRepository: LibraryRepository,
     private val recentGamesStore: RecentGamesStore,
-    private val hltbRepository: HltbRepository
+    private val hltbRepository: HltbRepository,
+    private val analytics: AnalyticsLogger
 ) : ViewModel() {
 
     // ------------------------------------------------------------------------
@@ -51,7 +54,12 @@ class DDBBViewModel @Inject constructor(
 
     /** Añade una ficha nueva a la biblioteca. */
     suspend fun addToLibrary(uid: String, entry: LibraryEntry): Result<Unit> =
-        libraryRepository.addGame(uid, entry)
+        libraryRepository.addGame(uid, entry).onSuccess {
+            analytics.log(
+                AnalyticsEvents.ADD_GAME,
+                mapOf("status" to entry.status.value, "favorite" to entry.favorite)
+            )
+        }
 
     /** Cambia el estado de una ficha (ajusta contadores en el mismo lote). */
     suspend fun updateStatus(
@@ -59,7 +67,12 @@ class DDBBViewModel @Inject constructor(
         gameId: String,
         from: LibraryStatus,
         to: LibraryStatus
-    ): Result<Unit> = libraryRepository.updateStatus(uid, gameId, from, to)
+    ): Result<Unit> = libraryRepository.updateStatus(uid, gameId, from, to).onSuccess {
+        analytics.log(
+            AnalyticsEvents.STATUS_CHANGE,
+            mapOf("from" to from.value, "to" to to.value)
+        )
+    }
 
     /** Fija (o borra con `rating = null`) la nota personal (F1/T1.3). */
     suspend fun setRating(
@@ -67,11 +80,15 @@ class DDBBViewModel @Inject constructor(
         gameId: String,
         previous: Double?,
         rating: Double?
-    ): Result<Unit> = libraryRepository.updateRating(uid, gameId, previous, rating)
+    ): Result<Unit> = libraryRepository.updateRating(uid, gameId, previous, rating).onSuccess {
+        analytics.log(AnalyticsEvents.RATE_GAME, mapOf("rating" to rating))
+    }
 
     /** Fija (o borra con `review = null`) la reseña escrita (F1/T1.4). */
     suspend fun setReview(uid: String, gameId: String, review: String?): Result<Unit> =
-        libraryRepository.updateReview(uid, gameId, review)
+        libraryRepository.updateReview(uid, gameId, review).onSuccess {
+            analytics.log(AnalyticsEvents.REVIEW_GAME, mapOf("has_text" to (review != null)))
+        }
 
     /** Marca o desmarca el favorito. */
     suspend fun setFavorite(uid: String, gameId: String, favorite: Boolean): Result<Unit> =
@@ -91,7 +108,9 @@ class DDBBViewModel @Inject constructor(
 
     /** Apunta una sesión del diario (ajusta contadores en el mismo lote). */
     suspend fun addSession(uid: String, session: PlaySession): Result<Unit> =
-        libraryRepository.addSession(uid, session)
+        libraryRepository.addSession(uid, session).onSuccess {
+            analytics.log(AnalyticsEvents.LOG_SESSION, mapOf("minutes" to session.minutes))
+        }
 
     /** Crea una partida/rejugada (F1/T1.5) con su plataforma (F1/T1.6). */
     suspend fun createLog(uid: String, log: GameLog): Result<Unit> =
@@ -117,7 +136,15 @@ class DDBBViewModel @Inject constructor(
 
     /** Fija (o borra con `minutes = null`) la duración manual de una ficha (T1.11). */
     suspend fun setManualPlaytime(uid: String, gameId: String, minutes: Int?): Result<Unit> =
-        libraryRepository.updateManualPlaytime(uid, gameId, minutes)
+        libraryRepository.updateManualPlaytime(uid, gameId, minutes).onSuccess {
+            analytics.log(AnalyticsEvents.SET_MANUAL_PLAYTIME, mapOf("minutes" to minutes))
+        }
+
+    /** Registra el usuario en la analítica (solo uid; nunca email). */
+    fun setAnalyticsUser(uid: String?) = analytics.setUserId(uid)
+
+    /** Marca la pantalla actual en la analítica (embudos de navegación). */
+    fun logScreen(name: String) = analytics.logScreen(name)
 
     // ------------------------------------------------------------------------
     // Historial local (recientes) — vive en el dispositivo

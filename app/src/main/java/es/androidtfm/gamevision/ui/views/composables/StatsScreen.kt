@@ -63,6 +63,9 @@ fun StatsScreen(
         entries?.let { StatisticsUtils.compute(it, System.currentTimeMillis()) }
     }
 
+    // Instrumentación: registro de visita (F1 — Bloque 4).
+    androidx.compose.runtime.LaunchedEffect(Unit) { ddbbViewModel.logScreen("stats") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

@@ -5,6 +5,7 @@ kotlin = "2.4.20"
 kotlinCompose = "2.4.20"
 kotlinSerialization = "2.4.20"
 ksp = "2.3.12"
+crashlytics = "3.0.8"
 googleServices = "4.5.0"
 
 # Android Core
@@ -96,6 +97,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 # Firebase
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 
 # Dependency Injection
@@ -130,3 +132,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltVersion" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }

@@ -87,6 +87,9 @@ fun DiaryScreen(
 
     var showLogDialog by remember { mutableStateOf(false) }
 
+    // Instrumentación: registro de visita (F1 — Bloque 4).
+    LaunchedEffect(Unit) { ddbbViewModel.logScreen("diary") }
+
     val sessionList = sessions?.getOrNull().orEmpty()
     val months = remember(sessionList) { DiaryUtils.groupByMonth(sessionList) }
     val namesById: Map<String, LibraryEntry> = remember(library) {

@@ -1,6 +1,6 @@
 # Fase 1 — El corazón del tracker
 
-**Estado:** 🔵 Aprobada · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
+**Estado:** 🟡 En cierre — bloques 1–4 hechos; falta el Bloque 5 (uid) antes de F2 · **Estimación:** 2 semanas · **Depende de:** F0 ✅ · **Bloquea a:** F2, F3, F4
 
 ## Progreso por bloques
 
@@ -10,8 +10,18 @@
 | **2 · Diario y tiempo** | Partidas/rejugadas (T1.5/T1.6), diario (T1.8/T1.9), horas (T1.10) | ✅ **Hecho y verificado** (29/09/2026) |
 | **2b · Duración HLTB** | Scraper HLTB con caché + respaldo manual (T1.11) | ✅ **Hecho y verificado** (29/09/2026) |
 | **3 · Estadísticas** | Pantalla de stats (T1.12), «Tu año en un vistazo» (T1.13) | ✅ **Hecho y verificado** (29/09/2026) |
-| **4 · Navegación + cierre** | Filtros/orden (T1.14/T1.15), instrumentación, auditoría de F1 | ⬜ Pendiente |
+| **4 · Navegación + cierre** | Filtros (T1.14), búsqueda (T1.15), instrumentación + auditoría | ✅ **Hecho y verificado** (29/09/2026) |
 | **5 · Migración `uid`** | ADR-0008 (clave única), antes de F2 | ⬜ Pendiente |
+
+### Bloque 4 cerrado (29/09/2026) — Navegación + cierre de F1
+- **Filtros combinados** (T1.14): estado (pestañas) + género + plataforma, y orden por alfabético,
+  año, más jugados y **mejor nota**. Lógica pura en `LibraryFilters` (testeable).
+- **Búsqueda en la biblioteca** (T1.15) por nombre, con estado vacío útil («Sin resultados · prueba a
+  cambiar la búsqueda o quitar los filtros»).
+- **Instrumentación**: `AnalyticsLogger` + `FirebaseAnalyticsLogger` (eventos de embudo y pantallas;
+  identificado por uid, nunca email) y **Crashlytics** añadido (mapping upload desactivado por entorno).
+- **Tests**: 7 nuevos (`LibraryFiltersTest`) → **70 unitarios** + **7 instrumentados**. Lint 0 errores.
+- **Auditoría de cierre de F1**: [informe](../metodologia/auditoria-fase-1-2026.md) → 🟡 Apta con reservas.
 
 ### Bloque 3 cerrado (29/09/2026) — Estadísticas (T1.12/T1.13)
 - **Pantalla de estadísticas** (ruta `stats`, acceso desde el perfil): KPIs (juegos, horas, nota media),
@@ -104,8 +114,8 @@ como diferenciación directa.
 - [x] T1.13 «Tu año en un vistazo» (semilla del Rewind de F3) — tarjeta con la actividad del año actual
 
 ### D. Navegación de la biblioteca
-- [ ] T1.14 Filtros y orden: por estado, nota, género, plataforma, fecha
-- [ ] T1.15 Búsqueda dentro de tu biblioteca (distinta del catálogo)
+- [x] T1.14 Filtros y orden: por estado (pestañas), género y plataforma; orden por alfabético, año, más jugados y mejor nota — `LibraryFilters`
+- [x] T1.15 Búsqueda dentro de tu biblioteca (por nombre) — campo de búsqueda en la lista
 
 ---
 
@@ -118,8 +128,8 @@ como diferenciación directa.
 - [x] CA1.4 El diario muestra las sesiones ordenadas por fecha y suma las horas — verificado en emulador.
 - [x] CA1.5 Las estadísticas cuadran con los datos introducidos — verificado E2E con el usuario QA (3 juegos, 1 completado, nota media 3,5).
       un usuario de prueba: 3 juegos, 2 completados, 1 abandonado → los números coinciden).
-- [ ] CA1.6 Los filtros combinados (estado + género) devuelven lo esperado.
-- [ ] CA1.7 Tests nuevos para el repositorio de biblioteca y el cálculo de estadísticas
+- [x] CA1.6 Los filtros combinados (estado + género) devuelven lo esperado — verificado E2E («halo»+RPG → sin resultados; solo RPG → Elden Ring).
+- [x] CA1.7 Tests de lógica pura (estadísticas, filtros, diario, notas, HLTB) — 70 unitarios + 7 instrumentados.
       (lógica pura, testeable en JVM sin Firebase).
 
 ---
