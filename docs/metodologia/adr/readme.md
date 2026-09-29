@@ -18,6 +18,7 @@
 | [0006](0006-cuenta-play-personal.md) | Cuenta de desarrollador de Google Play: personal | Aceptado | 2026-09-29 |
 | [0007](0007-foto-perfil-firestore.md) | Foto de perfil: base64 comprimido en Firestore (sin Cloud Storage) | Aceptado | 2026-09-29 |
 | [0008](0008-clave-unica-uid.md) | Clave única de identidad: `uid` en lugar de email | **Aceptado** | 2026-09-29 |
+| [0009](0009-reanclaje-design-system.md) | Re-anclaje del design system visual (fuente entrante; `DESIGN.md` provisional) | **Aceptado (pendiente de recibir la fuente)** | 2026-09-29 |
 
 ## Cuándo crear un ADR
 
