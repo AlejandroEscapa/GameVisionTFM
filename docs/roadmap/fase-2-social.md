@@ -1,6 +1,6 @@
 # Fase 2 — Social
 
-**Estado:** 🟡 Ejecutada y auditada (30/09/2026) — **pendiente de validación del propietario** para pasar a ✅ Completada · **Estimación:** 1 semana · **Depende de:** F1 · **Plan:** [FASE-2-SOCIAL-2026.md](../plan/FASE-2-SOCIAL-2026.md)
+**Estado:** ✅ **Completada (01/10/2026)** — auditoría validada por el propietario · **Estimación:** 1 semana · **Depende de:** F1 · **Plan:** [FASE-2-SOCIAL-2026.md](../plan/FASE-2-SOCIAL-2026.md)
 
 ## Objetivo
 
@@ -163,7 +163,7 @@ Bloques:  1 ✅  2 ✅  3 ✅  4 ✅  5 ✅  6 🟡
 
 **Reservas** → deuda con disparador, abajo.
 
-Firma del agente: **GameVision (agente)** · Validado por el propietario: **⏳ pendiente**
+Firma del agente: **GameVision (agente)** · Validado por el propietario: **✅ validada (01/10/2026)**
 
 ---
 
