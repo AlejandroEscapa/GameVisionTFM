@@ -31,16 +31,22 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
 
 ### Bloque 1 — Cerrar la verificación de F2
 
-- [ ] **1.1 CA2.4 por UI**: crear una lista **privada** desde la app y comprobar desde la otra cuenta
-  que no se ve (y que el documento vive en `gamelist_private`).
-- [ ] **1.2 Aviso de perfil no disponible**: estado explícito en `PublicProfileScreen` cuando la
-  lectura se deniega (privacidad/bloqueo) en vez de «Cargando perfil…» indefinido; autor irreconocible
-  en el feed con texto neutro. Cierra la deuda 3 de F2.
-- [ ] **1.3 Offline/red en Social**: modo avión real → Social/Buscar, like y post; sin crash, mensaje
-  claro y recuperación al reconectar. Cierra el punto 6 de la deuda de F2.
+- [x] **1.1 CA2.4 por UI**: creadas por UI con c1 «QA privada F2» (privada) y «QA publica F2»
+  (pública); admin confirma su ubicación en `gamelist_private` vs `gamelist`; desde c2 el perfil
+  de c1 muestra «Listas (1)» solo con la pública. Se conservan ambas listas como evidencia QA.
+- [x] **1.2 Aviso de perfil no disponible**: `_publicProfileError` en `SocialViewModel` (runCatching
+  en la lectura) + `NotAvailableNotice` en `PublicProfileScreen`. **Bug crítico cazado:** abrir el
+  perfil del bloqueador **crasheaba** la app (`PERMISSION_DENIED` no controlado); verificado crash con
+  APK viejo y aviso sin crash con el nuevo. Bonus: `searchByUsername` ya no se tumba entera si un
+  perfil individual está denegado. Cierra la deuda 3 de F2.
+- [x] **1.3 Offline/red en Social**: banner «Sin conexión · mostrando datos guardados» en el feed
+  (`rememberIsOnline()` en `ui/designsystem/components/Connectivity.kt`; `ACCESS_NETWORK_STATE`;
+  exige red **validada** — onAvailable sin validar daba falso online). E2E con avión real:
+  caché sin crash, like sincroniza al reconectar, post offline falla con mensaje, **conserva el
+  texto** y no se encola. Cierra el punto 6 de la deuda de F2.
 - [ ] **1.4 Instrumentados Compose de Social** (`app/src/androidTest`): like en un post, bloqueo filtra
   el feed y **hito de reseña** (ficha → reseña → tarjeta en el feed). Cuentas QA + limpieza posterior
-  con admin. Cierra el punto 5 de la deuda de F2.
+  con admin. Cierra el punto 5 de la deuda de F2. *(después del split D-C2)*
 - [ ] **1.5** Verificar el índice del feed cuando el propietario lo cree; conservar el fallback D2.8
   como resiliencia.
 

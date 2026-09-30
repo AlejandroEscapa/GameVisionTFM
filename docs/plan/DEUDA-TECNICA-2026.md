@@ -181,6 +181,12 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 
 ## 5. Registro
 
+- **30/09/2026 (noche, cierre pre-F3) — deudas 3 y 6 de F2 cerradas.** Aviso de perfil no
+  disponible (`NotAvailableNotice`; de paso se corrigió un **crash** al abrir el perfil del
+  bloqueador y una búsqueda que se tumbaba con perfiles denegados) y estados offline en Social
+  (banner de red validada + verificación E2E en avión: caché, like que sincroniza, post con
+  mensaje claro). CA2.4 verificado también por UI. Detalle en
+  [CIERRE-PRE-F3-2026.md](CIERRE-PRE-F3-2026.md).
 - **30/09/2026 (noche) — F2 ejecutada y auditada.** Se retoma la fase tras la pausa y se
   completa la verificación E2E con dos cuentas (CA2.1–CA2.10), el bloqueo REST sin autenticar
   (403 en listados) y la suite completa (118 unitarios · lint limpio · 94 checks de reglas ·

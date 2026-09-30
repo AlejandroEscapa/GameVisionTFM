@@ -78,6 +78,8 @@ import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
+import es.androidtfm.gamevision.ui.designsystem.components.rememberIsOnline
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -118,6 +120,7 @@ fun SocialScreen(
     val following by socialViewModel.following.collectAsState()
     val feedState by socialViewModel.feed.collectAsState()
     val searchResults by socialViewModel.searchResults.collectAsState()
+    val isOnline by rememberIsOnline()
 
     var tab by remember { mutableIntStateOf(0) }
     var searchText by remember { mutableStateOf("") }
@@ -157,6 +160,7 @@ fun SocialScreen(
             }
             when (tab) {
                 0 -> FeedTab(
+                    isOnline = isOnline,
                     feedState = feedState,
                     myUid = uid.orEmpty(),
                     postText = postText,
@@ -216,6 +220,7 @@ fun SocialScreen(
 /** Pestaña Feed (D2.3/D2.6): composer de posts, hitos y posts con me gusta. */
 @Composable
 private fun FeedTab(
+    isOnline: Boolean,
     feedState: Result<List<FeedEntryPair>>?,
     myUid: String,
     postText: String,
@@ -224,6 +229,12 @@ private fun FeedTab(
     onToggleLike: (FeedEntry) -> Unit,
     onOpenProfile: (String) -> Unit
 ) {
+    if (!isOnline) {
+        OfflineBanner(
+            text = "Sin conexión · mostrando datos guardados",
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
     when {
         feedState == null -> Box(
             modifier = Modifier.fillMaxSize(),
@@ -238,7 +249,7 @@ private fun FeedTab(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("No se pudo cargar el feed")
+            Text(if (!isOnline) "Sin conexión" else "No se pudo cargar el feed")
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = { /* el refresco llega desde el header */ }) { Text("Reintentar desde el icono de refresco") }
         }

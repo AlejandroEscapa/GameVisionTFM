@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
@@ -82,6 +83,7 @@ fun PublicProfileScreen(
 ) {
     val uid by userViewModel.currentUid.collectAsState()
     val profile by socialViewModel.publicProfile.collectAsState()
+    val profileError by socialViewModel.publicProfileError.collectAsState()
     val counts by socialViewModel.profileCounts.collectAsState()
     val listsState by socialViewModel.lists.collectAsState()
     val libraryState by socialViewModel.publicLibrary.collectAsState()
@@ -114,8 +116,11 @@ fun PublicProfileScreen(
             .fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        when (val p = profile) {
-            null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val p = profile
+        when {
+            p == null && profileError ->
+                NotAvailableNotice(onBack = { navController.popBackStack() })
+            p == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Cargando perfil…", style = MaterialTheme.typography.bodyMedium)
             }
             else -> LazyColumn(
@@ -362,6 +367,42 @@ private fun EmptyLine(text: String) {
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     )
+}
+
+/**
+ * Aviso de perfil no disponible: la lectura del perfil se denegó por privacidad
+ * o bloqueo (D2.2/D2.5) y no se puede distinguir el motivo. Se dice claro en vez
+ * de dejar «Cargando perfil…» en bucle.
+ */
+@Composable
+private fun NotAvailableNotice(onBack: () -> Unit) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Card(
+            modifier = Modifier.padding(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Filled.Lock,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+                Text("Perfil no disponible", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Esta cuenta es privada o no tienes acceso a su perfil.",
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(8.dp))
+                TextButton(onClick = onBack) { Text("Volver") }
+            }
+        }
+    }
 }
 
 /** Aviso de cuenta privada (D2.2): la regla denegó la lectura de la biblioteca. */

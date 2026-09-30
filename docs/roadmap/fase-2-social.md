@@ -75,6 +75,10 @@ hasta que existe el diario y las notas**.
   público, con el Top 4 poblado: «Top 4» → Elden Ring + The Legend of Zelda: The Minish Cap
   (biblioteca 3, listas 0).
 - [x] **CA2.4** Una lista privada **no** es visible desde otro usuario. → `gamelist_private`
+  **Reserva retirada (30/09, cierre pre-F3):** verificado también **por UI** — creada desde
+  *Editar perfil → Crear una lista* una lista privada («QA privada F2») y una pública
+  («QA publica F2») con c1; la admin confirma `users/{c1}/gamelist_private` vs `users/{c1}/gamelist`
+  y desde c2 el perfil de c1 muestra «Listas (1)» solo con la pública.
   deniega el listado sin sesión (403 verificado por REST); el perfil público solo pinta listas
   públicas (`loadLists(..., onlyPublic = true)`). *Reserva:* la lista privada se verificó por
   reglas + código, no con una lista creada a mano desde la UI (ver deuda 4).
@@ -138,8 +142,9 @@ Bloques:  1 ✅  2 ✅  3 ✅  4 ✅  5 ✅  6 🟡
 - **6 Experiencia y estados** 🟡 — revisados: **feed vacío** (estado con llamada a la acción),
   **feed en vivo**, **error de feed** (se reprodujo el fallo real y su mensaje antes del fix),
   **perfil público propio y ajeno**, **perfil privado** (lectura denegada → autor sin resolver),
-  diálogos de **reporte** y **bloqueo**. No revisados: **offline** y el aviso visual de perfil
-  privado para quien no sigue (deuda 3).
+  diálogos de **reporte** y **bloqueo**. Revisados además en el cierre pre-F3 (30/09):
+  **offline** (banner + caché + like que sincroniza) y **aviso de perfil no disponible**
+  (deudas 3 y 6 cerradas).
 
 **Hallazgos y acciones**
 
@@ -176,14 +181,21 @@ Detalle y modelo de datos en el [plan de F2](../plan/FASE-2-SOCIAL-2026.md).
    Mientras tanto funciona el fallback cliente (D2.8).
 2. **`reports` visibles solo en consola** — no hay pantalla de moderación. *Disparador:* cuando
    lleguen reportes reales (o en F4).
-3. **Aviso visual de perfil privado** para quien no sigue — el fallo de lectura deja el perfil en
-   «Cargando perfil…» (el autor del feed aparece sin nombre). *Disparador:* F3 (estados de UI).
+3. ~~Aviso visual de perfil privado~~ **CERRADO (30/09, cierre pre-F3)** — `PublicProfileScreen`
+   muestra ahora un estado «Perfil no disponible» cuando la lectura se deniega (privacidad o
+   bloqueo); antes quedaba en «Cargando perfil…» indefinido e incluso **crasheaba** la app al
+   abrir el perfil del bloqueador (`PERMISSION_DENIED` no controlado). La búsqueda ya no se tumba
+   si un perfil individual está denegado.
 4. **Lista privada creada a mano desde la UI** para CA2.4 (hoy verificado por reglas + código), y
    **hito de reseña desde la UI** (el panel de biblioteca no responde a `input tap`;
    ver deuda 5).
 5. **Instrumentados (Compose UI) de Social** — el panel de biblioteca de F1 no responde a `input
    tap` en el emulador, así que automatizar hitos/reseñas necesita test instrumentado.
-6. **Offline y errores de red** en Social sin revisar en esta pasada (bloque 6).
+6. ~~Offline y errores de red en Social~~ **CERRADO (30/09, cierre pre-F3)** — verificado E2E en
+   modo avión real con dos cuentas: el feed sirve caché sin crash, el like sincroniza al
+   reconectar, el post offline falla con mensaje claro y **conserva el texto** en el compositor
+   (no se encola: se reintenta a mano). Añadido banner «Sin conexión · mostrando datos guardados»
+   al feed (observa conectividad real con `NetworkCallback`; exige red **validada**).
 
 ## Errores acumulados por las interrupciones (30/09)
 

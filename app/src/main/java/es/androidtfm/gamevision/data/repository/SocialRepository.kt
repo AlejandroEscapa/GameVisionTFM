@@ -337,8 +337,12 @@ class SocialRepository @Inject constructor(
             .get().await()
             .documents.mapNotNull { doc ->
                 val targetUid = doc.getString("uid") ?: return@mapNotNull null
-                db.collection(USERS).document(targetUid).get().await().data
-                    ?.let { targetUid to UserProfile.fromMap(it) }
+                // Un perfil denegado (p. ej. bloqueo) NO debe tumbar la búsqueda entera:
+                // se omite ese resultado y el resto se muestra.
+                runCatching {
+                    db.collection(USERS).document(targetUid).get().await().data
+                        ?.let { targetUid to UserProfile.fromMap(it) }
+                }.getOrNull()
             }
     }.onFailure { Log.e(TAG, "searchByUsername($prefix): ${it.message}") }
 

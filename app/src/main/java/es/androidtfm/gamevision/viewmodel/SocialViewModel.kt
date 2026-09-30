@@ -183,15 +183,27 @@ class SocialViewModel @Inject constructor(
     private val _publicProfile = MutableStateFlow<UserProfile?>(null)
     val publicProfile: StateFlow<UserProfile?> = _publicProfile.asStateFlow()
 
+    /** true cuando la lectura del perfil público se deniega (privado o bloqueo). */
+    private val _publicProfileError = MutableStateFlow(false)
+    val publicProfileError: StateFlow<Boolean> = _publicProfileError.asStateFlow()
+
     private val _profileCounts = MutableStateFlow(0L to 0L)
     val profileCounts: StateFlow<Pair<Long, Long>> = _profileCounts.asStateFlow()
 
     /** Carga el perfil público de `uid` + sus contadores (seguidores, seguidos). */
     fun loadPublicProfile(uid: String) {
+        _publicProfileError.value = false
         viewModelScope.launch {
-            val profile = db.collection(USERS).document(uid).get().await()
-                .data?.let { UserProfile.fromMap(it) }
-            _publicProfile.value = profile
+            runCatching {
+                db.collection(USERS).document(uid).get().await()
+                    .data?.let { UserProfile.fromMap(it) }
+            }.onSuccess { _publicProfile.value = it }
+                .onFailure {
+                    // Denegado por privacidad o bloqueo (D2.2/D2.5): estado explícito, sin bucle.
+                    Log.e(TAG, "loadPublicProfile($uid): ${it.message}")
+                    _publicProfile.value = null
+                    _publicProfileError.value = true
+                }
         }
         viewModelScope.launch {
             _profileCounts.value = socialRepository.followCounts(uid).getOrDefault(0L to 0L)
@@ -200,6 +212,7 @@ class SocialViewModel @Inject constructor(
 
     fun clearPublicProfile() {
         _publicProfile.value = null
+        _publicProfileError.value = false
         _profileCounts.value = 0L to 0L
     }
 
