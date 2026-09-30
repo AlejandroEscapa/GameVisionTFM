@@ -68,7 +68,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -106,9 +105,12 @@ fun SocialScreen(
     isDarkTheme: Boolean,
     paddingValues: PaddingValues,
     navController: NavHostController,
-    userViewModel: UserViewModel = viewModel(),
-    ddbbViewModel: DDBBViewModel = viewModel(),
-    socialViewModel: SocialViewModel = viewModel()
+    // Sin defaults: cada ruta pasa sus ViewModels explícitos. Un default viewModel() en
+    // el ámbito de un composable() de navegación no tiene la factory de @HiltViewModel
+    // y CRASHEA en runtime (probado en E2E). El compilador ahora lo impide.
+    userViewModel: UserViewModel,
+    ddbbViewModel: DDBBViewModel,
+    socialViewModel: SocialViewModel
 ) {
     // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
     val uid by userViewModel.currentUid.collectAsState()

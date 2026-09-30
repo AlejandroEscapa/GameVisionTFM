@@ -232,10 +232,11 @@ fun NavHost(
                     paddingValues = paddingValues,
                     navController = navController,
                     userViewModel = userViewModel,
-                    // OJO: sin esto se evalúa el default `viewModel()` del composable, que en el
-                    // ámbito de un composable() no tiene la factory de Hilt y CRASHEA. El resto
-                    // de rutas ya lo pasaban; esta era la única que no.
-                    ddbbViewModel = ddbbViewModel
+                    ddbbViewModel = ddbbViewModel,
+                    // OJO (probado en E2E): sin esto se evalúa el default viewModel() del
+                    // composable, que no tiene la factory de @HiltViewModel y CRASHEA al
+                    // abrir la pestaña social. Todas las rutas pasan sus ViewModels explícitos.
+                    socialViewModel = socialViewModel
                 )
             }
         }
