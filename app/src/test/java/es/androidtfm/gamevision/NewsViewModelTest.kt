@@ -118,7 +118,7 @@ class NewsViewModelTest {
 
         val formatted = viewModel.formatPublishedAt("2026-01-05T14:30:00Z")
 
-        assertEquals("14:30 05-01-2026", formatted)
+        assertEquals("14:30 05-01", formatted) // formato del propietario: HH:mm dd-MM (sin año)
     }
 
     @Test
