@@ -60,6 +60,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import java.util.Calendar
 
 /*
@@ -103,11 +104,7 @@ fun DiaryScreen(
             .padding(paddingValues)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = "Diario",
-                style = MaterialTheme.typography.displayLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            GVScreenHeader(title = "Diario", modifier = Modifier.padding(horizontal = 16.dp))
 
             // Totales (T1.10)
             Row(

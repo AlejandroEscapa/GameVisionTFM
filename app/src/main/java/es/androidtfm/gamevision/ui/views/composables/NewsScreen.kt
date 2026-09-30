@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
@@ -82,26 +83,9 @@ fun NewsScreen(
             .padding(paddingValues)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Cabecera de la pantalla de noticias
+        // Cabecera unificada de pantalla (GVScreenHeader)
         item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = MaterialTheme.shapes.medium
-                    )
-                    .padding(16.dp, 10.dp, 16.dp, 0.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Noticias",
-                    style = MaterialTheme.typography.headlineLarge,
-                    textAlign = TextAlign.Start
-                )
-            }
+            GVScreenHeader(title = "Noticias", modifier = Modifier.padding(horizontal = 16.dp))
         }
         // Se muestran los artículos, un aviso de error sin conexión o el estado de carga
         if (newsState.value.isNotEmpty()) {

@@ -415,7 +415,7 @@ fun GameContent(game: CatalogGame?) {
                 )
                 game?.released?.takeIf { it.isNotEmpty() }?.let {
                     Text(
-                        text = it,
+                        text = fechaEspanol(it),
                         style = MaterialTheme.typography.labelLarge,
                         color = Color.White.copy(alpha = 0.8f)
                     )
@@ -458,7 +458,7 @@ fun GameContent(game: CatalogGame?) {
                     MetaDataRow(
                         icon = Icons.Default.DateRange,
                         label = "Lanzamiento",
-                        value = g.released,
+                        value = fechaEspanol(g.released),
                         extraPadding = true // Nuevo parámetro para padding adicional
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -800,4 +800,13 @@ private fun DurationRow(label: String, minutes: Int) {
             color = MaterialTheme.colorScheme.onSurface
         )
     }
+}
+
+
+/** "yyyy-MM-dd" (RAWG) → "dd-MM-yyyy" (formato español); si no encaja, devuelve la original. */
+internal fun fechaEspanol(iso: String): String = try {
+    val p = iso.trim().split("-")
+    if (p.size == 3) "${p[2]}-${p[1]}-${p[0]}" else iso
+} catch (_: Exception) {
+    iso
 }

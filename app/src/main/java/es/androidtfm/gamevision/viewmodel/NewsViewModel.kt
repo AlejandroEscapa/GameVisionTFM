@@ -85,8 +85,8 @@ class NewsViewModel @Inject constructor(
     fun formatPublishedAt(dateString: String): String {
         // Define el formato de entrada (ISO 8601)
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        // Define el formato de salida (HH:mm dd-MM-yyyy)
-        val outputFormat = SimpleDateFormat("HH:mm dd-MM-yyyy", Locale.getDefault())
+        // Formato de salida pedido por el propietario: HH:mm dd-MM
+        val outputFormat = SimpleDateFormat("HH:mm dd-MM", Locale.getDefault())
 
         return try {
             // Convierte la cadena de fecha a un objeto Date

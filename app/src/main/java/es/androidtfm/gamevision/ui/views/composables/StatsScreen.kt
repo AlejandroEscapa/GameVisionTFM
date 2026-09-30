@@ -36,6 +36,7 @@ import es.androidtfm.gamevision.data.library.LibraryInsights
 import es.androidtfm.gamevision.data.library.StatisticsUtils
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
@@ -73,11 +74,7 @@ fun StatsScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = "Estadísticas",
-            style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+        GVScreenHeader(title = "Estadísticas")
 
         when {
             entries == null -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

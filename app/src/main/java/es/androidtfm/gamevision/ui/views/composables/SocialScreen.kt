@@ -78,6 +78,7 @@ import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.ui.designsystem.components.rememberIsOnline
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
@@ -255,19 +256,14 @@ private fun FeedTab(
         }
         else -> {
             val entries = feedState.getOrDefault(emptyList())
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item {
-                    CommentBar(
-                        comment = postText,
-                        onCommentChange = onPostTextChange,
-                        onSendClick = onPublish,
-                        commentMaxLength = 280
-                    )
-                }
+            // El compositor vive ABAJO (fijo, tipo chat): el feed llena y el
+            // campo de publicación se queda siempre a la vista, bajo la lista.
+            Column(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                 if (entries.isEmpty()) {
                     item {
                         Column(
@@ -287,14 +283,21 @@ private fun FeedTab(
                         }
                     }
                 }
-                items(entries, key = { it.id }) { pair ->
-                    FeedCard(
-                        pair = pair,
-                        isMine = pair.entry.authorUid == myUid,
-                        onToggleLike = { onToggleLike(pair.entry) },
-                        onOpenProfile = { onOpenProfile(pair.entry.authorUid) }
-                    )
+                    items(entries, key = { it.id }) { pair ->
+                        FeedCard(
+                            pair = pair,
+                            isMine = pair.entry.authorUid == myUid,
+                            onToggleLike = { onToggleLike(pair.entry) },
+                            onOpenProfile = { onOpenProfile(pair.entry.authorUid) }
+                        )
+                    }
                 }
+                CommentBar(
+                    comment = postText,
+                    onCommentChange = onPostTextChange,
+                    onSendClick = onPublish,
+                    commentMaxLength = 280
+                )
             }
         }
     }
@@ -470,42 +473,24 @@ fun SocialHeader(
     onRefresh: () -> Unit,
     navController: NavController
 ) {
-    // Encabezado de la pantalla que muestra el título y botones para navegación y refresco
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = MaterialTheme.shapes.medium
-            )
-            .padding(16.dp, 10.dp, 16.dp, 0.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    // Encabezado unificado de pantalla (GVScreenHeader): título + acciones
+    GVScreenHeader(
+        title = "Timeline",
+        modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        // Título principal del timeline
-        Text(
-            text = "Timeline",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Start
-        )
-        // Grupo de botones: navegación a la lista de amigos y refresco de datos
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { navController.navigate("friendlist") }) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Amigos",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            IconButton(onClick = onRefresh) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Refrescar",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+        IconButton(onClick = { navController.navigate("friendlist") }) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Amigos",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        IconButton(onClick = onRefresh) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = "Refrescar",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -679,7 +664,7 @@ fun CommentBar(
         TextField(
             value = comment,
             onValueChange = onCommentChange,
-            placeholder = { Text("Haz un comentario...") },
+            placeholder = { Text("Publica en la feed") },
             shape = RoundedCornerShape(24.dp),
             modifier = Modifier
                 .fillMaxWidth()

@@ -1,5 +1,11 @@
 package es.androidtfm.gamevision.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import es.androidtfm.gamevision.ui.designsystem.GVMotion
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,7 +69,28 @@ fun NavHost(
 
     NavHost(
         navController = navController,
-        startDestination = "main"
+        startDestination = "main",
+        // Transiciones de navegación unificadas (criterio del propietario: la
+        // default se siente barata). Patrón estándar Android: la nueva pantalla
+        // entra desde la derecha, la anterior sale un tercio hacia la izquierda
+        // con fade; al volver (gesto o botón atrás) se invierte. Física del
+        // design system (GVMotion), 300 ms.
+        enterTransition = {
+            slideInHorizontally(tween(300, easing = GVMotion.EnterEasing)) { it } +
+                fadeIn(tween(300, easing = GVMotion.EnterEasing))
+        },
+        exitTransition = {
+            slideOutHorizontally(tween(300, easing = GVMotion.ExitEasing)) { -it / 3 } +
+                fadeOut(tween(300, easing = GVMotion.ExitEasing))
+        },
+        popEnterTransition = {
+            slideInHorizontally(tween(300, easing = GVMotion.EnterEasing)) { -it / 3 } +
+                fadeIn(tween(300, easing = GVMotion.EnterEasing))
+        },
+        popExitTransition = {
+            slideOutHorizontally(tween(300, easing = GVMotion.ExitEasing)) { it } +
+                fadeOut(tween(300, easing = GVMotion.ExitEasing))
+        }
     ) {
         // Pantalla principal de la aplicación
         composable("main") {

@@ -67,6 +67,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
@@ -192,23 +193,15 @@ fun GameListScreen(
 
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-                    .background(MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium)
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+            GVScreenHeader(
+                title = headerTitle(selectedList),
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                HeaderTitle(selectedList)
-                Spacer(modifier = Modifier.width(8.dp))
                 SelectListButton(
                     onListSelected = { selected ->
                         selectedList = selected
                     }
                 )
-                Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
                     Icon(
                         imageVector = Icons.Default.FilterList,
@@ -511,46 +504,48 @@ private fun GameListCard(
                             }
                         }
                     }
-                    // F2/T2.6: añadir/quitar de listas curadas (solo con sesión).
-                    if (socialViewModel != null && item.entry != null) {
-                        IconButton(
-                            onClick = { showListDialog = true },
-                            modifier = Modifier.size(32.dp).padding(bottom = 10.dp, end = 10.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlaylistAdd,
-                                contentDescription = "Añadir a una lista",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp)
-                            )
+                    // Acciones de tarjeta: añadir a lista JUNTO a eliminar,
+                    // misma fila, mismo tamaño, sin paddings internos que las separen.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // F2/T2.6: añadir/quitar de listas curadas (solo con sesión).
+                        if (socialViewModel != null && item.entry != null) {
+                            IconButton(
+                                onClick = { showListDialog = true },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlaylistAdd,
+                                    contentDescription = "Añadir a una lista",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         }
-                    }
-                    // Solo las fichas de la biblioteca se pueden eliminar
-                    // (el historial local no se toca desde aquí).
-                    item.entry?.let { entry ->
-                        IconButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    val userId = uid
-                                    if (userId.isNullOrBlank()) {
-                                        userViewModel.setMessage("Inicia sesión para gestionar tu biblioteca")
-                                        return@launch
+                        // Solo las fichas de la biblioteca se pueden eliminar
+                        // (el historial local no se toca desde aquí).
+                        item.entry?.let { entry ->
+                            IconButton(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        val userId = uid
+                                        if (userId.isNullOrBlank()) {
+                                            userViewModel.setMessage("Inicia sesión para gestionar tu biblioteca")
+                                            return@launch
+                                        }
+                                        libraryViewModel.removeFromLibrary(userId, entry).onFailure { error ->
+                                            userViewModel.setMessage("No se pudo eliminar: ${error.message}")
+                                        }
                                     }
-                                    libraryViewModel.removeFromLibrary(userId, entry).onFailure { error ->
-                                        userViewModel.setMessage("No se pudo eliminar: ${error.message}")
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .size(32.dp)
-                                .padding(bottom = 10.dp, end = 10.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar juego",
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(27.dp)
-                            )
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar juego",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -559,9 +554,7 @@ private fun GameListCard(
     }
 }
 
-@Composable
-fun HeaderTitle(selectedList: String) {
-    val title = when (selectedList) {
+fun headerTitle(selectedList: String): String = when (selectedList) {
         "all" -> "Biblioteca"
         "playing" -> "Jugando"
         "completed" -> "Completados"
@@ -574,12 +567,6 @@ fun HeaderTitle(selectedList: String) {
         "history" -> "Historial"
         else -> "Jugando"
     }
-    Text(
-        text = title,
-        style = MaterialTheme.typography.displayLarge,
-        textAlign = TextAlign.Start
-    )
-}
 
 @Composable
 fun SelectListButton(
