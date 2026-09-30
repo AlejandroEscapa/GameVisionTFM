@@ -20,14 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.AlertDialog
@@ -73,6 +65,14 @@ import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.EllipsisVertical
+import com.composables.icons.lucide.ListFilter
+import com.composables.icons.lucide.ListPlus
+import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.X
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -204,7 +204,7 @@ fun GameListScreen(
                 )
                 IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
                     Icon(
-                        imageVector = Icons.Default.FilterList,
+                        imageVector = Lucide.ListFilter,
                         contentDescription = "Filtros",
                         tint = if (hasActiveFilters) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface
@@ -224,11 +224,11 @@ fun GameListScreen(
                     value = query,
                     onValueChange = { query = it },
                     placeholder = { Text("Buscar en tu biblioteca…") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    leadingIcon = { Icon(Lucide.Search, contentDescription = null) },
                     trailingIcon = {
                         if (query.isNotEmpty()) {
                             IconButton(onClick = { query = "" }) {
-                                Icon(Icons.Default.Clear, contentDescription = "Borrar búsqueda")
+                                Icon(Lucide.X, contentDescription = "Borrar búsqueda")
                             }
                         }
                     },
@@ -294,7 +294,7 @@ fun GameListScreen(
                         sortedItems.isEmpty() && hasActiveFilters -> EmptyState(
                             title = "Sin resultados",
                             hint = "Prueba a cambiar la búsqueda o quitar los filtros",
-                            icon = Icons.Default.Search,
+                            icon = Lucide.Search,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
@@ -353,7 +353,7 @@ fun GameListEmptyState(selectedList: String = "playing") {
         EmptyState(
             title = title,
             hint = hint,
-            icon = Icons.Default.Clear
+            icon = Lucide.X
         )
     }
 }
@@ -514,7 +514,7 @@ private fun GameListCard(
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PlaylistAdd,
+                                    imageVector = Lucide.ListPlus,
                                     contentDescription = "Añadir a una lista",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(22.dp)
@@ -540,7 +540,7 @@ private fun GameListCard(
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Delete,
+                                    imageVector = Lucide.Trash2,
                                     contentDescription = "Eliminar juego",
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(22.dp)
@@ -590,7 +590,7 @@ fun SelectListButton(
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = true }, modifier = Modifier.size(24.dp)) {
             Icon(
-                imageVector = Icons.Default.ArrowDropDown,
+                imageVector = Lucide.ChevronDown,
                 contentDescription = "Seleccionar lista",
                 tint = MaterialTheme.colorScheme.onSurface
             )
@@ -623,7 +623,7 @@ fun SortMenuButton(currentSortOption: String, onSortSelected: (String) -> Unit) 
     Box {
         IconButton(onClick = { expanded = true }, modifier = Modifier.size(24.dp)) {
             Icon(
-                imageVector = Icons.Default.MoreVert,
+                imageVector = Lucide.EllipsisVertical,
                 contentDescription = "Ordenar",
                 tint = MaterialTheme.colorScheme.onSurface
             )

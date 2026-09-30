@@ -18,14 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.PersonAddAlt1
-import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -59,6 +51,14 @@ import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.Ban
+import com.composables.icons.lucide.CircleUserRound
+import com.composables.icons.lucide.Flag
+import com.composables.icons.lucide.Lock
+import com.composables.icons.lucide.UserMinus
+import com.composables.icons.lucide.UserPlus
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -263,7 +263,7 @@ private fun ProfileHeader(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                    Icon(Lucide.ArrowLeft, contentDescription = "Volver")
                 }
                 Spacer(Modifier.width(4.dp))
                 if (profile.imageUri.isNotBlank()) {
@@ -277,7 +277,7 @@ private fun ProfileHeader(
                     )
                 } else {
                     Icon(
-                        Icons.Filled.AccountCircle,
+                        Lucide.CircleUserRound,
                         contentDescription = null,
                         modifier = Modifier.size(56.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -298,14 +298,14 @@ private fun ProfileHeader(
                 if (!isMe) {
                     IconButton(onClick = onReport) {
                         Icon(
-                            Icons.Filled.Flag,
+                            Lucide.Flag,
                             contentDescription = "Reportar",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = onBlock) {
                         Icon(
-                            Icons.Filled.Block,
+                            Lucide.Ban,
                             contentDescription = "Bloquear",
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -334,7 +334,7 @@ private fun ProfileHeader(
                     }
                 ) {
                     Icon(
-                        if (isFollowing) Icons.Filled.PersonRemove else Icons.Filled.PersonAddAlt1,
+                        if (isFollowing) Lucide.UserMinus else Lucide.UserPlus,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
@@ -384,7 +384,7 @@ private fun NotAvailableNotice(onBack: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    Icons.Filled.Lock,
+                    Lucide.Lock,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -414,7 +414,7 @@ private fun PrivateNotice() {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Filled.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Lucide.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.width(8.dp))
             Text(
                 "Esta cuenta es privada: su biblioteca no es visible.",

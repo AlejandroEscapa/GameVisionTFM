@@ -16,7 +16,7 @@ activity = "1.13.0"
 
 # Jetpack Compose (todo gobernado por el BOM, salvo iconos que están congelados en 1.7.x)
 composeBom = "2026.09.00"
-iconsExtended = "1.7.8"
+lucideIcons = "2.2.1"
 navigationCompose = "2.10.2"
 
 # UI & Media
@@ -77,7 +77,7 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "iconsExtended" }
+lucide-icons = { group = "com.composables", name = "icons-lucide-cmp", version.ref = "lucideIcons" }
 
 # UI Components
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }

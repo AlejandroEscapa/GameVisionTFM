@@ -21,9 +21,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -62,6 +59,9 @@ import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import java.util.Calendar
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.X
 
 /*
  * Pantalla del Diario (F1 — Bloque 2): T1.8, T1.9 y T1.10.
@@ -137,7 +137,7 @@ fun DiaryScreen(
                     EmptyState(
                         title = "Tu diario está vacío",
                         hint = "Apúntale una sesión a un juego de tu biblioteca",
-                        icon = Icons.Default.Clear
+                        icon = Lucide.X
                     )
                 }
 
@@ -178,7 +178,7 @@ fun DiaryScreen(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Apuntar sesión")
+            Icon(Lucide.Plus, contentDescription = "Apuntar sesión")
         }
     }
 

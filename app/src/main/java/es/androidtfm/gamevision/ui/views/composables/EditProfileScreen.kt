@@ -12,20 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -56,6 +47,13 @@ import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.CircleUserRound
+import com.composables.icons.lucide.Info
+import com.composables.icons.lucide.MapPin
+import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.User
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -210,14 +208,14 @@ fun ProfileField(
 ) {
     // Mapa que relaciona cada campo con su etiqueta y su ícono correspondiente.
     val fieldData = mapOf(
-        "nameSurname" to ("Introduce tu nombre completo" to Icons.Outlined.AccountCircle),
-        "username" to ("Introduce tu nombre de usuario" to Icons.Outlined.Person),
-        "description" to ("Añade una descripción" to Icons.Outlined.Info),
-        "country" to ("Indica tu país" to Icons.Outlined.LocationOn)
+        "nameSurname" to ("Introduce tu nombre completo" to Lucide.CircleUserRound),
+        "username" to ("Introduce tu nombre de usuario" to Lucide.User),
+        "description" to ("Añade una descripción" to Lucide.Info),
+        "country" to ("Indica tu país" to Lucide.MapPin)
     )
 
     // Se obtienen la etiqueta y el ícono según el campo; se usa un valor por defecto si no se encuentra.
-    val (labelText, icon) = fieldData[fieldKey] ?: ("" to Icons.Outlined.Edit)
+    val (labelText, icon) = fieldData[fieldKey] ?: ("" to Lucide.Pencil)
 
     OutlinedTextField(
         value = value,
@@ -340,7 +338,7 @@ private fun TopGamesEditor(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = if (selected) Icons.Filled.Star else Icons.Filled.StarBorder,
+                            imageVector = if (selected) Lucide.Star else Lucide.Star,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )

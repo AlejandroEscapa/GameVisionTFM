@@ -25,14 +25,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -70,6 +62,13 @@ import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.CircleUserRound
+import com.composables.icons.lucide.Mail
+import com.composables.icons.lucide.MapPin
+import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.X
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -253,7 +252,7 @@ fun ProfileImage(
             )
         } else {
             Icon(
-                imageVector = Icons.Filled.Edit,
+                imageVector = Lucide.Pencil,
                 contentDescription = "Añadir foto de perfil",
                 tint = Color.White,
                 modifier = Modifier
@@ -346,12 +345,12 @@ private fun ProfileDetailsCard(description: String, country: String, email: Stri
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(16.dp))
             ProfileDetailItem(
-                icon = Icons.Default.LocationOn,
+                icon = Lucide.MapPin,
                 title = "Location",
                 value = if (country.isEmpty()) "Not specified" else country
             )
             ProfileDetailItem(
-                icon = Icons.Default.Email,
+                icon = Lucide.Mail,
                 title = "Contact",
                 value = email
             )
@@ -406,7 +405,7 @@ private fun ProfileActionsSection(
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Star,
+                imageVector = Lucide.Star,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -421,7 +420,7 @@ private fun ProfileActionsSection(
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle,
+                imageVector = Lucide.CircleUserRound,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -436,7 +435,7 @@ private fun ProfileActionsSection(
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Edit,
+                imageVector = Lucide.Pencil,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -463,7 +462,7 @@ private fun ProfileActionsSection(
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Clear,
+                imageVector = Lucide.X,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )

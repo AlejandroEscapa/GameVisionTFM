@@ -13,10 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.StarHalf
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,6 +32,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import es.androidtfm.gamevision.data.library.LibraryStatus
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.StarHalf
 
 /*
  * Componentes de la biblioteca rica (F1 — Bloque 1).
@@ -88,9 +87,9 @@ fun RatingStars(
             for (i in 1..5) {
                 val fill = current - i + 1 // >0 relleno; 0.5 mitad; <=0 vacío
                 val icon = when {
-                    fill >= 1.0 -> Icons.Filled.Star
-                    fill >= 0.5 -> Icons.Filled.StarHalf
-                    else -> Icons.Filled.StarBorder
+                    fill >= 1.0 -> Lucide.Star
+                    fill >= 0.5 -> Lucide.StarHalf
+                    else -> Lucide.Star
                 }
                 Icon(
                     imageVector = icon,

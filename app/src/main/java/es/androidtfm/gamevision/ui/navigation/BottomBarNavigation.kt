@@ -1,5 +1,7 @@
 package es.androidtfm.gamevision.ui.navigation
 
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Search
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -19,13 +21,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Newspaper
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +42,11 @@ import androidx.navigation.NavController
 import androidx.window.core.layout.WindowSizeClass
 import es.androidtfm.gamevision.ui.designsystem.GVMotion
 import es.androidtfm.gamevision.viewmodel.UserViewModel
+import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.Library
+import com.composables.icons.lucide.Newspaper
+import com.composables.icons.lucide.User
+import com.composables.icons.lucide.Users
 
 /*
  * Dock flotante de navegación ("Galería", barra 2026 — ver
@@ -76,17 +76,17 @@ fun AppScaffold(
 
     val items = if (isGuest) {
         listOf(
-            BottomNavItem("news", Icons.Default.Newspaper, "Noticias"),
-            BottomNavItem("gameSearch", Icons.Filled.Search, "Buscar")
+            BottomNavItem("news", Lucide.Newspaper, "Noticias"),
+            BottomNavItem("gameSearch", Lucide.Search, "Buscar")
         )
     } else {
         listOf(
-            BottomNavItem("gameSearch", Icons.Filled.Search, "Buscar"),
-            BottomNavItem("gamelist", Icons.AutoMirrored.Filled.List, "Biblioteca"),
-            BottomNavItem("diary", Icons.AutoMirrored.Filled.MenuBook, "Diario"),
-            BottomNavItem("news", Icons.Default.Newspaper, "Noticias"),
-            BottomNavItem("profile", Icons.Default.Person, "Perfil"),
-            BottomNavItem("social", Icons.Default.Face, "Social")
+            BottomNavItem("gameSearch", Lucide.Search, "Buscar"),
+            BottomNavItem("gamelist", Lucide.Library, "Biblioteca"),
+            BottomNavItem("diary", Lucide.BookOpen, "Diario"),
+            BottomNavItem("news", Lucide.Newspaper, "Noticias"),
+            BottomNavItem("profile", Lucide.User, "Perfil"),
+            BottomNavItem("social", Lucide.Users, "Social")
         )
     }
 

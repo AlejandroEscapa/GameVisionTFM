@@ -14,9 +14,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.VideogameAsset
 import es.androidtfm.gamevision.ui.designsystem.GameVisionTheme
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Gamepad2
 
 /*
  * GameVision Design System — EmptyState (ver DESIGN.md §6).
@@ -30,7 +30,7 @@ fun EmptyState(
     title: String,
     hint: String,
     modifier: Modifier = Modifier,
-    icon: ImageVector = Icons.Outlined.VideogameAsset
+    icon: ImageVector = Lucide.Gamepad2
 ) {
     Column(
         modifier = modifier

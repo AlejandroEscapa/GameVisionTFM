@@ -29,14 +29,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -87,6 +79,13 @@ import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.CircleUserRound
+import com.composables.icons.lucide.Heart
+import com.composables.icons.lucide.RefreshCw
+import com.composables.icons.lucide.Send
+import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.User
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -319,7 +318,7 @@ private fun FeedCard(
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Filled.AccountCircle,
+                    imageVector = Lucide.CircleUserRound,
                     contentDescription = null,
                     modifier = Modifier
                         .size(32.dp)
@@ -371,7 +370,7 @@ private fun FeedCard(
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InteractionButton(
-                    icon = if (entry.likedByMe) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    icon = if (entry.likedByMe) Lucide.Heart else Lucide.Heart,
                     text = "${entry.likesCount}",
                     onClick = onToggleLike,
                     isDarkMode = false
@@ -410,7 +409,7 @@ private fun SearchTab(
                 placeholder = { Text("Nombre de usuario (mín. 3)") },
                 trailingIcon = {
                     IconButton(onClick = onSearch, enabled = searchText.trim().length >= 3) {
-                        Icon(Icons.Filled.Person, contentDescription = "Buscar")
+                        Icon(Lucide.User, contentDescription = "Buscar")
                     }
                 }
             )
@@ -443,7 +442,7 @@ private fun SearchTab(
                                 .padding(vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Filled.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(Lucide.CircleUserRound, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(user.nameSurname.ifBlank { user.username }, style = MaterialTheme.typography.titleSmall)
@@ -480,14 +479,14 @@ fun SocialHeader(
     ) {
         IconButton(onClick = { navController.navigate("friendlist") }) {
             Icon(
-                imageVector = Icons.Default.AccountCircle,
+                imageVector = Lucide.CircleUserRound,
                 contentDescription = "Amigos",
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
         IconButton(onClick = onRefresh) {
             Icon(
-                imageVector = Icons.Default.Refresh,
+                imageVector = Lucide.RefreshCw,
                 contentDescription = "Refrescar",
                 tint = MaterialTheme.colorScheme.onSurface
             )
@@ -580,7 +579,7 @@ fun SocialCard(
                 horizontalArrangement = Arrangement.Center
             ) {
                 InteractionButton(
-                    icon = Icons.Default.FavoriteBorder,
+                    icon = Lucide.Heart,
                     text = "Me gusta",
                     onClick = { /* Acción para 'Me gusta' */ },
                     isDarkMode = isDarkMode
@@ -588,7 +587,7 @@ fun SocialCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 if (userUid == ownerUid) {
                     InteractionButton(
-                        icon = Icons.Default.Delete,
+                        icon = Lucide.Trash2,
                         text = "Borrar",
                         onClick = {
                             coroutineScope.launch {
@@ -678,7 +677,7 @@ fun CommentBar(
                     modifier = Modifier.scale(sendButtonScale)
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        imageVector = Lucide.Send,
                         contentDescription = "Enviar comentario",
                         tint = if (comment.isNotBlank())
                             MaterialTheme.colorScheme.primary

@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +37,8 @@ import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 
 /*
  * Pantalla de estadísticas (F1 — Bloque 3, T1.12 y T1.13).
@@ -90,7 +90,7 @@ fun StatsScreen(
                 EmptyState(
                     title = "Todavía no hay datos",
                     hint = "Añade juegos a tu biblioteca y aquí aparecerán tus números",
-                    icon = Icons.Default.Clear
+                    icon = Lucide.X
                 )
             }
 

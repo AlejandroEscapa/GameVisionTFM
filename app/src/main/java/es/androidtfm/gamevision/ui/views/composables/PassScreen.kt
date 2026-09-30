@@ -15,8 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -46,6 +44,8 @@ import androidx.navigation.NavController
 import es.androidtfm.gamevision.R
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Mail
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -132,7 +132,7 @@ fun PassScreen(
                         shape = RoundedCornerShape(12.dp),
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Outlined.Email,
+                                imageVector = Lucide.Mail,
                                 contentDescription = "Icono de correo"
                             )
                         }

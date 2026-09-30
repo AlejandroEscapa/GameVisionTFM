@@ -19,17 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -74,6 +63,16 @@ import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Calendar
+import com.composables.icons.lucide.Heart
+import com.composables.icons.lucide.Info
+import com.composables.icons.lucide.Plus
+import com.composables.icons.lucide.Share2
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.User
+import com.composables.icons.lucide.X
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -206,7 +205,7 @@ fun GameDetails(
                             },
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.Share, contentDescription = "Compartir")
+                            Icon(Lucide.Share2, contentDescription = "Compartir")
                             Spacer(Modifier.width(8.dp))
                             Text("Compartir")
                         }
@@ -217,7 +216,7 @@ fun GameDetails(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(
-                                imageVector = if (entry != null) Icons.Default.Star else Icons.Default.Add,
+                                imageVector = if (entry != null) Lucide.Star else Lucide.Plus,
                                 contentDescription = "Biblioteca"
                             )
                             Spacer(Modifier.width(8.dp))
@@ -438,32 +437,32 @@ fun GameContent(game: CatalogGame?) {
             Column(modifier = Modifier.padding(16.dp)) {
                 game?.let { g ->
                     MetaDataRow(
-                        icon = Icons.Default.Star,
+                        icon = Lucide.Star,
                         label = "Veces recomendado",
                         value = g.suggestionsCount.toString()
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
-                        icon = Icons.Default.Star,
+                        icon = Lucide.Star,
                         label = "Metacritic Score",
                         value = g.metacritic?.toString() ?: "N/A"
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
-                        icon = Icons.Default.Star,
+                        icon = Lucide.Star,
                         label = "RAWG Rating",
                         value = g.rating.toString()
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
-                        icon = Icons.Default.DateRange,
+                        icon = Lucide.Calendar,
                         label = "Lanzamiento",
                         value = fechaEspanol(g.released),
                         extraPadding = true // Nuevo parámetro para padding adicional
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
-                        icon = Icons.Default.Info,
+                        icon = Lucide.Info,
                         label = "Género",
                         value = g.genres.joinToString()
                     )
@@ -536,7 +535,7 @@ private fun ErrorMessage(error: String?, onRetry: () -> Unit = {}) {
             modifier = Modifier.padding(24.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Clear,
+                imageVector = Lucide.X,
                 contentDescription = "Error",
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(48.dp)
@@ -564,7 +563,7 @@ private fun EmptyState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = Lucide.User,
                 contentDescription = "Sin datos",
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -633,8 +632,8 @@ private fun LibraryPanel(
                     )
                     IconButton(onClick = onToggleFavorite) {
                         Icon(
-                            imageVector = if (entry.favorite) Icons.Default.Favorite
-                            else Icons.Default.FavoriteBorder,
+                            imageVector = if (entry.favorite) Lucide.Heart
+                            else Lucide.Heart,
                             contentDescription = if (entry.favorite) "Quitar de favoritos"
                             else "Marcar como favorito",
                             tint = MaterialTheme.colorScheme.primary
@@ -642,7 +641,7 @@ private fun LibraryPanel(
                     }
                     IconButton(onClick = onRemove) {
                         Icon(
-                            imageVector = Icons.Default.Delete,
+                            imageVector = Lucide.Trash2,
                             contentDescription = "Quitar de la biblioteca",
                             tint = MaterialTheme.colorScheme.error
                         )

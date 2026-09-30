@@ -16,12 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -56,6 +50,12 @@ import androidx.navigation.NavController
 import es.androidtfm.gamevision.R
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.CircleUserRound
+import com.composables.icons.lucide.Eye
+import com.composables.icons.lucide.Lock
+import com.composables.icons.lucide.Mail
+import com.composables.icons.lucide.User
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -211,10 +211,10 @@ private fun RegistrationForm(
                     leadingIcon = {
                         Icon(
                             imageVector = when (field) {
-                                "nameSurname" -> Icons.Outlined.AccountCircle
-                                "username" -> Icons.Outlined.Person
-                                "email" -> Icons.Outlined.Email
-                                else -> Icons.Outlined.Lock
+                                "nameSurname" -> Lucide.CircleUserRound
+                                "username" -> Lucide.User
+                                "email" -> Lucide.Mail
+                                else -> Lucide.Lock
                             },
                             contentDescription = null
                         )
@@ -229,7 +229,7 @@ private fun RegistrationForm(
                                 }
                             ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.Visibility,
+                                    imageVector = Lucide.Eye,
                                     contentDescription = "Mostrar contraseña",
                                     tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                                 )

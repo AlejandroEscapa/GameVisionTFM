@@ -21,9 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -64,6 +61,9 @@ import es.androidtfm.gamevision.ui.designsystem.components.GameGridSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.Search
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -196,7 +196,7 @@ fun SearchScreen(
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
+                        imageVector = Lucide.ChevronDown,
                         contentDescription = "Abrir menú de ordenación",
                         modifier = Modifier.size(24.dp)
                     )
@@ -416,7 +416,7 @@ fun SearchBar(
                     modifier = Modifier.scale(searchButtonScale)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Search,
+                        imageVector = Lucide.Search,
                         contentDescription = "Iniciar búsqueda",
                         tint = MaterialTheme.colorScheme.primary
                     )
