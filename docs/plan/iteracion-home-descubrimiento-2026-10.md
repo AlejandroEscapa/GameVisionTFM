@@ -14,7 +14,7 @@
   (`selectedList = "playing"`). Lo que pide el propietario se interpreta como: el **panel de
   filtros arranca plegado** y el botón de filtros lo abre/cierra (hoy no está claro qué memoria
   tiene) → verificar el comportamiento real y dejar: filtro visible-solo-al-pedirlo, sin estado
-  que persista por accidente. **D-UX1** (aclaración, 2 min con el propietario).
+  que persista por accidente. **D-UX1 ✅ CERRADA (01/10)**: los filtros arrancan DESPLEGADOS y el botón los desactiva/activa.
 - **A2. Perfil en grid 1×3.** Estadísticas · Seguidos · Editar perfil pasan a tres **cuadrados**
   en fila (accesibilidad: 48 dp mínimo); «Cerrar sesión» al fondo, discreto; la **biografía gana
   protagonismo** (tipografía mayor, zona propia con el location/contact debajo). Material ya en su
@@ -35,8 +35,7 @@ auditoría UI):
 3. **«Descubre»** — página aleatoria de RAWG con **semilla diaria** (fecha del día): cada día,
    una sorpresa distinta; para cuentas nuevas sin historial es la fila por defecto.
 
-**D-B1:** orden y mezcla de las filas (recomendación: 1-2-3). **D-B2:** ¿más filas cuando haya
-más datos (p. ej. «De tu wishlist»)? Sí, con disparador.
+**D-B1 ✅ CERRADA (01/10)**: orden 1-2-3. **D-B2 ✅** filas extra con disparador.
 
 ## Bloque C — Onboarding post-registro (bio + localización + géneros)
 
@@ -49,8 +48,7 @@ localización → mini-onboarding de **3 pasos saltables** (nunca bloqueante, en
    «Porque jugaste X»**: el onboarding deja de ser decorativo y siembra las recomendaciones.
 
 Con Google: si el `users/{uid}` ya existe con bio rellenada, se salta directo (sin repetir).
-**D-C1:** ¿géneros en el onboarding o solo bio+localización como pidió? Recomendación: los tres
-pasos (los géneros son el gancho de todo lo demás).
+**D-C1 ✅ CERRADA (01/10)**: los tres pasos, con géneros; se guardan en `users/{uid}` como array (consultable con array-contains, la forma óptima para filtrar por género sin subcolecciones).
 
 ## Bloque D — Ajustes: brain-storming de opciones (para los placeholders)
 
@@ -68,10 +66,8 @@ donde aún no hay funcionalidad:
 | **Reprod. automática / Imágenes solo Wi-Fi** | ahorro de datos | placeholder |
 | **Acerca de** | Versión, licencias OSS, contacto soporte, política privacidad (requisito Play) | placeholder con versión real |
 
-**D-E1:** ¿cuáles de los placeholders pasan a reales en esta iteración? Recomendación: solo modo
-noche + privacidad (mover) + cerrar sesión (mover); el resto con «Próximamente» honesto.
-**D-E2:** ¿Ajustes al dock? **Recomendación: no** — el dock son acciones de producto; Ajustes
-vive en la cabecera del Perfil (patrón universal). Se reevalúa en F4.5.
+**D-E1 ✅ CERRADA (01/10)**: modo noche + privacidad (movida desde editar perfil) + cerrar sesión; resto «Próximamente».
+**D-E2 ✅ CERRADA (01/10)**: Ajustes fuera del dock, en la cabecera del Perfil.
 
 ## Bloque F — La nueva Home «Para ti» (la pieza grande)
 
@@ -103,9 +99,7 @@ baraja) se decide al verlo vivo.
 **Datos nuevos necesarios:** solo la API de precios (CheapShark, gratis, reglas documentadas) —
 todo lo demás existe (biblioteca, HLTB, motor T3.1, NewsAPI, feed, RAWG).
 
-**D-F1:** orden de las secciones (recomendación: el de arriba). **D-F2:** ¿el histórico del diario
-como sub-pantalla desde la tarjeta «Continúa»? (recomendación: sí). **D-F3:** ¿aceptamos que las
-Noticias salgan del dock ya, o esperamos a validar la Home? (recomendación: en la misma iteración).
+**D-F1 ✅ CERRADA (01/10)**: orden propuesto. **D-F2 ✅ CERRADA (01/10)**: sí, sub-pantalla. **D-F3 ✅ CERRADA (01/10)**: sí — «en home».
 
 ## Orden de ejecución (02/10)
 
