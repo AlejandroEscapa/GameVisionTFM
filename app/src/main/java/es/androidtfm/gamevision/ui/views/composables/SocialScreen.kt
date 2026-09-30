@@ -311,7 +311,7 @@ private fun FeedCard(
     val entry = pair.entry
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -524,18 +524,17 @@ fun SocialCard(
     onMessageDeleted: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    // Fondo según el tema: en modo oscuro se usa un color acorde; en light, blanco.
-    val backgroundColor = if (isDarkMode) MaterialTheme.colorScheme.surfaceVariant else Color.White
-
+    // Superficie de tarjeta del sistema (pergamino en claro, tile-1 en oscuro):
+    // la separación viene del tono, nunca de una sombra (regla del design system).
     Card(
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
-            modifier = Modifier.background(backgroundColor)
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Encabezado: avatar, nombre y hora
             Row(
