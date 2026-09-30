@@ -124,12 +124,10 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
   crearlo, 403.) Cuando exista, el fallback cliente de D2.8 deja de usarse y yo lo verifico por REST.
 
 **2. Huellas SHA-1 en Firebase** (Authentication → Método de acceso → Google → Huellas digitales):
-- **Release:** `F9:D6:25:31:B2:DD:03:B3:3E:89:89:E5:28:CF:F6:D7:4F:84:F5:9E` (calculada del keystore
-  de `.secrets/`, coincide con la registrada el 29/09 — confirmar que ya está guardada).
-- **CI:** `51:57:9F:4E:5F:20:2E:49:28:FE:53:B1:E4:F3:AB:53:6C:8D:D8:E9` — keystore de CI nuevo
-  (`scripts/ci/debug-ci.keystore`, solo debug, D-OP2). Con ella, el job `instrumented` del CI puede
-  hablar con Firebase; además sube el secreto `GOOGLE_SERVICES_B64` (base64 del
-  `app/google-services.json` real) en Settings → Secrets → Actions.
+✅ **HECHO (01/10)** — release `F9:D6:25:…:F5:9E` y CI `51:57:9F:…:D8:E9` registradas (verificadas
+en captura de la configuración del proyecto). Queda el complemento en GitHub: secreto
+`GOOGLE_SERVICES_B64` (base64 del `app/google-services.json` real, generado en
+`.secrets/google-services.b64.txt`) → Settings → Secrets and variables → Actions.
 
 **3. Copia del keystore**: `gamevision-release.jks` + `gamevision-release-keys.txt` a un gestor de
 secretos (ya existen en `.secrets/`; la copia es la redancia).
