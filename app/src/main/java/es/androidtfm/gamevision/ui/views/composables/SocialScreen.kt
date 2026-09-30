@@ -26,16 +26,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -46,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -71,9 +73,14 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import es.androidtfm.gamevision.data.model.ChatMessage
+import es.androidtfm.gamevision.data.model.FeedEntry
+import es.androidtfm.gamevision.data.model.MilestoneTypes
+import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.model.Friend
+import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -100,63 +107,31 @@ fun SocialScreen(
     paddingValues: PaddingValues,
     navController: NavHostController,
     userViewModel: UserViewModel = viewModel(),
-    ddbbViewModel: DDBBViewModel = viewModel()
+    ddbbViewModel: DDBBViewModel = viewModel(),
+    socialViewModel: SocialViewModel = viewModel()
 ) {
-    val coroutineScope = rememberCoroutineScope()
     // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
     val uid by userViewModel.currentUid.collectAsState()
-
-    var friendsList by remember { mutableStateOf(emptyList<Friend>()) }
-    var messageList by remember { mutableStateOf(emptyList<ChatMessage>()) }
-
-    // uid → nombre visible: el muro es de propios y amigos, y hay que mostrar el autor real.
     val myProfile by userViewModel.profile.collectAsState()
-    val authors = remember(friendsList, myProfile, uid) {
-        buildMap {
-            uid?.takeIf { it.isNotBlank() }?.let { myUid ->
-                put(
-                    myUid,
-                    myProfile.nameSurname.takeIf { it.isNotBlank() } ?: myProfile.username
-                )
-            }
-            friendsList.forEach { friend ->
-                put(friend.uid, friend.nameSurname.takeIf { it.isNotBlank() } ?: friend.username)
-            }
-        }
-    }
-    var isLoading by remember { mutableStateOf(true) }
-    var comment by remember { mutableStateOf("") }
-    val commentMaxLength = 280
-    var refreshTrigger by remember { mutableIntStateOf(0) }
+    val following by socialViewModel.following.collectAsState()
+    val feedState by socialViewModel.feed.collectAsState()
+    val searchResults by socialViewModel.searchResults.collectAsState()
 
-    // Carga amigos y mensajes (modelos tipados; los fallos se muestran al usuario)
-    LaunchedEffect(uid, refreshTrigger) {
+    var tab by remember { mutableIntStateOf(0) }
+    var searchText by remember { mutableStateOf("") }
+    var postText by remember { mutableStateOf("") }
+    val postMaxLength = 280
+
+    // Grafo de seguimiento + feed en vivo (CA2.2). Re-observa al cambiar a quién sigues.
+    LaunchedEffect(uid) {
         val userUid = uid
-        if (userUid.isNullOrBlank()) {
-            friendsList = emptyList()
-            messageList = emptyList()
-            isLoading = false
-            return@LaunchedEffect
+        if (userUid != null && userUid.isNotBlank()) socialViewModel.refreshFollowEdges(userUid)
+    }
+    LaunchedEffect(uid, following) {
+        val userUid = uid
+        if (userUid != null && userUid.isNotBlank()) {
+            socialViewModel.observeFeed(following.toList() + userUid, userUid)
         }
-        isLoading = true
-
-        val currentFriends = ddbbViewModel.getFriends(userUid).getOrElse { error ->
-            userViewModel.setMessage("No se pudieron cargar tus amigos: ${error.message}")
-            emptyList()
-        }
-        friendsList = currentFriends
-
-        // Muro: mensajes propios y de cada amigo
-        val allMessages = mutableListOf<ChatMessage>()
-        ddbbViewModel.getMessages(userUid).onSuccess { allMessages.addAll(it) }
-        currentFriends.forEach { friend ->
-            ddbbViewModel.getMessages(friend.uid).onSuccess { allMessages.addAll(it) }
-        }
-        val formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
-        messageList = allMessages.sortedByDescending {
-            runCatching { LocalDateTime.parse(it.time, formatter) }.getOrNull()
-        }
-        isLoading = false
     }
 
     Surface(
@@ -167,61 +142,306 @@ fun SocialScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             SocialHeader(
-                onRefresh = { refreshTrigger++ },
+                onRefresh = { socialViewModel.refreshFeed() },
                 navController = navController
             )
+            TabRow(selectedTabIndex = tab) {
+                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text("Feed") })
+                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text("Buscar") })
+            }
+            when (tab) {
+                0 -> FeedTab(
+                    feedState = feedState,
+                    myUid = uid.orEmpty(),
+                    postText = postText,
+                    onPostTextChange = { if (it.length <= postMaxLength) postText = it },
+                    onPublish = {
+                        val userUid = uid
+                        if (userUid != null && postText.isNotBlank()) {
+                            socialViewModel.publishPost(userUid, postText.trim()) { result ->
+                                if (result.isSuccess) postText = ""
+                                else userViewModel.setMessage("No se pudo publicar: ${result.exceptionOrNull()?.message}")
+                            }
+                        }
+                    },
+                    onToggleLike = { entry ->
+                        val userUid = uid
+                        if (userUid != null) {
+                            socialViewModel.toggleLike(entry, userUid) { result ->
+                                if (result.isFailure) {
+                                    userViewModel.setMessage("No se pudo actualizar el me gusta")
+                                }
+                                socialViewModel.refreshFeed()
+                            }
+                        }
+                    },
+                    onOpenProfile = { authorUid ->
+                        if (authorUid.isNotBlank()) navController.navigate("publicProfile/$authorUid")
+                    }
+                )
+                else -> SearchTab(
+                    searchText = searchText,
+                    onSearchTextChange = { searchText = it },
+                    onSearch = { socialViewModel.search(searchText) },
+                    results = searchResults,
+                    myUid = uid.orEmpty(),
+                    followingUids = following,
+                    onFollow = { target ->
+                        val userUid = uid
+                        if (userUid != null) socialViewModel.follow(userUid, target) {
+                            if (it.isFailure) userViewModel.setMessage("No se pudo seguir")
+                            socialViewModel.refreshFeed()
+                        }
+                    },
+                    onUnfollow = { target ->
+                        val userUid = uid
+                        if (userUid != null) socialViewModel.unfollow(userUid, target) {
+                            if (it.isFailure) userViewModel.setMessage("No se pudo dejar de seguir")
+                            socialViewModel.refreshFeed()
+                        }
+                    },
+                    onOpenProfile = { authorUid -> navController.navigate("publicProfile/$authorUid") }
+                )
+            }
+        }
+    }
+}
+
+/** Pestaña Feed (D2.3/D2.6): composer de posts, hitos y posts con me gusta. */
+@Composable
+private fun FeedTab(
+    feedState: Result<List<FeedEntryPair>>?,
+    myUid: String,
+    postText: String,
+    onPostTextChange: (String) -> Unit,
+    onPublish: () -> Unit,
+    onToggleLike: (FeedEntry) -> Unit,
+    onOpenProfile: (String) -> Unit
+) {
+    when {
+        feedState == null -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                repeat(4) { GameRowSkeleton() }
+            }
+        }
+        feedState.isFailure -> Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("No se pudo cargar el feed")
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = { /* el refresco llega desde el header */ }) { Text("Reintentar desde el icono de refresco") }
+        }
+        else -> {
+            val entries = feedState.getOrDefault(emptyList())
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(messageList) { message ->
-                    SocialCard(
-                        userUid = uid.orEmpty(),
-                        ownerUid = message.ownerUid,
-                        authorName = authors[message.ownerUid].orEmpty(),
-                        message = message.text,
-                        hora = message.time,
-                        messageID = message.id,
-                        ddbbViewModel = ddbbViewModel,
-                        isDarkMode = isDarkTheme,
-                        onMessageDeleted = { refreshTrigger++ }
+                item {
+                    CommentBar(
+                        comment = postText,
+                        onCommentChange = onPostTextChange,
+                        onSendClick = onPublish,
+                        commentMaxLength = 280
+                    )
+                }
+                if (entries.isEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "Aquí aparecerán los hitos de la gente que sigues",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Busca jugadores por su nombre de usuario y síguelos; o estrena el feed con tu primer post.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+                items(entries, key = { it.id }) { pair ->
+                    FeedCard(
+                        pair = pair,
+                        isMine = pair.entry.authorUid == myUid,
+                        onToggleLike = { onToggleLike(pair.entry) },
+                        onOpenProfile = { onOpenProfile(pair.entry.authorUid) }
                     )
                 }
             }
-            CommentBar(
-                comment = comment,
-                onCommentChange = { newText ->
-                    if (newText.length <= commentMaxLength) comment = newText
-                },
-                onSendClick = {
-                    uid?.let { userUid ->
-                        val formattedDateTime = LocalDateTime.now().format(
-                            DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")
-                        )
-                        coroutineScope.launch {
-                            ddbbViewModel.publishMessage(userUid, comment, formattedDateTime)
-                                .onSuccess {
-                                    comment = ""
-                                    refreshTrigger++
-                                }
-                                .onFailure {
-                                    userViewModel.setMessage("No se pudo publicar: ${it.message}")
-                                }
-                        }
+        }
+    }
+}
+
+/** Tarjeta de una entrada del feed: hito o post, con me gusta (D2.6). */
+@Composable
+private fun FeedCard(
+    pair: FeedEntryPair,
+    isMine: Boolean,
+    onToggleLike: () -> Unit,
+    onOpenProfile: () -> Unit
+) {
+    val entry = pair.entry
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable(onClick = onOpenProfile),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = pair.authorName.ifBlank { pair.authorUsername.ifBlank { "Jugador" } },
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Text(
+                        text = pair.authorUsername.ifBlank { "" },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+                if (entry.isMilestone) {
+                    Text(
+                        text =                when (entry.milestoneType) {
+                            MilestoneTypes.COMPLETED -> "Completó"
+                            MilestoneTypes.REVIEW -> "Reseñó"
+                            MilestoneTypes.LIST_PUBLIC -> "Publicó una lista"
+                            else -> "Hito"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            val milestoneLine = when (entry.milestoneType) {
+                MilestoneTypes.COMPLETED ->
+                    "se ha completado ${entry.gameName.ifBlank { "un juego" }} 🎉"
+                MilestoneTypes.REVIEW ->
+                    "ha reseñado ${entry.gameName.ifBlank { "un juego" }}"
+                else -> entry.text
+            }
+            Text(text = milestoneLine, style = MaterialTheme.typography.bodyMedium)
+            if (entry.rating != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Su nota: ${entry.rating}/5",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                InteractionButton(
+                    icon = if (entry.likedByMe) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    text = "${entry.likesCount}",
+                    onClick = onToggleLike,
+                    isDarkMode = false
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = if (isMine) "tuyo" else "",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                )
+            }
+        }
+    }
+}
+
+/** Pestaña Buscar (D2.4): por prefijo de username, con seguir/dejar de seguir. */
+@Composable
+private fun SearchTab(
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    results: Result<List<Pair<String, UserProfile>>>?,
+    myUid: String,
+    followingUids: Set<String>,
+    onFollow: (String) -> Unit,
+    onUnfollow: (String) -> Unit,
+    onOpenProfile: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = onSearchTextChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                placeholder = { Text("Nombre de usuario (mín. 3)") },
+                trailingIcon = {
+                    IconButton(onClick = onSearch, enabled = searchText.trim().length >= 3) {
+                        Icon(Icons.Filled.Person, contentDescription = "Buscar")
                     }
-                },
-                commentMaxLength = commentMaxLength
+                }
             )
         }
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    repeat(4) { GameRowSkeleton() }
+        Spacer(Modifier.height(8.dp))
+        when {
+            results == null -> Text(
+                "Encuentra jugadores por su nombre de usuario y sigue su progreso.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+            results.isFailure -> Text(
+                "Escribe al menos 3 caracteres",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            else -> {
+                val users = results.getOrDefault(emptyList())
+                if (users.isEmpty()) {
+                    Text("Sin resultados", style = MaterialTheme.typography.bodyMedium)
+                }
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    // El uid viaja JUNTO al perfil (ADR-0008): nunca user.email como uid.
+                    items(users, key = { it.first }) { (targetUid, user) ->
+                        val isFollowing = targetUid != myUid && followingUids.contains(targetUid)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onOpenProfile(targetUid) }
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Filled.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(8.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(user.nameSurname.ifBlank { user.username }, style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    "@${user.username}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                            if (targetUid != myUid) {
+                                TextButton(onClick = {
+                                    if (isFollowing) onUnfollow(targetUid) else onFollow(targetUid)
+                                }) {
+                                    Text(if (isFollowing) "Siguiendo" else "Seguir")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -489,14 +709,6 @@ fun CommentBar(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SocialScreenPreview() {
-    SocialScreen(
-        isDarkTheme = true,
-        paddingValues = PaddingValues(),
-        navController = rememberNavController(),
-        userViewModel = viewModel(),
-        ddbbViewModel = viewModel()
-    )
-}
+// Preview retirada: la pantalla depende de ViewModels con inyección Hilt (UserViewModel,
+// SocialViewModel) y de Firebase real; sin la factory de Hilt no es previsualizable.
+// La cobertura visual de esta pantalla se hace en emulador (ver docs de verificación F2).

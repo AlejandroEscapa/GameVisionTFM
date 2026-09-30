@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import kotlinx.coroutines.launch
@@ -23,6 +25,7 @@ import es.androidtfm.gamevision.ui.views.composables.LoginScreen
 import es.androidtfm.gamevision.ui.views.composables.NewsScreen
 import es.androidtfm.gamevision.ui.views.composables.PassScreen
 import es.androidtfm.gamevision.ui.views.composables.ProfileScreen
+import es.androidtfm.gamevision.ui.views.composables.PublicProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.RegisterScreen
 import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
@@ -134,7 +137,8 @@ fun NavHost(
                     onThemeChange = onThemeChange,
                     paddingValues = paddingValues,
                     ddbbViewModel = ddbbViewModel,
-                    userViewModel = userViewModel
+                    userViewModel = userViewModel,
+                    socialViewModel = socialViewModel
                 )
                 }
             }
@@ -181,7 +185,9 @@ fun NavHost(
                 isDarkTheme = isDarkTheme,
                 paddingValues = PaddingValues(),
                 navController = navController,
-                userViewModel = userViewModel
+                userViewModel = userViewModel,
+                socialViewModel = socialViewModel,
+                ddbbViewModel = ddbbViewModel
             )
         }
 
@@ -265,6 +271,27 @@ fun NavHost(
                     )
                 }
                 }
+            }
+        }
+
+        // Perfil público de otro jugador (F2/T2.4): {uid} es la clave — ADR-0008.
+        composable(
+            route = "publicProfile/{uid}",
+            arguments = listOf(navArgument("uid") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val profileUid = backStackEntry.arguments?.getString("uid").orEmpty()
+            AppScaffold(
+                navController = navController,
+                userViewModel = userViewModel
+            ) { paddingValues ->
+                PublicProfileScreen(
+                    profileUid = profileUid,
+                    paddingValues = paddingValues,
+                    navController = navController,
+                    userViewModel = userViewModel,
+                    socialViewModel = socialViewModel,
+                    ddbbViewModel = ddbbViewModel
+                )
             }
         }
 

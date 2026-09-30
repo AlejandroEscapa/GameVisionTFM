@@ -1,5 +1,7 @@
 package es.androidtfm.gamevision.ui.views.composables
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -16,23 +18,42 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import es.androidtfm.gamevision.data.library.LibraryEntry
+import es.androidtfm.gamevision.data.model.GameList
+import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -59,7 +80,9 @@ fun EditProfileScreen(
     isDarkTheme: Boolean,
     paddingValues: PaddingValues,
     navController: NavController?,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    socialViewModel: SocialViewModel,
+    ddbbViewModel: DDBBViewModel
 ) {
     // Campos de edición, precargados una vez desde el perfil del SSOT.
     val profile by userViewModel.profile.collectAsState()
@@ -72,11 +95,15 @@ fun EditProfileScreen(
             userViewModel.updateFormField("nameSurname", profile.nameSurname)
             userViewModel.updateFormField("username", profile.username)
             userViewModel.updateFormField("description", profile.description)
+            // D2.2: estado del interruptor de privacidad (default público).
             userViewModel.updateFormField("country", profile.country)
             userViewModel.updateFormField("email", profile.email)
         }
     }
 
+    var isPrivate by remember { mutableStateOf(profile.isPrivate) }
+    val library by ddbbViewModel.observeLibrary(userViewModel.currentUid.value.orEmpty())
+        .collectAsState(initial = null)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -85,11 +112,32 @@ fun EditProfileScreen(
     ) {
         Spacer(modifier = Modifier.height(150.dp))
         // Se utiliza un componente personalizado que agrupa los campos del perfil.
+        // ---- F2 — Social: privacidad (D2.2), Top 4 (T2.5), listas (T2.6) ----
+        PrivacyCard(isPrivate = isPrivate, onToggle = { isPrivate = it })
+        TopGamesEditor(
+            selectedIds = profile.topGameIds,
+            library = library?.getOrNull(),
+            onPersist = { ids -> userViewModel.updateProfile(mapOf("topGameIds" to ids)) }
+        )
+        CreateListCard(
+            onCreate = { name, description, listPublic ->
+                val currentUid = userViewModel.currentUid.value.orEmpty()
+                if (currentUid.isNotBlank() && name.isNotBlank()) {
+                    socialViewModel.saveList(
+                        currentUid,
+                        GameList(name = name.trim(), description = description.trim(), isPublic = listPublic)
+                    ) { result ->
+                        if (result.isSuccess) socialViewModel.loadLists(currentUid)
+                    }
+                }
+            },
+            onOpenLibrary = { navController?.navigate("gamelist") }
+        )
         ProfileCard(loginFields, userViewModel) { updatedFields ->
             // Al hacer clic en guardar, se lanza una corrutina para actualizar la información del usuario.
             // El perfil se guarda a través del SSOT y el flujo en vivo refleja el
             // cambio en el resto de pantallas; al terminar se vuelve atrás.
-            userViewModel.updateProfile(updatedFields) {
+            userViewModel.updateProfile(updatedFields + ("isPrivate" to isPrivate)) {
                 navController?.popBackStack()
             }
         }
@@ -213,6 +261,149 @@ fun SaveButton(onClick: () -> Unit) {
     }
 }
 
+
+/**
+ * F2/D2.2 — Interruptor de cuenta privada. Default público; el cambio solo
+ * se persiste al guardar el perfil (updateProfile incluye isPrivate).
+ */
+@Composable
+private fun PrivacyCard(isPrivate: Boolean, onToggle: (Boolean) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Cuenta privada", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "Si la activas, solo tú verás tu biblioteca y tus estadísticas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+            Switch(checked = isPrivate, onCheckedChange = onToggle)
+        }
+    }
+}
+
+/**
+ * F2/T2.5 — Editor del Top 4: hasta 4 juegos de tu biblioteca, orden según
+ * selección. Persistencia inmediata (updateProfile topGameIds).
+ */
+@Composable
+private fun TopGamesEditor(
+    selectedIds: List<String>,
+    library: List<LibraryEntry>?,
+    onPersist: (List<String>) -> Unit
+) {
+    val entries = library.orEmpty()
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Tu Top 4", style = MaterialTheme.typography.titleSmall)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Elige hasta 4 juegos de tu biblioteca: serán tu carta de presentación.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            if (entries.isEmpty()) {
+                Text(
+                    "Añade juegos a tu biblioteca para elegir tu Top.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } else {
+                entries.take(12).forEach { entry ->
+                    val selected = entry.gameId in selectedIds
+                    val enabled = selected || selectedIds.size < 4
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled) {
+                                val next = if (selected) selectedIds - entry.gameId
+                                else (selectedIds + entry.gameId).take(4)
+                                onPersist(next)
+                            }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (selected) Icons.Filled.Star else Icons.Filled.StarBorder,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            entry.name.ifBlank { entry.gameId },
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * F2/T2.6 — Creación rápida de listas curadas (públicas o privadas).
+ */
+@Composable
+private fun CreateListCard(
+    onCreate: (String, String, Boolean) -> Unit,
+    onOpenLibrary: () -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var listPublic by remember { mutableStateOf(true) }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Crear una lista", style = MaterialTheme.typography.titleSmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre de la lista") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Descripción (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Switch(checked = listPublic, onCheckedChange = { listPublic = it })
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (listPublic) "Pública" else "Privada", style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { onCreate(name, description, listPublic); name = ""; description = "" }, enabled = name.isNotBlank()) {
+                    Text("Crear")
+                }
+                OutlinedButton(onClick = onOpenLibrary) { Text("Ir a mi biblioteca") }
+            }
+        }
+    }
+}
 /**
  * Vista previa de la pantalla de edición de perfil.
  */

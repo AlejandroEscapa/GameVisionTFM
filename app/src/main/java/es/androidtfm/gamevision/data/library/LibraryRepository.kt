@@ -381,7 +381,7 @@ private fun LibraryEntry.toMap(): Map<String, Any?> = mapOf(
     "updatedAt" to FieldValue.serverTimestamp()
 )
 
-private fun DocumentSnapshot.toLibraryEntryOrNull(): LibraryEntry? {
+internal fun DocumentSnapshot.toLibraryEntryOrNull(): LibraryEntry? {
     val gameId = getString("gameId") ?: id
     val status = LibraryStatus.fromValue(getString("status")) ?: return null
     return LibraryEntry(

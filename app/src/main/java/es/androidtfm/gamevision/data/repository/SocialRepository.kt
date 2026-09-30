@@ -6,6 +6,8 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import es.androidtfm.gamevision.data.library.LibraryEntry
+import es.androidtfm.gamevision.data.library.toLibraryEntryOrNull
 import es.androidtfm.gamevision.data.model.FeedEntry
 import es.androidtfm.gamevision.data.model.FollowEdge
 import es.androidtfm.gamevision.data.model.GameList
@@ -296,9 +298,9 @@ class SocialRepository @Inject constructor(
     /**
      * Búsqueda por prefijo INSENSIBLE a mayúsculas: rango sobre los documentos
      * alias en minúsculas (`~username`) del índice, escritos por UserRepository
-     * junto al original. Mínimo MIN_PREFIX caracteres.
+     * junto al original. Devuelve pares (uid, perfil) listos para la UI.
      */
-    suspend fun searchByUsername(prefix: String): Result<List<UserProfile>> = runCatching {
+    suspend fun searchByUsername(prefix: String): Result<List<Pair<String, UserProfile>>> = runCatching {
         val clean = prefix.trim().lowercase()
         require(clean.length >= MIN_PREFIX) { "Escribe al menos $MIN_PREFIX caracteres" }
         val end = clean.substring(0, clean.length - 1) + (clean.last() + 1)
@@ -310,7 +312,7 @@ class SocialRepository @Inject constructor(
             .documents.mapNotNull { doc ->
                 val targetUid = doc.getString("uid") ?: return@mapNotNull null
                 db.collection(USERS).document(targetUid).get().await().data
-                    ?.let { UserProfile.fromMap(it) }
+                    ?.let { targetUid to UserProfile.fromMap(it) }
             }
     }.onFailure { Log.e(TAG, "searchByUsername($prefix): ${it.message}") }
 
@@ -367,4 +369,15 @@ class SocialRepository @Inject constructor(
             listsCollection(uid, isPublic).document(listId).delete().await()
             Unit
         }.onFailure { Log.e(TAG, "deleteList($uid/$listId): ${it.message}") }
+
+    /**
+     * Biblioteca pública de `uid` (T2.4). Las reglas ya la gobernan con
+     * `users/{uid}.isPrivate` (get() al perfil); si el perfil es privado, la
+     * lectura falla y se propaga como Result.failure — la UI decide.
+     */
+    suspend fun publicLibrary(uid: String): Result<List<LibraryEntry>> = runCatching {
+        db.collection(USERS).document(uid).collection("library").get().await()
+            .documents.mapNotNull { it.toLibraryEntryOrNull() }
+            .sortedByDescending { it.finishedAt ?: it.startedAt ?: it.addedAt ?: 0L }
+    }.onFailure { Log.e(TAG, "publicLibrary($uid): ${it.message}") }
 }

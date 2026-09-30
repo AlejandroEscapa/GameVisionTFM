@@ -279,8 +279,21 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
+                                    val hadReview = !currentEntry.review.isNullOrBlank()
                                     ddbbViewModel.setReview(userId, currentEntry.gameId, text.ifBlank { null })
-                                        .onSuccess { userViewModel.setMessage("Reseña guardada") }
+                                        .onSuccess {
+                                            userViewModel.setMessage("Reseña guardada")
+                                            // F2/D2.3: hito de reseña (primera reseña o texto nuevo).
+                                            if (text.isNotBlank() && (!hadReview || currentEntry.review != text)) {
+                                                socialViewModel.publishReviewMilestone(
+                                                    uid = userId,
+                                                    gameId = currentEntry.gameId,
+                                                    gameName = currentEntry.name.ifBlank { game?.name.orEmpty() },
+                                                    gameCover = currentEntry.coverUrl.orEmpty(),
+                                                    rating = currentEntry.rating
+                                                )
+                                            }
+                                        }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo guardar la reseña: ${e.message}") }
                                 }
                             },

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.model.FeedEntry
 import es.androidtfm.gamevision.data.model.GameList
 import es.androidtfm.gamevision.data.model.UserProfile
@@ -127,11 +128,16 @@ class SocialViewModel @Inject constructor(
         }
     }
 
-    /** (seguidores, seguidos) de un perfil, por aggregate count. */
-    fun counts(uid: String, onDone: (Pair<Long, Long>) -> Unit) {
-        viewModelScope.launch {
-            onDone(socialRepository.followCounts(uid).getOrDefault(0L to 0L))
-        }
+    private val _publicLibrary = MutableStateFlow<Result<List<LibraryEntry>>?>(null)
+    val publicLibrary: StateFlow<Result<List<LibraryEntry>>?> = _publicLibrary.asStateFlow()
+
+    /** Biblioteca pública del perfil visitado (reglas: solo si !isPrivate). */
+    fun loadPublicLibrary(uid: String) {
+        viewModelScope.launch { _publicLibrary.value = socialRepository.publicLibrary(uid) }
+    }
+
+    fun clearPublicLibrary() {
+        _publicLibrary.value = null
     }
 
     // ------------------------------------------------------------- moderación (D2.5)
@@ -152,10 +158,39 @@ class SocialViewModel @Inject constructor(
         viewModelScope.launch { socialRepository.report(me, targetUid, reason, detail) }
     }
 
+    // ------------------------------------------------------------- perfil público (D2.2/T2.4)
+
+    private val _publicProfile = MutableStateFlow<UserProfile?>(null)
+    val publicProfile: StateFlow<UserProfile?> = _publicProfile.asStateFlow()
+
+    private val _profileCounts = MutableStateFlow(0L to 0L)
+    val profileCounts: StateFlow<Pair<Long, Long>> = _profileCounts.asStateFlow()
+
+    /** Carga el perfil público de `uid` + sus contadores (seguidores, seguidos). */
+    fun loadPublicProfile(uid: String) {
+        viewModelScope.launch {
+            val profile = db.collection(USERS).document(uid).get().await()
+                .data?.let { UserProfile.fromMap(it) }
+            _publicProfile.value = profile
+        }
+        viewModelScope.launch {
+            _profileCounts.value = socialRepository.followCounts(uid).getOrDefault(0L to 0L)
+        }
+    }
+
+    fun clearPublicProfile() {
+        _publicProfile.value = null
+        _profileCounts.value = 0L to 0L
+    }
+
+    /** true si `me` sigue a `target` (lectura puntual, para pintar el botón del perfil). */
+    suspend fun isFollowing(me: String, target: String): Boolean =
+        socialRepository.followingIds(me).getOrDefault(emptySet()).contains(target)
+
     // ------------------------------------------------------------- búsqueda (D2.4)
 
-    private val _searchResults = MutableStateFlow<Result<List<UserProfile>>?>(null)
-    val searchResults: StateFlow<Result<List<UserProfile>>?> = _searchResults.asStateFlow()
+    private val _searchResults = MutableStateFlow<Result<List<Pair<String, UserProfile>>>?>(null)
+    val searchResults: StateFlow<Result<List<Pair<String, UserProfile>>>?> = _searchResults.asStateFlow()
 
     fun search(prefix: String) {
         viewModelScope.launch {
@@ -219,6 +254,25 @@ class SocialViewModel @Inject constructor(
             gameId = gameId,
             gameName = gameName,
             gameCover = gameCover
+        )
+    }
+
+    /** Atajo: hito de reseña (texto nuevo o primera reseña del juego). */
+    fun publishReviewMilestone(
+        uid: String,
+        gameId: String,
+        gameName: String,
+        gameCover: String,
+        rating: Double?
+    ) {
+        val milestoneType = MilestonePlanner.forAction("review_published", gameId) ?: return
+        publishMilestone(
+            uid = uid,
+            milestoneType = milestoneType,
+            gameId = gameId,
+            gameName = gameName,
+            gameCover = gameCover,
+            rating = rating
         )
     }
 }

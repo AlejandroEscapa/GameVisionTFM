@@ -24,10 +24,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -39,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +69,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -97,7 +103,9 @@ fun GameListScreen(
     onThemeChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
     ddbbViewModel: DDBBViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    // F2/T2.6: si llega, las tarjetas ofrecen «añadir/quitar de una lista».
+    socialViewModel: SocialViewModel? = null
 ) {
     var sortOption by rememberSaveable { mutableStateOf("Alfabético") }
     var selectedList by rememberSaveable { mutableStateOf("playing") }
@@ -303,7 +311,8 @@ fun GameListScreen(
                             gameItems = sortedItems,
                             navController = navController,
                             ddbbViewModel = ddbbViewModel,
-                            userViewModel = userViewModel
+                            userViewModel = userViewModel,
+                            socialViewModel = socialViewModel
                         )
                     }
                 }
@@ -361,7 +370,8 @@ private fun GameList(
     gameItems: List<GameListItem>,
     navController: NavController,
     ddbbViewModel: DDBBViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    socialViewModel: SocialViewModel? = null
 ) {
     LazyColumn(
         modifier = Modifier
@@ -370,11 +380,12 @@ private fun GameList(
     ) {
         items(gameItems, key = { it.gameId }) { item ->
             Box(Modifier.animateItem()) {
-                GameListCard(
+GameListCard(
                     item = item,
                     navController = navController,
                     ddbbViewModel = ddbbViewModel,
-                    userViewModel = userViewModel
+                    userViewModel = userViewModel,
+                    socialViewModel = socialViewModel
                 )
             }
         }
@@ -386,10 +397,34 @@ private fun GameListCard(
     item: GameListItem,
     navController: NavController,
     ddbbViewModel: DDBBViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    socialViewModel: SocialViewModel? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
     val uid by userViewModel.currentUid.collectAsState()
+
+    // F2/T2.6: listas curadas del usuario (para el diálogo de añadir/quitar).
+    val lists by socialViewModel?.lists?.collectAsState()
+        ?: remember { mutableStateOf<Result<List<es.androidtfm.gamevision.data.model.GameList>>?>(null) }
+    var showListDialog by remember { mutableStateOf(false) }
+
+    if (showListDialog && socialViewModel != null) {
+        AddToListDialog(
+            gameName = item.name,
+            gameId = item.gameId,
+            lists = lists?.getOrDefault(emptyList()).orEmpty(),
+            onLoadLists = { socialViewModel.loadLists(uid.orEmpty()) },
+            onToggle = { list, checked ->
+                val current = uid.orEmpty()
+                if (current.isBlank()) return@AddToListDialog
+                val next = if (checked) list.gameIds + item.gameId else list.gameIds - item.gameId
+                socialViewModel.saveList(current, list.copy(gameIds = next)) { result ->
+                    if (result.isSuccess) socialViewModel.loadLists(current)
+                }
+            },
+            onDismiss = { showListDialog = false }
+        )
+    }
 
     Card(
         modifier = Modifier
@@ -474,6 +509,20 @@ private fun GameListCard(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        }
+                    }
+                    // F2/T2.6: añadir/quitar de listas curadas (solo con sesión).
+                    if (socialViewModel != null && item.entry != null) {
+                        IconButton(
+                            onClick = { showListDialog = true },
+                            modifier = Modifier.size(32.dp).padding(bottom = 10.dp, end = 10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlaylistAdd,
+                                contentDescription = "Añadir a una lista",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                     // Solo las fichas de la biblioteca se pueden eliminar
@@ -612,4 +661,49 @@ fun SortMenuButton(currentSortOption: String, onSortSelected: (String) -> Unit) 
             }
         }
     }
+}
+
+/**
+ * F2/T2.6 — Diálogo para añadir/quitar un juego de las listas curadas del
+ * usuario. Guardar una lista con un id menos dispara el hito list_published
+ * (deteterminista) desde saveList, que vuelve a verificar isPublic.
+ */
+@Composable
+private fun AddToListDialog(
+    gameName: String,
+    gameId: String,
+    lists: List<es.androidtfm.gamevision.data.model.GameList>,
+    onLoadLists: () -> Unit,
+    onToggle: (es.androidtfm.gamevision.data.model.GameList, Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    LaunchedEffect(Unit) { onLoadLists() }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Añadir «$gameName» a una lista") },
+        text = {
+            Column {
+                if (lists.isEmpty()) {
+                    Text(
+                        "Todavía no tienes listas. Créalas desde Editar perfil.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                lists.forEach { list ->
+                    val checked = list.gameIds.contains(gameId)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = checked,
+                            onCheckedChange = { onToggle(list, it) }
+                        )
+                        Text(list.name.ifBlank { "Lista" }, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Listo") } }
+    )
 }
