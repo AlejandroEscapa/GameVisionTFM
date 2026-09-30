@@ -185,7 +185,8 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
   disponible (`NotAvailableNotice`; de paso se corrigió un **crash** al abrir el perfil del
   bloqueador y una búsqueda que se tumbaba con perfiles denegados) y estados offline en Social
   (banner de red validada + verificación E2E en avión: caché, like que sincroniza, post con
-  mensaje claro). CA2.4 verificado también por UI. Detalle en
+  mensaje claro). CA2.4 verificado también por UI. **Instrumentados de Social** (like, bloqueo
+  que filtra el feed e hito de reseña): 10/10 conectados. Detalle en
   [CIERRE-PRE-F3-2026.md](CIERRE-PRE-F3-2026.md).
 - **30/09/2026 (noche) — F2 ejecutada y auditada.** Se retoma la fase tras la pausa y se
   completa la verificación E2E con dos cuentas (CA2.1–CA2.10), el bloqueo REST sin autenticar

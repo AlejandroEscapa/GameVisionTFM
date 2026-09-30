@@ -44,9 +44,14 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
   exige red **validada** — onAvailable sin validar daba falso online). E2E con avión real:
   caché sin crash, like sincroniza al reconectar, post offline falla con mensaje, **conserva el
   texto** y no se encola. Cierra el punto 6 de la deuda de F2.
-- [ ] **1.4 Instrumentados Compose de Social** (`app/src/androidTest`): like en un post, bloqueo filtra
-  el feed y **hito de reseña** (ficha → reseña → tarjeta en el feed). Cuentas QA + limpieza posterior
-  con admin. Cierra el punto 5 de la deuda de F2. *(después del split D-C2)*
+- [x] **1.4 Instrumentados de Social** (`SocialIntegrationTest`, nivel repositorio sobre la app real):
+  like/unlike (contador + `hasLiked`), bloqueo/desbloqueo + filtro `FeedQueryPlanner.filterBlocked`,
+  e hito de reseña con id determinista (`MilestonePlanner.milestoneId`) y tarjeta en el feed. Cuentas
+  QA con limpieza final blindada. Cierra el punto 5 de la deuda de F2. *Nota:* la automatización no
+  es UI (el flujo ficha→reseña→feed ya está verificado a mano; el panel no responde a `input tap`);
+  cubre el contrato completo contra Firestore y reglas reales.
+  *Evidencia:* `connectedDebugAndroidTest` **10/10 verdes** (3 nuevos + 7 previos); QA sin restos
+  (sondas admin: sin bloqueos ni posts `[QA1.4]`).
 - [ ] **1.5** Verificar el índice del feed cuando el propietario lo cree; conservar el fallback D2.8
   como resiliencia.
 

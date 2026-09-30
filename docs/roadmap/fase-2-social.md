@@ -189,8 +189,10 @@ Detalle y modelo de datos en el [plan de F2](../plan/FASE-2-SOCIAL-2026.md).
 4. **Lista privada creada a mano desde la UI** para CA2.4 (hoy verificado por reglas + código), y
    **hito de reseña desde la UI** (el panel de biblioteca no responde a `input tap`;
    ver deuda 5).
-5. **Instrumentados (Compose UI) de Social** — el panel de biblioteca de F1 no responde a `input
-   tap` en el emulador, así que automatizar hitos/reseñas necesita test instrumentado.
+5. ~~Instrumentados de Social~~ **CERRADO (30/09, cierre pre-F3)** — `SocialIntegrationTest`
+   (`app/src/androidTest`): like, bloqueo que filtra el feed e hito de reseña contra Firestore real
+   y reglas reales; **10/10 conectados** en verde. El flujo de UI (ficha→reseña→tarjeta) sigue
+   verificado a mano.
 6. ~~Offline y errores de red en Social~~ **CERRADO (30/09, cierre pre-F3)** — verificado E2E en
    modo avión real con dos cuentas: el feed sirve caché sin crash, el like sincroniza al
    reconectar, el post offline falla con mensaje claro y **conserva el texto** en el compositor
