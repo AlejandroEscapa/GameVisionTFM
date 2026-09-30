@@ -50,13 +50,13 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -115,11 +115,11 @@ fun SocialScreen(
     socialViewModel: SocialViewModel
 ) {
     // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
-    val uid by userViewModel.currentUid.collectAsState()
-    val myProfile by userViewModel.profile.collectAsState()
-    val following by socialViewModel.following.collectAsState()
-    val feedState by socialViewModel.feed.collectAsState()
-    val searchResults by socialViewModel.searchResults.collectAsState()
+    val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
+    val myProfile by userViewModel.profile.collectAsStateWithLifecycle()
+    val following by socialViewModel.following.collectAsStateWithLifecycle()
+    val feedState by socialViewModel.feed.collectAsStateWithLifecycle()
+    val searchResults by socialViewModel.searchResults.collectAsStateWithLifecycle()
     val isOnline by rememberIsOnline()
 
     var tab by remember { mutableIntStateOf(0) }

@@ -22,8 +22,8 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -54,7 +54,7 @@ fun AppScaffold(
     userViewModel: UserViewModel,
     content: @Composable (PaddingValues) -> Unit
 ) {
-    val isGuest by userViewModel.isGuest.collectAsState()
+    val isGuest by userViewModel.isGuest.collectAsStateWithLifecycle()
 
     val items = if (isGuest) {
         listOf(

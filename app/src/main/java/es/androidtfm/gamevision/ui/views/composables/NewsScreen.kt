@@ -24,9 +24,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,7 +63,7 @@ fun NewsScreen(
     val newsState = remember { mutableStateOf<List<Article>>(emptyList()) }
     val context = LocalContext.current
     // Modo degradado: si la carga falla (p. ej. sin conexión) se muestra un aviso
-    val loadFailed = newsViewModel.loadFailed.collectAsState().value
+    val loadFailed = newsViewModel.loadFailed.collectAsStateWithLifecycle().value
     // Clave para relanzar la carga desde el botón de reintento
     val retryKey = remember { mutableStateOf(0) }
 

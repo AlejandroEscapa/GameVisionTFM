@@ -44,13 +44,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -116,14 +116,14 @@ fun GameListScreen(
     var filtersExpanded by rememberSaveable { mutableStateOf(false) }
 
     // Identidad desde el SSOT de sesión.
-    val uid by userViewModel.currentUid.collectAsState()
+    val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
 
     // Biblioteca en vivo (SSOT del usuario). null = primera carga.
     val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
-        .collectAsState(initial = null)
+        .collectAsStateWithLifecycle(initialValue = null)
 
     // Historial local (decisión F0-B: vive en el dispositivo, no en Firestore).
-    val recents by libraryViewModel.recentGames.collectAsState(initial = emptyList())
+    val recents by libraryViewModel.recentGames.collectAsStateWithLifecycle(initialValue = emptyList())
 
     // Elementos a mostrar según la pestaña seleccionada.
     val items: List<GameListItem>? = when {
@@ -401,10 +401,10 @@ private fun GameListCard(
     socialViewModel: SocialViewModel? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val uid by userViewModel.currentUid.collectAsState()
+    val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
 
     // F2/T2.6: listas curadas del usuario (para el diálogo de añadir/quitar).
-    val lists by socialViewModel?.lists?.collectAsState()
+    val lists by socialViewModel?.lists?.collectAsStateWithLifecycle()
         ?: remember { mutableStateOf<Result<List<es.androidtfm.gamevision.data.model.GameList>>?>(null) }
     var showListDialog by remember { mutableStateOf(false) }
 

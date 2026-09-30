@@ -19,12 +19,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import es.androidtfm.gamevision.ui.designsystem.LocalSharedTransitionScope
@@ -105,11 +105,11 @@ fun MainScreen(
     socialViewModel: SocialViewModel,
     searchViewModel: SearchViewModel
 ) {
-    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val themeDataStore = themeViewModel.themeDataStore
     // Estado de invitado (derivado del SSOT de sesión)
-    val isGuest by userViewModel.isGuest.collectAsState()
+    val isGuest by userViewModel.isGuest.collectAsStateWithLifecycle()
 
     var isNavHostInitialized by remember { mutableStateOf(false) }
 
@@ -157,7 +157,7 @@ fun MainScreen(
 
     // Navegación automática guiada por el SSOT de sesión: al iniciar sesión (o al
     // reabrir la app con sesión activa) se entra en la pantalla principal.
-    val session by userViewModel.session.collectAsState()
+    val session by userViewModel.session.collectAsStateWithLifecycle()
     LaunchedEffect(isNavHostInitialized, session) {
         if (isNavHostInitialized && session is SessionState.LoggedIn) {
             navController.navigate("news") {

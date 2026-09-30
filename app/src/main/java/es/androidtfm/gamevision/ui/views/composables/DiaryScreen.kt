@@ -36,12 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -77,13 +77,13 @@ fun DiaryScreen(
     libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel
 ) {
-    val uid by userViewModel.currentUid.collectAsState()
+    val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
-        .collectAsState(initial = null)
+        .collectAsStateWithLifecycle(initialValue = null)
     val sessions by remember(uid) { libraryViewModel.observeSessions(uid.orEmpty()) }
-        .collectAsState(initial = null)
+        .collectAsStateWithLifecycle(initialValue = null)
 
     var showLogDialog by remember { mutableStateOf(false) }
 

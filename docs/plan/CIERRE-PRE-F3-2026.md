@@ -64,13 +64,19 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
 
 ### Bloque 3 — Higiene UI/Compose (Bloque 5 de la deuda)
 
-- [ ] **D-U1**: `GameCover` de `SubcomposeAsyncImage` → `AsyncImage` con `placeholder`/`error`;
-  comprobar scroll en GameCard, Search, GameList, Diary y Details.
-- [ ] **D-U2**: `ui-tooling` solo en `debugImplementation`; merged manifest de release sin `PreviewActivity`.
-- [ ] **D-U3**: `collectAsState` → `collectAsStateWithLifecycle` (+ `lifecycle-runtime-compose` en el catálogo).
-- [ ] **D-U4**: `AGENTS.md` del repo con las cifras reales, la ruta `ui/designsystem/GVTheme.kt` y el
-  stack histórico marcado como tal.
-  *Evidencia:* debug + release (R8), unitarios, lint y manifest verificados.
+- [x] **D-U1**: `GameCover` → `AsyncImage` con `placeholder`/`error` como `Painter` monocromo
+  (iniciales via `rememberTextMeasurer`; colores de tema leídos en composición). Smoke de Search
+  sin crash.
+- [x] **D-U2**: `ui-tooling` solo en `debugImplementation`; **merged manifest de release sin
+  `PreviewActivity`** (verificado con aapt: 0 coincidencias) y release R8 firmado (v2.0.0).
+- [x] **D-U3**: 52 `collectAsState` → `collectAsStateWithLifecycle` en 17 ficheros (0 restantes);
+  `lifecycle-runtime-compose` añadido al catálogo. Los 8 usos con `initial =` pasaron a
+  `initialValue =` (overload de Flow frío).
+- [x] **D-U4**: `AGENTS.md` con cifras reales (~13.700 líneas / 84 archivos main + 17 tests;
+  15 rutas), ruta `ui/designsystem/GVTheme.kt` y `03-stack-android-2026.md` marcado como
+  DOCUMENTO HISTÓRICO.
+  *Evidencia (30/09):* assembleDebug + assembleRelease (R8) + testDebugUnitTest (118/118) +
+  lintDebug en verde; manifest de release verificado con aapt; smoke E2E en emulador.
 
 ### Bloque 4 — Flecos de F1 y documentación
 

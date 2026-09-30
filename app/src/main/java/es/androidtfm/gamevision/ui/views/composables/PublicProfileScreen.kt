@@ -40,11 +40,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,12 +79,12 @@ fun PublicProfileScreen(
     userViewModel: UserViewModel,
     socialViewModel: SocialViewModel
 ) {
-    val uid by userViewModel.currentUid.collectAsState()
-    val profile by socialViewModel.publicProfile.collectAsState()
-    val profileError by socialViewModel.publicProfileError.collectAsState()
-    val counts by socialViewModel.profileCounts.collectAsState()
-    val listsState by socialViewModel.lists.collectAsState()
-    val libraryState by socialViewModel.publicLibrary.collectAsState()
+    val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
+    val profile by socialViewModel.publicProfile.collectAsStateWithLifecycle()
+    val profileError by socialViewModel.publicProfileError.collectAsStateWithLifecycle()
+    val counts by socialViewModel.profileCounts.collectAsStateWithLifecycle()
+    val listsState by socialViewModel.lists.collectAsStateWithLifecycle()
+    val libraryState by socialViewModel.publicLibrary.collectAsStateWithLifecycle()
 
     var isFollowing by remember(profileUid) { mutableStateOf(false) }
     var showReportDialog by remember { mutableStateOf(false) }

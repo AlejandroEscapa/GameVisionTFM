@@ -37,12 +37,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -95,10 +95,10 @@ fun SearchScreen(
     var sortAscending by rememberSaveable { mutableStateOf(false) } // Orden descendente por defecto
 
     // Se recogen los estados de la lista de juegos, indicador de carga y errores desde el ViewModel.
-    val games by viewModel.games.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val fromCache by viewModel.fromCache.collectAsState()
+    val games by viewModel.games.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val fromCache by viewModel.fromCache.collectAsStateWithLifecycle()
 
     // Cálculo de la lista ordenada según el criterio y orden especificado.
     val sortedGames = when (sortCriteria) {

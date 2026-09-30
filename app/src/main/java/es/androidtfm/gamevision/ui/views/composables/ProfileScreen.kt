@@ -46,12 +46,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -98,10 +98,10 @@ fun ProfileScreen(
 ) {
     // Perfil en vivo desde el SSOT (UserViewModel.profile): se actualiza solo
     // cuando cambia el documento en Firestore, sin refetch manual por pantalla.
-    val profile by userViewModel.profile.collectAsState()
-    val isLoading by userViewModel.isLoading.collectAsState()
-    val profileImageData by userViewModel.profileImageData.collectAsState()
-    val imageError by userViewModel.imageError.collectAsState()
+    val profile by userViewModel.profile.collectAsStateWithLifecycle()
+    val isLoading by userViewModel.isLoading.collectAsStateWithLifecycle()
+    val profileImageData by userViewModel.profileImageData.collectAsStateWithLifecycle()
+    val imageError by userViewModel.imageError.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     // Imagen a mostrar: la gestionada por la app (data URI desde Firestore) o, si no,

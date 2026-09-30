@@ -35,11 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,8 +78,8 @@ fun RegisterScreen(
     userViewModel: UserViewModel // ViewModel compartido (SSOT)
 ) {
     val context = LocalContext.current
-    val registrationMessage by userViewModel.message.collectAsState() // Mensaje de registro
-    val formFields by userViewModel.formFields.collectAsState() // Campos del formulario
+    val registrationMessage by userViewModel.message.collectAsStateWithLifecycle() // Mensaje de registro
+    val formFields by userViewModel.formFields.collectAsStateWithLifecycle() // Campos del formulario
     val coroutineScope = rememberCoroutineScope() // CoroutineScope para operaciones asíncronas
 
     // Efecto para mostrar un Toast si hay un mensaje de registro

@@ -29,7 +29,8 @@ App Android 100% Jetpack Compose (cero layouts XML) para consultar videojuegos
 
 - **Paquete raíz:** `es.androidtfm.gamevision`
 - **Idioma del código/comentarios:** español (mantener en nuevos cambios)
-- **~6.900 líneas de Kotlin** en 36 archivos (main) + 4 de tests
+- **~13.700 líneas de Kotlin** en 84 archivos (main) + 17 de tests (cifras de 30/09/2026,
+  tras F2 y el split D-C2)
 
 ## 2. Comandos esenciales (Git Bash / Windows)
 
@@ -156,9 +157,9 @@ app/src/main/java/es/androidtfm/gamevision/
 │   ├── SearchViewModel.kt          @HiltViewModel; búsqueda y detalles de juegos
 │   └── ThemeViewModel.kt           @HiltViewModel; tema claro/oscuro (DataStore + scope inyectable)
 ├── ui/navigation/
-│   ├── NavHost.kt                  NavHost compose + grafo de 12 rutas
+│   ├── NavHost.kt                  NavHost compose + grafo de 15 rutas
 │   └── BottomBarNavigation.kt      NavigationBar M3 (ModernStyledNavigationBar)
-├── ui/theme/Theme.kt               paletas M3 clara/oscura manual (toggle, no dinámico)
+├── ui/designsystem/GVTheme.kt      paletas M3 clara/oscura manual (toggle, no dinámico)
 ├── ui/views/composables/           12 pantallas, todas @Composable (ver §5)
 ├── User.kt                         modelo ligero de usuario
 └── res/                            drawable (logos vectoriales), values, xml (backup rules)
@@ -247,7 +248,7 @@ protagonista.
   `MainActivity`; claves de shared element: `"cover-{gameId}"`.
 - **Pendiente**: Fase 4 restante: list-detail con Navigation 3 (`ListDetailSceneStrategy`)
   — nav3 1.2.0 estable existe y su metadato es compatible en principio; migración
-  atómica de las 12 rutas a NavKeys (ver skill `navigation-3`). El área de
+  atómica de las 15 rutas a NavKeys (ver skill `navigation-3`). El área de
   navegación adaptativa (barra↔rail, `AppScaffold`) ya está implementada y
   validada en emulador.
 

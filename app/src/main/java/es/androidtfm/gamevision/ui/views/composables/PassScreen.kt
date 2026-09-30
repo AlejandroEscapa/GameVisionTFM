@@ -29,9 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,8 +71,8 @@ fun PassScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Estados del formulario y mensajes
-    val message by userViewModel.message.collectAsState()
-    val formFields by userViewModel.formFields.collectAsState()
+    val message by userViewModel.message.collectAsStateWithLifecycle()
+    val formFields by userViewModel.formFields.collectAsStateWithLifecycle()
 
     // Efecto para mostrar un Toast si hay un mensaje
     LaunchedEffect(message) {

@@ -109,6 +109,7 @@ googleid = { module = "com.google.android.libraries.identity.googleid:googleid",
 
 # Lifecycle
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 
 # DataStore
 androidx-datastore-core = { module = "androidx.datastore:datastore-core", version = "1.2.1" }

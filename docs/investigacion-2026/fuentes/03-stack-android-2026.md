@@ -1,5 +1,8 @@
 ## Dimension 03: Stack Android/Kotlin/Compose 2026
 
+> **DOCUMENTO HISTÓRICO (marcado 30/09/2026):** refleja el stack en el momento de la
+> investigación; el vigente está en `AGENTS.md` §1 y `gradle/libs.versions.toml`.
+
 ### Current State
 
 GameVision declara hoy (2026-09-28) este stack:

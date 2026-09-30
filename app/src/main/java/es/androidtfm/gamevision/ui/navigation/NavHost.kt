@@ -3,9 +3,9 @@ package es.androidtfm.gamevision.ui.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -57,7 +57,7 @@ fun NavHost(
     isGuest: Boolean,
     searchViewModel: SearchViewModel
 ) {
-    val isDarkTheme by themeDataStore.isDarkTheme.collectAsState(initial = false)
+    val isDarkTheme by themeDataStore.isDarkTheme.collectAsStateWithLifecycle(initialValue = false)
     // Scope para el alta de invitado (suspend) desde un callback no composable
     val guestScope = rememberCoroutineScope()
 

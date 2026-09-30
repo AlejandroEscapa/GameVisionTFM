@@ -35,7 +35,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -85,8 +85,8 @@ fun EditProfileScreen(
     libraryViewModel: LibraryViewModel
 ) {
     // Campos de edición, precargados una vez desde el perfil del SSOT.
-    val profile by userViewModel.profile.collectAsState()
-    val loginFields by userViewModel.formFields.collectAsState()
+    val profile by userViewModel.profile.collectAsStateWithLifecycle()
+    val loginFields by userViewModel.formFields.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     // Rellena el formulario con el perfil actual la primera vez que llega el dato.
@@ -103,9 +103,9 @@ fun EditProfileScreen(
 
     var isPrivate by remember { mutableStateOf(profile.isPrivate) }
     // El uid también es estado composable: leer .value directo en composición dispara lint.
-    val currentUid by userViewModel.currentUid.collectAsState()
+    val currentUid by userViewModel.currentUid.collectAsStateWithLifecycle()
     val library by libraryViewModel.observeLibrary(currentUid.orEmpty())
-        .collectAsState(initial = null)
+        .collectAsStateWithLifecycle(initialValue = null)
     Column(
         modifier = Modifier
             .fillMaxSize()

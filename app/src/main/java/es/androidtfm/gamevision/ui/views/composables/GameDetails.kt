@@ -44,12 +44,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -109,20 +109,20 @@ fun GameDetails(
     val context = LocalContext.current
     var showLibraryPanel by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    val uid by userViewModel.currentUid.collectAsState()
+    val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
 
     LaunchedEffect(gameId, uid) {
         viewModel.fetchGameDetails(gameId)
     }
 
-    val game by viewModel.gameDetails.collectAsState()
-    val isLoading by viewModel.isLoadingDetails.collectAsState()
-    val error by viewModel.errorDetails.collectAsState()
-    val fromCache by viewModel.fromCache.collectAsState()
+    val game by viewModel.gameDetails.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoadingDetails.collectAsStateWithLifecycle()
+    val error by viewModel.errorDetails.collectAsStateWithLifecycle()
+    val fromCache by viewModel.fromCache.collectAsStateWithLifecycle()
 
     // Ficha en vivo del juego en la biblioteca (para añadir/cambiar estado/favorito).
     val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
-        .collectAsState(initial = null)
+        .collectAsStateWithLifecycle(initialValue = null)
     val entry = library?.getOrNull()?.firstOrNull { it.gameId == gameId.toString() }
 
     // Historial local de recientes (F0-B: ya no se guarda en Firestore).
