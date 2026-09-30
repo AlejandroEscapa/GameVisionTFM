@@ -12,6 +12,7 @@ import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.data.social.FeedQueryPlanner
 import es.androidtfm.gamevision.data.social.MilestonePlanner
 import es.androidtfm.gamevision.data.model.MilestoneTypes
+import es.androidtfm.gamevision.helpers.QaAccounts
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
@@ -61,15 +62,11 @@ class SocialIntegrationTest {
     // ------------------------------------------------------------------
 
     private fun loginAs(email: String, pass: String) {
-        auth.signOut()
-        val res = runBlocking {
-            withTimeout(20_000) { auth.signInWithEmailAndPassword(email, pass).await() }
-        }
-        assertTrue("No se pudo autenticar $email", res.user != null)
+        QaAccounts.loginAs(email, pass)
     }
 
-    private fun loginAsC1() = loginAs(QA1_EMAIL, QA1_PASS)
-    private fun loginAsC2() = loginAs(QA2_EMAIL, QA2_PASS)
+    private fun loginAsC1() = QaAccounts.loginAsC1()
+    private fun loginAsC2() = QaAccounts.loginAsC2()
 
     private suspend fun pairs(vararg uids: String): List<FeedEntryPair> =
         withTimeout(20_000) {
@@ -213,12 +210,7 @@ class SocialIntegrationTest {
     }
 
     private suspend fun cleanBlocks(me: String) {
-        for (target in listOf(QA1_UID, QA2_UID)) {
-            runCatching {
-                db.collection("blocks").document(me).collection("people").document(target)
-                    .delete().await()
-            }
-        }
+        QaAccounts.cleanBlocks(db, me)
     }
 
     private suspend fun cleanFeed() {
@@ -240,11 +232,10 @@ class SocialIntegrationTest {
     }
 
     private companion object {
-        const val QA1_EMAIL = "gamevision@gmail.com"
-        const val QA1_PASS = "1234561"
-        const val QA2_EMAIL = "gamevision2@gmail.com"
-        const val QA2_PASS = "1234562"
-        const val QA1_UID = "gKfQYvAdiBOezcGnrWo3rH0nUmY2"
-        const val QA2_UID = "4nsmmGu6g3R7XGLkDR5trFfB2BF2"
+        // Credenciales y UIDs de las cuentas QA: ahora viven en helpers/QaAccounts.kt
+        // (bloque A del plan de optimización) para que el próximo instrumentado las reutilice.
+        private val QA1_EMAIL get() = QaAccounts.QA1_EMAIL
+        private val QA1_UID get() = QaAccounts.QA1_UID
+        private val QA2_UID get() = QaAccounts.QA2_UID
     }
 }
