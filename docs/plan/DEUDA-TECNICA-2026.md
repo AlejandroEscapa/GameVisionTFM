@@ -47,8 +47,8 @@
 | ID | Deuda | Notas |
 |---|---|---|
 | **D-C1** | API adaptativa deprecada en `BottomBarNavigation` | ✅ Migrada a la API V2 (`currentWindowAdaptiveInfoV2` + `isWidthAtLeastBreakpoint`) el 28/09 |
-| **D-C2** | `DDBBViewModel` es una fachada legacy (nombre "DDBB"; mezcla biblioteca y social) | Renombrar/partir durante F1 (`LibraryViewModel` + `SocialViewModel`) |
-| **D-C3** | Botón "Me gusta" del timeline es decorativo (no hace nada) | Implementar reacción en F2 (S16) o ocultar hasta entonces |
+| **D-C2** | `DDBBViewModel` es una fachada legacy (nombre "DDBB"; mezcla biblioteca y social) | ✅ **Resuelto (30/09)**: partida en `LibraryViewModel` + `SocialViewModel`; `DDBBViewModel` eliminado; 12 consumidores re-apuntados sin cambios de comportamiento ([CIERRE-PRE-F3](CIERRE-PRE-F3-2026.md), bloque 2) |
+| **D-C3** | Botón "Me gusta" del timeline es decorativo (no hace nada) | ✅ **Resuelto por F2**: reacciones reales (`setLike`/`hasLiked`/`likedByMe` + contador), con instrumentados |
 | **D-C4** | Avisos de compilación menores | ✅ A cero (28/09); incluidos los tests instrumentados migrados a las APIs v2 de Compose Test |
 | **D-C5** | Strings hardcodeados en español (i18n) | **Diferido**: disparador = plantear multiidioma |
 
@@ -83,10 +83,10 @@
 
 | ID | Deuda | Notas |
 |---|---|---|
-| **D-U1** | `GameCover` usa `SubcomposeAsyncImage` (dentro de listas: GameCard, Search, GameList, Diary, Details) | Coste alto al hacer scroll. Cambiar a `AsyncImage` con `placeholder`/`error`. Ver [auditoría UI](ui-adopcion-hallazgos-2026.md) §2 |
-| **D-U2** | `ui-tooling` en `implementation` (además de `debugImplementation`) | Puede arrastrar `PreviewActivity` al manifest de release. Dejar solo `debugImplementation` y verificar el merged manifest |
-| **D-U3** | 40 `collectAsState` y 0 `collectAsStateWithLifecycle`; falta `lifecycle-runtime-compose` en el catálogo | Práctica estándar: no recolectar flujos en segundo plano |
-| **D-U4** | `AGENTS.md` desfasado (6.900 líneas / 36 archivos / 12 rutas → 10.513 / 79 / 14) y cita `ui/theme/Theme.kt`, que no existe | Corregir números y ruta (el tema vive en `ui/designsystem/GVTheme.kt`); marcar `03-stack-android-2026.md` como histórico |
+| **D-U1** | `GameCover` usa `SubcomposeAsyncImage` (dentro de listas: GameCard, Search, GameList, Diary, Details) | ✅ **Resuelto (30/09)**: `AsyncImage` con `placeholder`/`error` monocromo (iniciales con `TextMeasurer`) |
+| **D-U2** | `ui-tooling` en `implementation` (además de `debugImplementation`) | ✅ **Resuelto (30/09)**: solo `debugImplementation`; merged manifest de release sin `PreviewActivity` (verificado con aapt) |
+| **D-U3** | 40 `collectAsState` y 0 `collectAsStateWithLifecycle`; falta `lifecycle-runtime-compose` en el catálogo | ✅ **Resuelto (30/09)**: 52 usos migrados (0 restantes) + dependencia en el catálogo |
+| **D-U4** | `AGENTS.md` desfasado (6.900 líneas / 36 archivos / 12 rutas → 10.513 / 79 / 14) y cita `ui/theme/Theme.kt`, que no existe | ✅ **Resuelto (30/09)**: cifras reales y ruta `ui/designsystem/GVTheme.kt`; `03-stack-android-2026.md` marcado DOCUMENTO HISTÓRICO |
 
 ---
 
@@ -151,13 +151,14 @@ emulador**. Guía completa: [`docs/release-signing.md`](../release-signing.md).
 Pendientes menores: copia del keystore/credenciales en gestor de secretos + añadir el SHA-1 de
 release en Firebase (Google Sign-In en builds release).
 
-### Bloque 5 — Higiene UI/Compose ⬜ (no depende de ninguna fase)
+### Bloque 5 — Higiene UI/Compose ✅ (cerrado 30/09/2026)
 **Alcance:** D-U1 (GameCover → `AsyncImage`), D-U2 (`ui-tooling` solo en debug), D-U3
 (`collectAsStateWithLifecycle` + `lifecycle-runtime-compose`), D-U4 (sincronizar `AGENTS.md` y marcar
 el stack histórico). Origen y evidencia: [auditoría UI 2026](ui-adopcion-hallazgos-2026.md).
-**Por qué primero:** son 3 archivos de código + 2 de docs, sin riesgo de arquitectura, y no dependen
-de F1 (en curso) ni de la fase de UI.
-**Verificación:** build debug/release + tests en verde + merged manifest de release sin `PreviewActivity`.
+**Resultado:** D-U1…D-U4 aplicados ([CIERRE-PRE-F3](CIERRE-PRE-F3-2026.md), bloque 3): `AsyncImage`
+con placeholders monocromo, `ui-tooling` fuera de release (manifest verificado con aapt),
+52 `collectAsState` migrados a `WithLifecycle`, `AGENTS.md` con cifras reales.
+**Verificación:** build debug/release + tests (118/118) + lint en verde.
 
 ### Diferidos con disparador (no se tocan ahora)
 | Deuda | Disparador |
@@ -165,7 +166,6 @@ de F1 (en curso) ni de la fase de UI.
 | Nav3 (D-T3) | F4: lista-detalle / tablet |
 | Baseline Profiles (D-T4) | F4: runtime estable |
 | App Check, alertas de presupuesto, backups (D-Q5) | Preparación de F5 |
-| "Me gusta" (D-C3) | F2 (reacciones) |
 | i18n (D-C5) | Decisión de multiidioma |
 | Auditoría de costes (investigación F0-B §6) | Acercarse a ~1.000 usuarios activos |
 
@@ -181,6 +181,13 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 
 ## 5. Registro
 
+- **30/09/2026 (madrugada del 01/10, cierre pre-F3 completado)** — **D-C2 cerrada** (split de
+  `DDBBViewModel`), **Bloque 5 cerrado** (D-U1…D-U4), **D-C3 cerrada** (reacciones reales de F2),
+  D0.5 anotada como cerrada en fase-0 (seguir asimétrico), backup de la migración `uid` copiado a
+  `.secrets/migracion-uid-backup/` (10 ficheros), auditoría de F1 anotada como validada
+  (deriva de fecha corregida) y `check-docs` integrado en CI. Plan de optimización del ciclo de
+  verificación creado: [optimizacion-ciclo-verificacion-2026.md](optimizacion-ciclo-verificacion-2026.md)
+  (D-OP1/2/3 cerradas con el propietario).
 - **30/09/2026 (noche, cierre pre-F3) — deudas 3 y 6 de F2 cerradas.** Aviso de perfil no
   disponible (`NotAvailableNotice`; de paso se corrigió un **crash** al abrir el perfil del
   bloqueador y una búsqueda que se tumbaba con perfiles denegados) y estados offline en Social

@@ -31,7 +31,7 @@ de datos que hoy no existe. Hacer F1 sin F0 obligaría a rehacerlo.
 | D0.2 | **Datos de los usuarios actuales** | ✅ **CERRADA** (27/09/2026): **migrar** las 3 listas a la biblioteca nueva **y limpiar los documentos basura** (`aa`, `ee`, que no son emails válidos) | ✅ |
 | D0.3 | **Alcance de la caché** | ✅ **CERRADA** (27/09/2026): **fichas visitadas + búsquedas recientes** (descarta cachear todo el catálogo: RAWG no lo permite y no cabe en el dispositivo) | ✅ |
 | D0.4 | **Cloud Functions ahora o después** | ✅ **CERRADA** (27/09/2026): **posponer a F2**, cuando la búsqueda de usuarios y el feed las necesiten de verdad | ✅ |
-| D0.5 | **Modelo de amigos** | (a) Dejar el actual (simétrico, por email) · (b) Rediseñar a "seguir" (asimétrico) | **Debatir en F2**, no en F0: aquí sólo se decide si el modelo actual bloquea algo (no lo hace) | ⬜ |
+| D0.5 | **Modelo de amigos** | (a) Dejar el actual (simétrico, por email) · (b) Rediseño a "seguir" (asimétrico) | ✅ **CERRADA (30/09/2026, en F2/D2.1)**: **seguir asimétrico** (aristas `following`), migración T2.9 ejecutada | ✅ |
 | D0.6 | **Duración de los juegos** | ✅ **CERRADA**: el campo existe en el modelo de datos de F0 y la **fuente quedó cerrada el 29/09 en la D1.4 de fase-1** (scraper HLTB + respaldo manual). T1.11 ya puede empezar | ✅ |
 
 > **Cómo se cierra una decisión:** se escribe la opción elegida, la fecha y una línea de
@@ -168,7 +168,7 @@ en F0: la migración futura es añadir una clase y cambiar una línea de inyecci
 | D0.2 | Migrar los datos existentes y limpiar los documentos basura |
 | D0.3 | Caché: fichas visitadas + búsquedas recientes |
 | D0.4 | Cloud Functions se posponen a F2 |
-| D0.5 | Modelo social: se decide en F2 |
+| D0.5 | Modelo social: ✅ cerrado en F2 (seguir asimétrico, D2.1) |
 | D0.6 | Estructura de duración sí (F0); **fuente cerrada (29/09/2026)**: scraper HLTB con caché + respaldo manual — [D1.4 de fase-1](fase-1-corazon-tracker.md) e [investigación](../investigacion-2026/hltb-verificacion-2026.md) |
 
 ## Riesgos
@@ -226,8 +226,8 @@ con R8. Capturas: modo degradado sin red, biblioteca offline, foto en segundo di
   útil el modo sin conexión y no ataca los términos de uso de RAWG (nada de volcado masivo).
 - **D0.4 — Cloud Functions a F2 (27/09/2026)** — F0 y F1 se resuelven en el cliente; menos
   piezas que desplegar y depurar ahora.
-- **D0.5 — Diferida a F2 (27/09/2026)** — el modelo de amigos (simétrico vs seguir) se
-  decide en la fase social, que es donde tiene consecuencias. No bloquea F0.
+- **D0.5 — Diferida a F2 (27/09/2026) · CERRADA (30/09/2026)** — el modelo de amigos se decidió
+  en la fase social: **seguir asimétrico** (D2.1 de fase-2), con migración T2.9 ejecutada.
 - **D0.6 — Estructura sí; fuente cerrada (29/09/2026)** — el campo de duración se crea en
   el modelo; la fuente de los datos quedó decidida ese mismo día en la **D1.4 de fase-1**:
   scraper ligero de HowLongToBeat con caché + respaldo manual (verificación en

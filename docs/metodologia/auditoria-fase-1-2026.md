@@ -2,7 +2,12 @@
 
 > Aplica el [protocolo de auditoría de cierre](auditoria-de-cierre.md).
 > **Ejecutada por:** agente (GameVision Agent) en modo autónomo · **Fecha:** 29/09/2026 (noche)
-> **Validación del propietario:** ⬜ pendiente
+> **Validación del propietario:** ✅ **validada el 30/09/2026** (commit `6a703fe`; las reservas de
+> estados vacío/carga/error quedaron apuntadas para F4.5)
+>
+> **Nota (30/09, cierre pre-F3):** este informe es una **fotografía del 29/09**. Sus reservas se
+> fueron cerrando después: el cronometraje de CA1.1 y el bloque 5 (uid) quedaron resueltos en el
+> [cierre pre-F3](../plan/CIERRE-PRE-F3-2026.md); no edits aquí salvo estas notas.
 
 ```
 Fase: F1 — El corazón del tracker     Fecha: 29/09/2026

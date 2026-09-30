@@ -85,28 +85,61 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
 
 ### Bloque 4 — Flecos de F1 y documentación
 
-- [ ] **CA1.1 cronometrado**: buscar → estado → guardar en < 60 s (3 repeticiones con tiempos);
-  marcar CA1.1 y cerrar la reserva de la auditoría de F1.
-- [ ] **Backup de la migración `uid`** → `.secrets/migracion-uid-backup/` (10 ficheros verificados).
-- [ ] **Docs**: D0.5 ✅ (cerrada en F2/D2.1); reserva `storage.rules` obsoleta por ADR-0007; D-C3
-  resuelto por F2; nota de «checklist histórico» en las auditorías de F0/F1.
-- [ ] **`check-docs` en CI**: incluirlo en el workflow si pasa con los ficheros del repo; si depende
-  del workspace, queda como script manual y documentado.
-- [ ] **Registro** en [DEUDA-TECNICA-2026.md](DEUDA-TECNICA-2026.md): Bloque 5, D-C2 y D-C3 cerrados;
-  tabla de fases al día.
+- [x] **CA1.1 cronometrado** — **parcial (30/09, madrugada del 01/10)**: el flujo buscar → ficha
+  está automatizado y funciona (búsqueda «stardew» → resultados → ficha con HLTB cargado), pero el
+  paso final **no es automatizable por adb**: el botón «Añadir» de la ficha no responde a
+  `input tap` ni a swipe inyectado (limitación ya documentada como deuda 4 de F2; a mano
+  funciona — verificado en B2 y en las E2E de F1). El cronometraje formal (3 repeticiones con
+  cronómetro humano) queda como **tarea de 2 minutos del propietario**, pasos en «Tareas del
+  propietario» abajo. Criterio honesto: sin esa evidencia, CA1.1 no se da por cronometrado.
+  *Nota de proceso:* es exactamente el caso que motiva el
+  [plan de optimización](optimizacion-ciclo-verificacion-2026.md): este flujo nacerá como
+  instrumentado UI al abrir F3 (bloque A3).
+- [x] **Backup de la migración `uid`** → `.secrets/migracion-uid-backup/` (10 ficheros: 9 perfiles
+  + `summary.json`, copiados de `.openclaw/tmp/migration-backup/` y verificados por listado).
+- [x] **Docs**: D0.5 ✅ anotada en fase-0 (cerrada en F2/D2.1, seguir asimétrico); `storage.rules`
+  ya llevaba su cabecera de ARCHIVADA por ADR-0007 (verificado); D-C3 ✅ resuelto por F2 en
+  [DEUDA-TECNICA-2026.md](DEUDA-TECNICA-2026.md); auditoría de F1 anotada como **validada**
+  (deriva de fecha corregida: el commit `6a703fe` la validó pero el informe seguía en ⬜) con nota
+  de fotografía histórica.
+- [x] **`check-docs` en CI**: el script dependía del workspace (`mapa-gamevision.md` vive fuera del
+  repo) → añadida la flag `CHECK_DOCS_SKIP_WORKSPACE=1` y **job `docs-check` en el workflow**.
+  Probado en ambos modos (local y CI) en verde.
+- [x] **Registro** en [DEUDA-TECNICA-2026.md](DEUDA-TECNICA-2026.md): Bloque 5, D-C2 y D-C3
+  cerrados; tabla y registro al día.
 
 ### Bloque 5 — Cierre
 
-- [ ] Suite completa: `testDebugUnitTest`, `connectedDebugAndroidTest`, reglas, lint, debug y release.
-- [ ] Commits temáticos + push (`dpapi`).
+- [x] Suite completa (30/09, madrugada del 01/10): `testDebugUnitTest` **118/118**,
+  `connectedDebugAndroidTest` **20/20** (emulador), reglas sin cambios, `lintDebug` limpio,
+  `assembleDebug` + `assembleRelease` (R8) verdes.
+- [x] Commits temáticos + push (`dpapi`).
 - [ ] Validación del propietario de la auditoría de F2 (→ ✅).
 
-## Tareas del propietario (consola Firebase)
+## Tareas del propietario (consola Firebase + QA manual)
 
-- Crear el índice compuesto `feed(authorUid ASC, createdAt DESC)`; el agente deja el paso a paso y
-  verifica después por REST.
-- Añadir el **SHA-1 de release** en Firebase Auth → Google (el agente lo calcula del keystore).
-- Copiar `gamevision-release.jks` + credenciales a un gestor de secretos.
+**1. Índice compuesto del feed** (Firestore → Índices compuestos):
+- Colección `feed` · campos: `authorUid` **ASC**endente, `createdAt` **DESC**endente · alcance:
+  **Colección**. (Ya declarado en `firebase/firestore.indexes.json`; la service account no puede
+  crearlo, 403.) Cuando exista, el fallback cliente de D2.8 deja de usarse y yo lo verifico por REST.
+
+**2. Huellas SHA-1 en Firebase** (Authentication → Método de acceso → Google → Huellas digitales):
+- **Release:** `F9:D6:25:31:B2:DD:03:B3:3E:89:89:E5:28:CF:F6:D7:4F:84:F5:9E` (calculada del keystore
+  de `.secrets/`, coincide con la registrada el 29/09 — confirmar que ya está guardada).
+- **CI:** `51:57:9F:4E:5F:20:2E:49:28:FE:53:B1:E4:F3:AB:53:6C:8D:D8:E9` — keystore de CI nuevo
+  (`scripts/ci/debug-ci.keystore`, solo debug, D-OP2). Con ella, el job `instrumented` del CI puede
+  hablar con Firebase; además sube el secreto `GOOGLE_SERVICES_B64` (base64 del
+  `app/google-services.json` real) en Settings → Secrets → Actions.
+
+**3. Copia del keystore**: `gamevision-release.jks` + `gamevision-release-keys.txt` a un gestor de
+secretos (ya existen en `.secrets/`; la copia es la redancia).
+
+**4. Cronometraje de CA1.1 (2 min, con cronómetro o reloj):**
+1. Abrir la app (cuenta QA) → pestaña **Search** → escribir `halo` → buscar.
+2. Abrir la ficha de **Halo 3** → botón **Añadir** → **Jugando**.
+3. Apunta el tiempo total desde empezar a escribir hasta ver el juego confirmado. Repetir 3 veces
+   (p. ej. `zelda`, `hades`, quitando cada juego antes de la siguiente: Añadir → Quitar).
+4. Pégame los 3 tiempos; si los 3 son < 60 s, marco CA1.1 y se cierra la reserva de la auditoría de F1.
 
 ## Fuera de alcance (con disparador)
 

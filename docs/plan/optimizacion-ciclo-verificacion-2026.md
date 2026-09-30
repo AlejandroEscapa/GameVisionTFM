@@ -69,13 +69,13 @@ visual/UX por naturaleza. El emulador deja de ser el instrumento de regresión.
   (código ✅ + auditoría validada) en **< 24 h** desde la última tarea.
 - **D3. Revisión:** al cerrar F3 se audita este plan (¿bajó el coste real?) antes de aplicar más.
 
-## Decisiones abiertas (cerrar antes de ejecutar)
+## Decisiones (cerradas con el propietario el 30/09/2026)
 
-| # | Decisión | Opciones | Recomendación |
+| # | Decisión | Opciones | Cierre |
 |---|---|---|---|
-| D-OP1 | ¿Fase pasa a ✅ si los bloques 1-5 están verdes y el bloque 6 se validó en el E2E, aunque el propietario no haya firmado en 48 h? | (a) No: siempre espera firma · (b) Sí: ✅ presumido + nota pendiente de ratificación | **(b)**: el rigor vive en la evidencia, no en el sello; el propietario ratifica cuando pueda y puede reabrir |
-| D-OP2 | ¿CI ejecuta instrumentados con emulador en GitHub Actions? | (a) Sí (AVD en Actions) · (b) No: instrumentados solo en local | **(a)**: coste ~5-10 min/run; hoy dependen de que yo tenga el emulador encendido |
-| D-OP3 | ¿Dónde viven los helpers de instrumentados? | (a) `app/src/androidTest/helpers/` · (b) módulo aparte | **(a)**: simple; módulo aparte solo si crece en F4 |
+| D-OP1 | ¿Fase pasa a ✅ si los bloques 1-5 están verdes y el bloque 6 se validó en el E2E, aunque el propietario no haya firmado en 48 h? | (a) No: siempre espera firma · (b) Sí: ✅ presumido + nota pendiente de ratificación | ✅ **(b)** (30/09): el rigor vive en la evidencia; el propietario ratifica cuando pueda y puede reabrir |
+| D-OP2 | ¿CI ejecuta instrumentados con emulador en GitHub Actions? | (a) Sí (AVD en Actions) · (b) No: instrumentados solo en local | ✅ **(a)** (30/09): job añadido; arranca en modo `workflow_dispatch` hasta registrar el SHA-1 del keystore de CI en Firebase (los instrumentados tocan Firestore real) |
+| D-OP3 | ¿Dónde viven los helpers de instrumentados? | (a) `app/src/androidTest/helpers/` · (b) módulo aparte | ✅ **(a)** (30/09): paquete `helpers` en androidTest |
 
 ## Reglas de ejecución
 
