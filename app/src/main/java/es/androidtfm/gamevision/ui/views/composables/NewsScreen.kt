@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
@@ -58,7 +57,6 @@ fun NewsScreen(
     onThemeChange: (Boolean) -> Unit, // Función para cambiar el tema
     newsViewModel: NewsViewModel, // ViewModel para manejar las noticias
     userViewModel: UserViewModel, // ViewModel compartido para datos del usuario
-    ddbbViewModel: DDBBViewModel, // Opcional, para otras operaciones con la base de datos
     paddingValues: PaddingValues // Valores de padding para la pantalla
 ) {
     // Estado para la lista de artículos

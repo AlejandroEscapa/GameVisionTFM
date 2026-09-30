@@ -13,9 +13,6 @@ import es.androidtfm.gamevision.data.library.LibraryRepository
 import es.androidtfm.gamevision.data.library.LibraryStats
 import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.library.PlaySession
-import es.androidtfm.gamevision.data.model.ChatMessage
-import es.androidtfm.gamevision.data.model.Friend
-import es.androidtfm.gamevision.data.repository.UserRepository
 import es.androidtfm.gamevision.datastore.RecentGame
 import es.androidtfm.gamevision.datastore.RecentGamesStore
 import kotlinx.coroutines.flow.Flow
@@ -24,20 +21,20 @@ import javax.inject.Inject
 
 /*
  * Autor: Alejandro Olivares Escapa
- * Fecha: 27/09/2026 (actualizado 28/09/2026 — F0-B/B2: biblioteca nueva y
- * historial local; los juegos ya no viven en las listas antiguas por email).
+ * Fecha: 30/09/2026 (D-C2: partida de DDBBViewModel).
  * Descripción:
  *
- * Fachada de los datos de juego, amigos y mensajes del usuario. El perfil y la
- * identidad ya NO están aquí: viven en UserViewModel (SSOT).
+ * Estado y operaciones de la biblioteca del usuario: fichas, diario de
+ * sesiones, agregados (stats), duraciones estimadas (HLTB) y el historial
+ * local de recientes. Los amigos y los mensajes del muro viven en
+ * SocialViewModel; el perfil y la identidad, en UserViewModel (SSOT).
  *
  * Todos los métodos devuelven Result, así que la UI puede informar de los
- * fallos en vez de fallar en silencio como antes.
+ * fallos en vez de fallar en silencio.
  */
 
 @HiltViewModel
-class DDBBViewModel @Inject constructor(
-    private val repository: UserRepository,
+class LibraryViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val recentGamesStore: RecentGamesStore,
     private val hltbRepository: HltbRepository,
@@ -129,7 +126,7 @@ class DDBBViewModel @Inject constructor(
     // ------------------------------------------------------------------------
 
     /**
-     * Duración estimada de un juego por su nombre. Con caché de 90 d"as y
+     * Duración estimada de un juego por su nombre. Con caché de 90 días y
      * degradable: si HLTB falla, devuelve null y la UI ofrece valor manual.
      */
     suspend fun playtimesFor(name: String): HltbPlaytimes? = hltbRepository.playtimesFor(name)
@@ -157,35 +154,4 @@ class DDBBViewModel @Inject constructor(
     fun addRecentGame(game: RecentGame) {
         viewModelScope.launch { recentGamesStore.add(game) }
     }
-
-    // ------------------------------------------------------------------------
-    // Amigos (ADR-0008: clave uid; el id del amigo es su uid)
-    // ------------------------------------------------------------------------
-
-    /** Resuelve un email a uid (para añadir amigos por email sin exponer la colección). */
-    suspend fun findUidByEmail(email: String): Result<String?> = repository.findUidByEmail(email)
-
-    suspend fun addFriend(uid: String, friendUid: String): Result<Unit> =
-        repository.addFriend(uid, friendUid)
-
-    suspend fun removeFriend(uid: String, friendUid: String): Result<Unit> =
-        repository.removeFriend(uid, friendUid)
-
-    suspend fun getFriends(uid: String): Result<List<Friend>> = repository.getFriends(uid)
-
-    /** true si existe un perfil con ese uid. */
-    suspend fun profileExists(uid: String): Result<Boolean> = repository.profileExists(uid)
-
-    // ------------------------------------------------------------------------
-    // Mensajes (ADR-0008: clave uid del dueño del muro)
-    // ------------------------------------------------------------------------
-
-    suspend fun publishMessage(uid: String, message: String, time: String): Result<Unit> =
-        repository.publishMessage(uid, message, time)
-
-    suspend fun deleteMessage(uid: String, messageId: String): Result<Unit> =
-        repository.deleteMessage(uid, messageId)
-
-    suspend fun getMessages(uid: String): Result<List<ChatMessage>> =
-        repository.getMessages(uid)
 }

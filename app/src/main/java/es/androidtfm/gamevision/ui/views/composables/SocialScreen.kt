@@ -80,7 +80,7 @@ import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.ui.designsystem.components.rememberIsOnline
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -111,7 +111,7 @@ fun SocialScreen(
     // el ámbito de un composable() de navegación no tiene la factory de @HiltViewModel
     // y CRASHEA en runtime (probado en E2E). El compilador ahora lo impide.
     userViewModel: UserViewModel,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     socialViewModel: SocialViewModel
 ) {
     // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
@@ -519,7 +519,7 @@ fun SocialCard(
     message: String,
     hora: String,
     messageID: String,
-    ddbbViewModel: DDBBViewModel,
+    socialViewModel: SocialViewModel,
     isDarkMode: Boolean,
     onMessageDeleted: () -> Unit
 ) {
@@ -608,7 +608,7 @@ fun SocialCard(
                         text = "Borrar",
                         onClick = {
                             coroutineScope.launch {
-                                ddbbViewModel.deleteMessage(ownerUid, messageID)
+                                socialViewModel.deleteMessage(ownerUid, messageID)
                                     .onSuccess { onMessageDeleted() }
                             }
                         },

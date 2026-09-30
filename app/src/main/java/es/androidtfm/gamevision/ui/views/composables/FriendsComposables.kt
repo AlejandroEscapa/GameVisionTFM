@@ -46,7 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -67,7 +67,7 @@ import kotlinx.coroutines.launch
  * @param paddingValues Valores de relleno para el diseño.
  * @param navController Controlador de navegación.
  * @param userViewModel ViewModel para el usuario.
- * @param ddbbViewModel ViewModel para la base de datos.
+ * @param socialViewModel ViewModel para la base de datos.
  */
 @Composable
 fun FriendsList(
@@ -75,7 +75,7 @@ fun FriendsList(
     paddingValues: PaddingValues,
     navController: NavController,
     userViewModel: UserViewModel,
-    ddbbViewModel: DDBBViewModel
+    socialViewModel: SocialViewModel
 ) {
     // Identidad desde el SSOT de sesión (clave: uid — ADR-0008)
     val uid by userViewModel.currentUid.collectAsState()
@@ -94,7 +94,7 @@ fun FriendsList(
             isLoading = false
             return@LaunchedEffect
         }
-        friendsList = ddbbViewModel.getFriends(userUid).getOrElse { error ->
+        friendsList = socialViewModel.getFriends(userUid).getOrElse { error ->
             userViewModel.setMessage("No se pudieron cargar tus amigos: ${error.message}")
             emptyList()
         }
@@ -145,7 +145,7 @@ fun FriendsList(
                             FriendItem(
                                 friend = friend,
                                 ownerUid = currentUid,
-                                ddbbViewModel = ddbbViewModel
+                                socialViewModel = socialViewModel
                             ) { updatedFriendsList ->
                                 friendsList = updatedFriendsList
                             }
@@ -210,11 +210,11 @@ fun FriendsList(
                         coroutineScope.launch {
                             val friendEmail = searchField.trim()
                             val myUid = uid.orEmpty()
-                            val friendUid = ddbbViewModel.findUidByEmail(friendEmail).getOrNull()
+                            val friendUid = socialViewModel.findUidByEmail(friendEmail).getOrNull()
                             if (!friendUid.isNullOrBlank()) {
-                                ddbbViewModel.addFriend(myUid, friendUid)
+                                socialViewModel.addFriend(myUid, friendUid)
                                     .onSuccess {
-                                        friendsList = ddbbViewModel.getFriends(myUid)
+                                        friendsList = socialViewModel.getFriends(myUid)
                                             .getOrDefault(emptyList())
                                         searchField = ""
                                         showNoFriendFound = false
@@ -238,7 +238,7 @@ fun FriendsList(
 fun FriendItem(
     friend: Friend, // Datos del amigo
     ownerUid: String, // uid del usuario actual (ADR-0008)
-    ddbbViewModel: DDBBViewModel, // ViewModel para manejar la base de datos
+    socialViewModel: SocialViewModel, // Amigos y mensajes viven en el ViewModel social
     onFriendRemoved: (List<Friend>) -> Unit // Callback para actualizar la lista
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -303,8 +303,8 @@ fun FriendItem(
             IconButton(
                 onClick = {
                     coroutineScope.launch {
-                        ddbbViewModel.removeFriend(ownerUid, friendUid)
-                        val updatedFriendsList = ddbbViewModel.getFriends(ownerUid)
+                        socialViewModel.removeFriend(ownerUid, friendUid)
+                        val updatedFriendsList = socialViewModel.getFriends(ownerUid)
                             .getOrDefault(emptyList())
                         onFriendRemoved(updatedFriendsList)
                     }

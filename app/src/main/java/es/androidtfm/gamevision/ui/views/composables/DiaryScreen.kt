@@ -57,7 +57,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -74,21 +74,21 @@ import java.util.Calendar
 fun DiaryScreen(
     navController: NavController,
     paddingValues: PaddingValues,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel
 ) {
     val uid by userViewModel.currentUid.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
+    val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
         .collectAsState(initial = null)
-    val sessions by remember(uid) { ddbbViewModel.observeSessions(uid.orEmpty()) }
+    val sessions by remember(uid) { libraryViewModel.observeSessions(uid.orEmpty()) }
         .collectAsState(initial = null)
 
     var showLogDialog by remember { mutableStateOf(false) }
 
     // Instrumentación: registro de visita (F1 — Bloque 4).
-    LaunchedEffect(Unit) { ddbbViewModel.logScreen("diary") }
+    LaunchedEffect(Unit) { libraryViewModel.logScreen("diary") }
 
     val sessionList = sessions?.getOrNull().orEmpty()
     val months = remember(sessionList) { DiaryUtils.groupByMonth(sessionList) }
@@ -197,7 +197,7 @@ fun DiaryScreen(
                         userViewModel.setMessage("Inicia sesión para apuntar sesiones")
                         return@launch
                     }
-                    ddbbViewModel.addSession(
+                    libraryViewModel.addSession(
                         userId,
                         PlaySession(
                             gameId = gameId,
@@ -209,7 +209,7 @@ fun DiaryScreen(
                         // La plataforma de la última partida se refleja en la ficha (T1.6),
                         // sin crear una partida nueva.
                         if (platform != null) {
-                            ddbbViewModel.setLastPlatform(userId, gameId, platform)
+                            libraryViewModel.setLastPlatform(userId, gameId, platform)
                         }
                         userViewModel.setMessage("Sesión apuntada")
                     }.onFailure { e ->

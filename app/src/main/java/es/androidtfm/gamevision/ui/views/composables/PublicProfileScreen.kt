@@ -57,7 +57,6 @@ import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.model.GameList
 import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
@@ -78,8 +77,7 @@ fun PublicProfileScreen(
     paddingValues: PaddingValues,
     navController: NavHostController,
     userViewModel: UserViewModel,
-    socialViewModel: SocialViewModel,
-    ddbbViewModel: DDBBViewModel
+    socialViewModel: SocialViewModel
 ) {
     val uid by userViewModel.currentUid.collectAsState()
     val profile by socialViewModel.publicProfile.collectAsState()

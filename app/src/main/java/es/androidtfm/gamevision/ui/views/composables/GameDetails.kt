@@ -68,7 +68,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
@@ -88,7 +88,7 @@ import kotlinx.coroutines.launch
  * @param isDarkTheme Indica si el tema oscuro está activado.
  * @param paddingValues PaddingValues para ajustar el layout.
  * @param gameId Identificador del juego a mostrar.
- * @param ddbbViewModel ViewModel para operaciones con la base de datos.
+ * @param libraryViewModel ViewModel para operaciones con la base de datos.
  * @param userViewModel ViewModel para datos de usuario.
  * @param viewModel ViewModel para obtener detalles del juego (SearchViewModel).
  */
@@ -99,7 +99,7 @@ fun GameDetails(
     isDarkTheme: Boolean,
     paddingValues: PaddingValues,
     gameId: Int,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel,
     socialViewModel: SocialViewModel,
     viewModel: SearchViewModel = viewModel(
@@ -121,13 +121,13 @@ fun GameDetails(
     val fromCache by viewModel.fromCache.collectAsState()
 
     // Ficha en vivo del juego en la biblioteca (para añadir/cambiar estado/favorito).
-    val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
+    val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
         .collectAsState(initial = null)
     val entry = library?.getOrNull()?.firstOrNull { it.gameId == gameId.toString() }
 
     // Historial local de recientes (F0-B: ya no se guarda en Firestore).
     LaunchedEffect(game) {
-        game?.let { g -> ddbbViewModel.addRecentGame(RecentGame(g.id, g.name, g.coverUrl)) }
+        game?.let { g -> libraryViewModel.addRecentGame(RecentGame(g.id, g.name, g.coverUrl)) }
     }
 
     // Duración estimada (F1/T1.11): se pide con caché cuando se conoce el nombre.
@@ -136,7 +136,7 @@ fun GameDetails(
     }
     LaunchedEffect(game?.name) {
         val nombre = game?.name ?: return@LaunchedEffect
-        playtimes = ddbbViewModel.playtimesFor(nombre)
+        playtimes = libraryViewModel.playtimesFor(nombre)
     }
 
     Column(
@@ -238,7 +238,7 @@ fun GameDetails(
                                         userViewModel.setMessage("Inicia sesión para guardar juegos")
                                         return@launch
                                     }
-                                    ddbbViewModel.addToLibrary(userId, currentGame.toLibraryEntry(status))
+                                    libraryViewModel.addToLibrary(userId, currentGame.toLibraryEntry(status))
                                         .onSuccess { userViewModel.setMessage("Añadido a ${status.label}") }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo añadir: ${e.message}") }
                                 }
@@ -248,7 +248,7 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
-                                    ddbbViewModel.updateStatus(userId, currentEntry.gameId, currentEntry.status, to)
+                                    libraryViewModel.updateStatus(userId, currentEntry.gameId, currentEntry.status, to)
                                         .onSuccess {
                                             userViewModel.setMessage("Estado: ${to.label}")
                                             // F2/D2.3: hito de completado en el feed (determinista).
@@ -269,7 +269,7 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
-                                    ddbbViewModel.setRating(userId, currentEntry.gameId, currentEntry.rating, rating)
+                                    libraryViewModel.setRating(userId, currentEntry.gameId, currentEntry.rating, rating)
                                         .onSuccess { userViewModel.setMessage(if (rating == null) "Nota quitada" else "Nota guardada") }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo guardar la nota: ${e.message}") }
                                 }
@@ -280,7 +280,7 @@ fun GameDetails(
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
                                     val hadReview = !currentEntry.review.isNullOrBlank()
-                                    ddbbViewModel.setReview(userId, currentEntry.gameId, text.ifBlank { null })
+                                    libraryViewModel.setReview(userId, currentEntry.gameId, text.ifBlank { null })
                                         .onSuccess {
                                             userViewModel.setMessage("Reseña guardada")
                                             // F2/D2.3: hito de reseña (primera reseña o texto nuevo).
@@ -302,7 +302,7 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
-                                    ddbbViewModel.setFavorite(userId, currentEntry.gameId, !currentEntry.favorite)
+                                    libraryViewModel.setFavorite(userId, currentEntry.gameId, !currentEntry.favorite)
                                         .onSuccess { userViewModel.setMessage(if (!currentEntry.favorite) "Marcado como favorito" else "Quitado de favoritos") }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo actualizar: ${e.message}") }
                                 }
@@ -312,7 +312,7 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
-                                    ddbbViewModel.removeFromLibrary(userId, currentEntry)
+                                    libraryViewModel.removeFromLibrary(userId, currentEntry)
                                         .onSuccess { userViewModel.setMessage("Quitado de tu biblioteca") }
                                         .onFailure { e -> userViewModel.setMessage("No se pudo quitar: ${e.message}") }
                                 }
@@ -322,7 +322,7 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
-                                    ddbbViewModel.setManualPlaytime(userId, currentEntry.gameId, minutos)
+                                    libraryViewModel.setManualPlaytime(userId, currentEntry.gameId, minutos)
                                         .onSuccess {
                                             userViewModel.setMessage(
                                                 if (minutos == null) "Duración manual quitada"
@@ -337,7 +337,7 @@ fun GameDetails(
                                     val userId = uid
                                     val currentEntry = entry ?: return@launch
                                     if (userId.isNullOrBlank()) return@launch
-                                    ddbbViewModel.createLog(
+                                    libraryViewModel.createLog(
                                         userId,
                                         es.androidtfm.gamevision.data.library.GameLog(
                                             gameId = currentEntry.gameId,

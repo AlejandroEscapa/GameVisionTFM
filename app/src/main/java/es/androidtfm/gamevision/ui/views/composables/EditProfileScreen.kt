@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.model.GameList
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -82,7 +82,7 @@ fun EditProfileScreen(
     navController: NavController?,
     userViewModel: UserViewModel,
     socialViewModel: SocialViewModel,
-    ddbbViewModel: DDBBViewModel
+    libraryViewModel: LibraryViewModel
 ) {
     // Campos de edición, precargados una vez desde el perfil del SSOT.
     val profile by userViewModel.profile.collectAsState()
@@ -104,7 +104,7 @@ fun EditProfileScreen(
     var isPrivate by remember { mutableStateOf(profile.isPrivate) }
     // El uid también es estado composable: leer .value directo en composición dispara lint.
     val currentUid by userViewModel.currentUid.collectAsState()
-    val library by ddbbViewModel.observeLibrary(currentUid.orEmpty())
+    val library by libraryViewModel.observeLibrary(currentUid.orEmpty())
         .collectAsState(initial = null)
     Column(
         modifier = Modifier

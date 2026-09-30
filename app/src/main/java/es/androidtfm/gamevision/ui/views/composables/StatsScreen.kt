@@ -36,7 +36,7 @@ import es.androidtfm.gamevision.data.library.LibraryInsights
 import es.androidtfm.gamevision.data.library.StatisticsUtils
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
 /*
@@ -51,11 +51,11 @@ import es.androidtfm.gamevision.viewmodel.UserViewModel
 fun StatsScreen(
     navController: NavController,
     paddingValues: PaddingValues,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel
 ) {
     val uid by userViewModel.currentUid.collectAsState()
-    val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
+    val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
         .collectAsState(initial = null)
 
     val entries: List<LibraryEntry>? = library?.getOrNull()
@@ -64,7 +64,7 @@ fun StatsScreen(
     }
 
     // Instrumentación: registro de visita (F1 — Bloque 4).
-    androidx.compose.runtime.LaunchedEffect(Unit) { ddbbViewModel.logScreen("stats") }
+    androidx.compose.runtime.LaunchedEffect(Unit) { libraryViewModel.logScreen("stats") }
 
     Column(
         modifier = Modifier

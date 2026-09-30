@@ -52,10 +52,15 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
 
 ### Bloque 2 — Split D-C2 (base limpia antes de F3)
 
-- [ ] Partir `DDBBViewModel` → **`LibraryViewModel`** (biblioteca, recientes, HLTB) y mover
-  **amigos/mensajes** al social (`SocialViewModel`, o `FriendsViewModel` si el encaje no es limpio).
-- [ ] Renombrar los 12 consumidores **sin cambios de comportamiento**.
-  *Evidencia:* unitarios verdes, lint limpio, debug + release y smoke E2E de biblioteca/amigos/muro.
+- [x] Partir `DDBBViewModel` → **`LibraryViewModel`** (biblioteca, diario, stats, HLTB, recientes,
+  analítica) y mover **amigos/mensajes** al social (`SocialViewModel`; `profileExists`, sin
+  consumidores, se retiró — vive en `UserRepository`). `DDBBViewModel` eliminado.
+- [x] Renombrar los 12 consumidores **sin cambios de comportamiento** (MainActivity, NavHost, News
+  y PublicProfile pierden el parámetro muerto; FriendsComposables pasa al social; `SocialCard`,
+  sin llamadas, re-apuntada al social).
+  *Evidencia (30/09):* compileDebugKotlin, assembleDebug, testDebugUnitTest (118/118) y lintDebug
+  en verde; smoke E2E en emulador — Social, Perfil, Estadísticas, Seguidos (amigos), Diario y
+  GameList abren sin crash (logcat limpio).
 
 ### Bloque 3 — Higiene UI/Compose (Bloque 5 de la deuda)
 

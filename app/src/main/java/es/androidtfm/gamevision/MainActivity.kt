@@ -36,7 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import es.androidtfm.gamevision.data.session.SessionState
 import dagger.hilt.android.AndroidEntryPoint
 import es.androidtfm.gamevision.ui.navigation.NavHost
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
             val themeViewModel: ThemeViewModel = viewModel()
             val userViewModel: UserViewModel = viewModel()
             val newsViewModel: NewsViewModel = viewModel()
-            val ddbbViewModel: DDBBViewModel = viewModel()
+            val libraryViewModel: LibraryViewModel = viewModel()
             val socialViewModel: SocialViewModel = viewModel()
             val searchViewModel: SearchViewModel = viewModel()
 
@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
                 onGoogleSignInClick = {
                     lifecycleScope.launch { googleViewModel.signIn(this@MainActivity) }
                 },
-                ddbbViewModel = ddbbViewModel,
+                libraryViewModel = libraryViewModel,
                 socialViewModel = socialViewModel,
                 searchViewModel = searchViewModel // Si NewsScreen u otras pantallas lo requieren
             )
@@ -101,7 +101,7 @@ fun MainScreen(
     googleViewModel: GoogleViewModel,
     newsViewModel: NewsViewModel,
     onGoogleSignInClick: () -> Unit,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     socialViewModel: SocialViewModel,
     searchViewModel: SearchViewModel
 ) {
@@ -139,7 +139,7 @@ fun MainScreen(
                         googleViewModel = googleViewModel,
                         newsViewModel = newsViewModel,
                         onGoogleSignInClick = onGoogleSignInClick,
-                        ddbbViewModel = ddbbViewModel,
+                        libraryViewModel = libraryViewModel,
                         socialViewModel = socialViewModel,
                         isGuest = isGuest,
                         searchViewModel = searchViewModel

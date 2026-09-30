@@ -8,7 +8,10 @@ import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.model.FeedEntry
 import es.androidtfm.gamevision.data.model.GameList
 import es.androidtfm.gamevision.data.model.UserProfile
+import es.androidtfm.gamevision.data.model.ChatMessage
+import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.repository.SocialRepository
+import es.androidtfm.gamevision.data.repository.UserRepository
 import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.data.social.FeedQueryPlanner
 import es.androidtfm.gamevision.data.social.MilestonePlanner
@@ -33,6 +36,7 @@ import kotlinx.coroutines.tasks.await
 @HiltViewModel
 class SocialViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
+    private val userRepository: UserRepository,
     private val db: FirebaseFirestore
 ) : ViewModel() {
 
@@ -308,4 +312,33 @@ class SocialViewModel @Inject constructor(
             rating = rating
         )
     }
+
+
+    // ------------------------------------------------------------------------
+    // Amigos (D-C2: antes en DDBBViewModel; ADR-0008 — el id del amigo es su uid)
+    // ------------------------------------------------------------------------
+
+    /** Resuelve un email a uid (alta de amigos por email sin exponer la coleccion). */
+    suspend fun findUidByEmail(email: String): Result<String?> = userRepository.findUidByEmail(email)
+
+    suspend fun addFriend(uid: String, friendUid: String): Result<Unit> =
+        userRepository.addFriend(uid, friendUid)
+
+    suspend fun removeFriend(uid: String, friendUid: String): Result<Unit> =
+        userRepository.removeFriend(uid, friendUid)
+
+    suspend fun getFriends(uid: String): Result<List<Friend>> = userRepository.getFriends(uid)
+
+    // ------------------------------------------------------------------------
+    // Mensajes del muro (D-C2: antes en DDBBViewModel; ADR-0008)
+    // ------------------------------------------------------------------------
+
+    suspend fun publishMessage(uid: String, message: String, time: String): Result<Unit> =
+        userRepository.publishMessage(uid, message, time)
+
+    suspend fun deleteMessage(uid: String, messageId: String): Result<Unit> =
+        userRepository.deleteMessage(uid, messageId)
+
+    suspend fun getMessages(uid: String): Result<List<ChatMessage>> =
+        userRepository.getMessages(uid)
 }

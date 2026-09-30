@@ -68,7 +68,7 @@ import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -102,7 +102,7 @@ fun GameListScreen(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel,
     // F2/T2.6: si llega, las tarjetas ofrecen «añadir/quitar de una lista».
     socialViewModel: SocialViewModel? = null
@@ -119,11 +119,11 @@ fun GameListScreen(
     val uid by userViewModel.currentUid.collectAsState()
 
     // Biblioteca en vivo (SSOT del usuario). null = primera carga.
-    val library by remember(uid) { ddbbViewModel.observeLibrary(uid.orEmpty()) }
+    val library by remember(uid) { libraryViewModel.observeLibrary(uid.orEmpty()) }
         .collectAsState(initial = null)
 
     // Historial local (decisión F0-B: vive en el dispositivo, no en Firestore).
-    val recents by ddbbViewModel.recentGames.collectAsState(initial = emptyList())
+    val recents by libraryViewModel.recentGames.collectAsState(initial = emptyList())
 
     // Elementos a mostrar según la pestaña seleccionada.
     val items: List<GameListItem>? = when {
@@ -310,7 +310,7 @@ fun GameListScreen(
                         else -> GameList(
                             gameItems = sortedItems,
                             navController = navController,
-                            ddbbViewModel = ddbbViewModel,
+                            libraryViewModel = libraryViewModel,
                             userViewModel = userViewModel,
                             socialViewModel = socialViewModel
                         )
@@ -369,7 +369,7 @@ fun GameListEmptyState(selectedList: String = "playing") {
 private fun GameList(
     gameItems: List<GameListItem>,
     navController: NavController,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel,
     socialViewModel: SocialViewModel? = null
 ) {
@@ -383,7 +383,7 @@ private fun GameList(
 GameListCard(
                     item = item,
                     navController = navController,
-                    ddbbViewModel = ddbbViewModel,
+                    libraryViewModel = libraryViewModel,
                     userViewModel = userViewModel,
                     socialViewModel = socialViewModel
                 )
@@ -396,7 +396,7 @@ GameListCard(
 private fun GameListCard(
     item: GameListItem,
     navController: NavController,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     userViewModel: UserViewModel,
     socialViewModel: SocialViewModel? = null
 ) {
@@ -536,7 +536,7 @@ private fun GameListCard(
                                         userViewModel.setMessage("Inicia sesión para gestionar tu biblioteca")
                                         return@launch
                                     }
-                                    ddbbViewModel.removeFromLibrary(userId, entry).onFailure { error ->
+                                    libraryViewModel.removeFromLibrary(userId, entry).onFailure { error ->
                                         userViewModel.setMessage("No se pudo eliminar: ${error.message}")
                                     }
                                 }

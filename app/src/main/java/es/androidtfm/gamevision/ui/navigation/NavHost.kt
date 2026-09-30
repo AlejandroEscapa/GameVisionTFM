@@ -30,7 +30,7 @@ import es.androidtfm.gamevision.ui.views.composables.RegisterScreen
 import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
 import es.androidtfm.gamevision.ui.views.composables.StatsScreen
-import es.androidtfm.gamevision.viewmodel.DDBBViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
@@ -52,7 +52,7 @@ fun NavHost(
     googleViewModel: GoogleViewModel,
     newsViewModel: NewsViewModel,
     onGoogleSignInClick: () -> Unit,
-    ddbbViewModel: DDBBViewModel,
+    libraryViewModel: LibraryViewModel,
     socialViewModel: SocialViewModel,
     isGuest: Boolean,
     searchViewModel: SearchViewModel
@@ -101,7 +101,6 @@ fun NavHost(
                     onThemeChange = onThemeChange,
                     newsViewModel = newsViewModel,
                     userViewModel = userViewModel,
-                    ddbbViewModel = ddbbViewModel,
                     paddingValues = paddingValues
                 )
             }
@@ -136,7 +135,7 @@ fun NavHost(
                     isDarkTheme = isDarkTheme,
                     onThemeChange = onThemeChange,
                     paddingValues = paddingValues,
-                    ddbbViewModel = ddbbViewModel,
+                    libraryViewModel = libraryViewModel,
                     userViewModel = userViewModel,
                     socialViewModel = socialViewModel
                 )
@@ -187,7 +186,7 @@ fun NavHost(
                 navController = navController,
                 userViewModel = userViewModel,
                 socialViewModel = socialViewModel,
-                ddbbViewModel = ddbbViewModel
+                libraryViewModel = libraryViewModel
             )
         }
 
@@ -200,7 +199,7 @@ fun NavHost(
                 StatsScreen(
                     navController = navController,
                     paddingValues = paddingValues,
-                    ddbbViewModel = ddbbViewModel,
+                    libraryViewModel = libraryViewModel,
                     userViewModel = userViewModel
                 )
             }
@@ -215,7 +214,7 @@ fun NavHost(
                 DiaryScreen(
                     navController = navController,
                     paddingValues = paddingValues,
-                    ddbbViewModel = ddbbViewModel,
+                    libraryViewModel = libraryViewModel,
                     userViewModel = userViewModel
                 )
             }
@@ -232,7 +231,7 @@ fun NavHost(
                     paddingValues = paddingValues,
                     navController = navController,
                     userViewModel = userViewModel,
-                    ddbbViewModel = ddbbViewModel,
+                    libraryViewModel = libraryViewModel,
                     // OJO (probado en E2E): sin esto se evalúa el default viewModel() del
                     // composable, que no tiene la factory de @HiltViewModel y CRASHEA al
                     // abrir la pestaña social. Todas las rutas pasan sus ViewModels explícitos.
@@ -266,7 +265,7 @@ fun NavHost(
                         viewModel = sharedViewModel,
                         paddingValues = paddingValues,
                         gameId = it,
-                        ddbbViewModel = ddbbViewModel,
+                        libraryViewModel = libraryViewModel,
                         userViewModel = userViewModel,
                         socialViewModel = socialViewModel
                     )
@@ -290,8 +289,7 @@ fun NavHost(
                     paddingValues = paddingValues,
                     navController = navController,
                     userViewModel = userViewModel,
-                    socialViewModel = socialViewModel,
-                    ddbbViewModel = ddbbViewModel
+                    socialViewModel = socialViewModel
                 )
             }
         }
@@ -307,7 +305,7 @@ fun NavHost(
                     paddingValues = paddingValues,
                     navController = navController,
                     userViewModel = userViewModel,
-                    ddbbViewModel = ddbbViewModel
+                    socialViewModel = socialViewModel
                 )
             }
         }
