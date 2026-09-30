@@ -1,6 +1,6 @@
 # Fase 3 — El "wow": decidir y celebrar
 
-**Estado:** ⬜ Pendiente · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
+**Estado:** 🔵 Aprobada (01/10) — D3.1–D3.6 cerradas · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
 
 ## Objetivo
 
@@ -30,12 +30,12 @@ compartible como imagen** listo para enseñar y publicar.
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| D3.1 | **Factores del "¿qué juego ahora?"** | (a) Sólo tiempo disponible vs duración · (b) + género favorito del momento · (c) + estado de ánimo elegido por el usuario · (d) + nota histórica del usuario | **(b) más (c) opcional**: con tiempo+duración+gusto se acierta mucho y se explica fácil; el estado de ánimo como filtro manual da control | ⬜ |
-| D3.2 | **¿Se explica la recomendación?** | (a) Sí, con el porqué · (b) No, solo el resultado | **(a) siempre**: la investigación del sector critica las cajas negras; explicar es parte del valor y da confianza | ⬜ |
-| D3.3 | **¿Dónde se calcula el Rewind?** | (a) En el cliente con los datos locales · (b) Cloud Function | **(a)**: el dato ya está en el dispositivo y evita dependencia de Functions; (b) si hiciera falta histórico largo | ⬜ |
-| D3.4 | **Formato de compartir** | (a) Imagen generada (tarjeta) · (b) Texto · (c) Ambos | **(a) imagen**, con las tarjetas del design system: es lo que se comparte de verdad (el formato de Strava/Spotify) | ⬜ |
-| D3.5 | **Periodicidad del Rewind** | (a) Sólo anual · (b) Anual + mensual + "tu historia con este juego" | **(b) anual como plato fuerte y "por juego" como relleno**: multiplica las ocasiones de compartir con poco trabajo extra | ⬜ |
-| D3.6 | **Tono del Rewind** | (a) Celebrar siempre (también si jugaste poco) · (b) Mostrar también lo no jugado | **(a) celebrar**: la investigación avisa de que la gamificación puede volverse tóxica; nunca culpabilizar | ⬜ |
+| D3.1 | **Factores del "¿qué juego ahora?"** | (a) Sólo tiempo disponible vs duración · (b) + género favorito del momento · (c) + estado de ánimo elegido por el usuario · (d) + nota histórica del usuario | **(b) más (c) opcional**: con tiempo+duración+gusto se acierta mucho y se explica fácil; el estado de ánimo como filtro manual da control | ✅ **(b) + (c) opcional (01/10)** |
+| D3.2 | **¿Se explica la recomendación?** | (a) Sí, con el porqué · (b) No, solo el resultado | **(a) siempre**: la investigación del sector critica las cajas negras; explicar es parte del valor y da confianza | ✅ (a) (01/10) |
+| D3.3 | **¿Dónde se calcula el Rewind?** | (a) En el cliente con los datos locales · (b) Cloud Function | **(a)**: el dato ya está en el dispositivo y evita dependencia de Functions; (b) si hiciera falta histórico largo | ✅ (a) (01/10) |
+| D3.4 | **Formato de compartir** | (a) Imagen generada (tarjeta) · (b) Texto · (c) Ambos | **(a) imagen**, con las tarjetas del design system: es lo que se comparte de verdad (el formato de Strava/Spotify) | ✅ (a) (01/10) |
+| D3.5 | **Periodicidad del Rewind** | (a) Sólo anual · (b) Anual + mensual + "tu historia con este juego" | **(b) anual como plato fuerte y "por juego" como relleno**: multiplica las ocasiones de compartir con poco trabajo extra | ✅ (b) anual + por juego (01/10) |
+| D3.6 | **Tono del Rewind** | (a) Celebrar siempre (también si jugaste poco) · (b) Mostrar también lo no jugado | **(a) celebrar**: la investigación avisa de que la gamificación puede volverse tóxica; nunca culpabilizar | ✅ (a) (01/10) |
 
 ---
 
@@ -109,4 +109,11 @@ recomendaciones explicadas + imagen compartida.
 
 ## Registro de decisiones
 
-_(vacío: pendiente de debate)_
+- **D3.1–D3.6 — Adoptadas según recomendación (01/10/2026)** — decisión del propietario en bloque.
+  Factores: tiempo + duración + géneros favoritos, con estado de ánimo como filtro opcional (D3.1);
+  recomendación siempre explicada (D3.2); Rewind calculado en cliente (D3.3); imagen como formato
+  de compartir (D3.4); anual + "tu historia con este juego" (D3.5); tono celebratorio sin culpa
+  (D3.6). **Nota visual:** los componentes nuevos del Rewind nacen en `ui/designsystem/` según la
+  regla de convivencia de [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md) — ver el
+  debate de arranque en el registro de la sesión.
+- **Estado de la fase:** 🔵 Aprobada — lista para ejecutar.
