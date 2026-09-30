@@ -191,6 +191,11 @@ class UserViewModel @Inject constructor(
             val result = sessionRepository.signIn(email, password)
             if (result.isSuccess) {
                 analytics.log(AnalyticsEvents.LOGIN, mapOf("method" to "password"))
+                // El formulario de login ha cumplido su función: se limpia para que
+                // el prefill de Editar perfil (condicionado a formFields vacíos) no
+                // herede credenciales y envíe campos en blanco al guardar
+                // (bug detectado en E2E F2: guardado vaciaba username/bio/país).
+                clearFormFields()
                 sessionRepository.offerPasswordSave(context, email, password)
             } else {
                 setMessage(result.exceptionOrNull()?.toAuthUserMessage() ?: "No se pudo iniciar sesión")

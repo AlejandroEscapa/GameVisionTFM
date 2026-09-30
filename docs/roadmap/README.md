@@ -42,7 +42,7 @@
 |---|---|---|---|---|
 | [F0](fase-0-cimientos-datos.md) | Cimientos de datos | 1 semana | ✅ Completada (29/09) | — |
 | [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | ✅ Completada (29/09) | F0 ✅ |
-| [F2](fase-2-social.md) | Social | 1 semana | ⬜ Pendiente | F1 |
+| [F2](fase-2-social.md) | Social | 1 semana | 🟡 Ejecutada y auditada (30/09) — pendiente validación del propietario | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | ⬜ Pendiente | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |
 | [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | ⬜ Pendiente | F1–F4 |
@@ -72,7 +72,7 @@
 | **Tipo de cuenta de Play** (personal vs organización) | Al preparar F5 | ✅ Cerrada (29/09): cuenta personal — [ADR-0006](../metodologia/adr/0006-cuenta-play-personal.md) |
 | **Actualización de Kotlin** (2.2.10 → 2.4.x) | Antes de la release / cuando el tooling lo exija | Diferida: "cuando sea oportuno" |
 | Integración parcial con IGDB | Cuando se cumpla una condición de disparo (ver F0) | Marcada para el futuro |
-| Modelo social: amigos vs seguir | Al empezar F2 | Diferida a F2 |
+| Modelo social: amigos vs seguir | Al empezar F2 | ✅ Cerrada (30/09): seguir asimétrico (D2.1, [fase 2](fase-2-social.md)) |
 
 ## Riesgo transversal (vigila todas las fases)
 

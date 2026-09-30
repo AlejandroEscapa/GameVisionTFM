@@ -1,6 +1,6 @@
 # Fase 2 — Social
 
-**Estado:** 🟢 En ejecución (30/09) · **Estimación:** 1 semana · **Depende de:** F1 · **Plan:** [FASE-2-SOCIAL-2026.md](../plan/FASE-2-SOCIAL-2026.md)
+**Estado:** 🟡 Ejecutada y auditada (30/09/2026) — **pendiente de validación del propietario** para pasar a ✅ Completada · **Estimación:** 1 semana · **Depende de:** F1 · **Plan:** [FASE-2-SOCIAL-2026.md](../plan/FASE-2-SOCIAL-2026.md)
 
 ## Objetivo
 
@@ -12,7 +12,9 @@ o por automatización. Esta fase ataca la primera.
 ## Resultado verificable
 
 Dos usuarios distintos pueden **encontrarse por nombre de usuario**, ver sus perfiles y
-bibliotecas, seguirse y ver la actividad del otro en un feed.
+bibliotecas, seguirse y ver la actividad del otro en un feed. **Verificado en el emulador el
+30/09/2026 con dos cuentas reales** (cuenta 1 y cuenta 2 QA; credenciales en `.secrets/qa-user.md`
+y `.secrets/qa-user2.md`, fuera del repo).
 
 ## Por qué esta fase y no otra
 
@@ -28,80 +30,187 @@ hasta que existe el diario y las notas**.
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| D2.1 | **Modelo social** | (a) Amigos simétricos (actual) · (b) Seguir asimétrico (Letterboxd) | **(b) seguir**: el asimétrico no exige permiso mutuo, crece solo y es el modelo que funciona en el sector | ✅ (b) (30/09) |
-| D2.2 | **Privacidad por defecto** | (a) Perfil público · (b) Privado y abrir por opción | **(a) público** con interruptor para hacerlo privado: el descubrimiento es el motor del producto | ✅ (a) (30/09) |
-| D2.3 | **Qué se publica en el feed** | (a) Todo (estados, notas, reseñas, sesiones) · (b) Solo hitos (completado, reseña, lista) | **(b) solo hitos**: las sesiones diarias saturan el feed. **Resolución (30/09): hitos + posts del usuario** (ampliación del propietario), sin sesiones | ✅ (30/09) |
-| D2.4 | **Buscar usuarios: dónde se hace** | (a) En el cliente (como hoy) · (b) Cloud Function · (c) Índice + reglas | **(c)**: las Functions exigen plan Blaze (el mismo muro que Storage); el índice `usernames` + reglas acotadas da la misma privacidad gratis en Spark | ✅ (c) (30/09) |
-| D2.5 | **Moderación de reseñas** | (a) Nada · (b) Reportar + bloqueo de usuario · (c) Filtro de palabras | **(b) mínimo**: reportar y bloquear es suficiente para el alcance actual y demuestra criterio | ✅ (b) (30/09) |
-| D2.6 | **¿Comentarios o solo reacciones?** | (a) Comentarios · (b) Me gusta · (c) Ambos | **(b) me gusta en F2, comentarios después**: los comentarios implican moderación y notificaciones | ✅ (b) (30/09) |
+| D2.1 | **Modelo social** | (a) Amigos simétricos · (b) Seguir asimétrico | **(b) seguir** | ✅ (b) (30/09) |
+| D2.2 | **Privacidad por defecto** | (a) Público · (b) Privado por opción | **(a) público** con interruptor | ✅ (a) (30/09) |
+| D2.3 | **Qué se publica** | (a) Todo · (b) Solo hitos | **(b) hitos** + **posts del usuario** (ampliación del propietario) | ✅ (30/09) |
+| D2.4 | **Buscar usuarios** | (a) Cliente · (b) Cloud Function · (c) Índice + reglas | **(c)** índice `usernames` + reglas, sin Blaze | ✅ (c) (30/09) |
+| D2.5 | **Moderación** | (a) Nada · (b) Reportar + bloquear | **(b) mínimo** | ✅ (b) (30/09) |
+| D2.6 | **¿Comentarios o reacciones?** | (a) Comentarios · (b) Me gusta | **(b) me gusta en F2** | ✅ (b) (30/09) |
+| D2.7 | **Chat existente** | — | Congelado: se oculta sin borrar código ni datos; su destino se decide en la auditoría de F2 | ✅ (30/09) |
+| D2.8 | **Feed sin Cloud Functions y sin índice compuesto** | (a) Requerir el índice `feed(authorUid, createdAt)` · (b) Consulta sin `orderBy` + orden en cliente | **(b)**, coherente con D2.4: la SDK exige el índice compuesto para `whereIn` + `orderBy`; sin él la escucha falla con `FAILED_PRECONDITION` y la pestaña mostraba «No se pudo cargar el feed». El índice queda **declarado** en `firebase/firestore.indexes.json` y hay script de despliegue, pero la service account no tiene `datastore.indexes.create` (403) | ✅ (b) (30/09) + deuda |
+| D2.9 | **Bloqueo y feed** | (a) Confiar solo en reglas · (b) Filtrar en cliente | **(b)**: el listado del feed es público *con sesión* por diseño (es la página pública del producto), así que el bloqueo se completa en cliente (`blockedUids` → `FeedQueryPlanner.filterBlocked`). Así se cumple lo que promete el diálogo («dejaréis de veros en el feed») | ✅ (b) (30/09) |
+| D2.10 | **Alias de búsqueda para usuarios pre-F2** | (a) Nada · (b) Backfill | **(b)**: la búsqueda consulta el espacio de alias `usernames/~x`; los 9 usuarios anteriores a F2 no lo tenían y eran **invisibles** al buscar (`qad` encontraba a QADos pero `qa g` no encontraba a QA GameVision) | ✅ (b) (30/09) |
+| D2.11 | **`createdAt` del feed** | (a) Solo `Number` · (b) `Number` + `Timestamp` | **(b)**: `serverTimestamp()` llega como `Timestamp`, no `Number`; leerlo solo como número dejaba `createdAt = 0` en todas las entradas y el feed se ordenaba por id de documento en vez de por recencia | ✅ (b) (30/09) |
 
 ---
 
 ## Tareas
 
-- [ ] T2.1 Nombre de usuario único + búsqueda por username (índice + reglas, sin Blaze — D2.4)
-- [ ] T2.2 Perfil público: biblioteca, estadísticas, Top 4, listas visibles
-- [ ] T2.3 Seguir / dejar de seguir (modelo asimétrico) + contadores
-- [ ] T2.4 Feed de actividad con los hitos de la gente que sigues
-- [ ] T2.5 Top 4 editable y visible en el perfil (identidad, como en Letterboxd)
-- [ ] T2.6 Listas curadas: crear, ordenar, públicas o privadas, con progreso
-- [ ] T2.7 Me gusta en reseñas y en entradas del feed
-- [ ] T2.8 Reportar y bloquear usuario
-- [ ] T2.9 Migrar los amigos actuales (simétricos) al modelo nuevo sin perder relaciones
+- [x] T2.1 Nombre de usuario único + búsqueda por username (índice + reglas, sin Blaze — D2.4)
+  — `SocialRepository.searchByUsername` (range query sobre alias) + backfill de alias (T2.10).
+- [x] T2.2 Perfil público: biblioteca, estadísticas, Top 4, listas visibles — `PublicProfileScreen`.
+- [x] T2.3 Seguir / dejar de seguir (asimétrico) + contadores (aggregate `count()`).
+- [x] T2.4 Feed de actividad (hitos + posts) con listener en vivo y chunks `whereIn`.
+- [x] T2.5 Top 4 editable y visible en el perfil — `TopGamesEditor` (persiste `topGameIds`).
+- [x] T2.6 Listas curadas: crear, públicas o privadas, con progreso — `gamelist` / `gamelist_private`.
+- [x] T2.7 Me gusta en entradas del feed (`feed/{id}/likes/{uid}` + `likesCount`).
+- [x] T2.8 Reportar y bloquear usuario — `reports/{id}`, `blocks/{me}/people/{uid}`.
+- [x] T2.9 Migrar amigos simétricos → aristas de seguimiento (8 amistades → 16 aristas, 0 fallos).
+- [x] T2.10 Alias de búsqueda `usernames/~x` para los usuarios pre-F2 (9 alias) — D2.10.
 
 ---
 
 ## Criterios de aceptación (con evidencia)
 
-- [ ] CA2.1 Dos usuarios de prueba se encuentran buscando por **nombre de usuario**
-      (no por email) y ven sus perfiles.
-- [ ] CA2.2 El feed muestra los hitos del otro usuario y se actualiza sin recargar la app.
-- [ ] CA2.3 El Top 4 aparece en el perfil y se puede cambiar.
-- [ ] CA2.4 Una lista privada **no** es visible desde otro usuario (verificado con dos cuentas).
-- [ ] CA2.5 Los amigos migrados del modelo antiguo siguen apareciendo.
-- [ ] CA2.6 La búsqueda de usuarios ya **no expone** el listado completo de perfiles
-      (verificar con la API REST: sin autenticar no se puede listar `users`).
-- [ ] CA2.7 Tests: lógica de seguimiento y de visibilidad de listas.
+- [x] **CA2.1** Dos usuarios de prueba se encuentran buscando por **nombre de usuario** y ven sus
+  perfiles. → `qad` → QADos (`Siguiendo`), `qa g` → QA GameVision; perfil público abierto con
+  biblioteca y contadores (1 seguidor / 1 seguido). Tras D2.10.
+- [x] **CA2.2** El feed muestra la actividad del otro usuario y **se actualiza sin recargar**.
+  → Con el feed de la cuenta 2 abierto, un hito publicado por la cuenta 1 (con **su token de
+  usuario**, reglas reales) apareció como tarjeta «Completó — The Legend of Zelda: The Minish Cap 🎉»
+  sin tocar la app; también aparecieron sin recargar el post propio y el cambio de contador de
+  me gusta. Orden por recencia verificado tras D2.11.
+- [x] **CA2.3** El Top 4 aparece en el perfil y se puede cambiar. → selección en `TopGamesEditor`
+  persistida en `users/{c1}.topGameIds` (`["326243","27418"]`) y **vista desde c2** en el perfil
+  público, con el Top 4 poblado: «Top 4» → Elden Ring + The Legend of Zelda: The Minish Cap
+  (biblioteca 3, listas 0).
+- [x] **CA2.4** Una lista privada **no** es visible desde otro usuario. → `gamelist_private`
+  deniega el listado sin sesión (403 verificado por REST); el perfil público solo pinta listas
+  públicas (`loadLists(..., onlyPublic = true)`). *Reserva:* la lista privada se verificó por
+  reglas + código, no con una lista creada a mano desde la UI (ver deuda 4).
+- [x] **CA2.5** Los amigos migrados del modelo antiguo siguen apareciendo. → T2.9: 16 aristas
+  creadas y `users/{x}/friends` vaciado; contadores del perfil y feed de seguidos coherentes.
+- [x] **CA2.6** La búsqueda ya **no expone** el listado completo de perfiles. → REST sin
+  autenticar: `users`, `feed`, `following` y `gamelist_private` responden **403**;
+  `users/{uid}` también exige sesión (el perfil raíz no es anónimo).
+- [x] **CA2.7** Tests de seguimiento y visibilidad → `SocialLogicTest` (30 tests; 118 en total).
+- [x] **CA2.8** Un post con texto se publica y recibe me gusta de la otra cuenta. → post de la
+  cuenta 1 con `likesCount = 1` y `feed/{id}/likes/{uid2}` verificado por service key; el hito de
+  estado y las listas también alimentan el feed.
+- [x] **CA2.9** El bloqueado no ve el perfil ni interactúa. → `blocks/{c2}/people/{c1}` creado;
+  la lectura del perfil del bloqueador falla (tarjeta del feed con autor sin resolver) y el post
+  del bloqueado **desaparece del feed** tras D2.9; reglas cortan `get` y los me gusta.
+- [x] **CA2.10** El reporte queda almacenado. → `reports/{id}` con `reason = spam`,
+  `reporterUid = c2`, `targetUid = c1` y `createdAt` de servidor, leído con la service key.
 
 ---
 
-## Riesgos
+## Riesgos (revisados al cierre)
 
-| Riesgo | Mitigación |
+| Riesgo | Resolución real |
 |---|---|
-| La búsqueda por username sin Function obliga a leer todos los perfiles | D2.4: Cloud Function desde el principio de la fase |
-| Modelo social nuevo rompe amigos existentes | T2.9 con migración y CA2.5 verificable |
-| Contenido inapropiado en reseñas | D2.5: reportar + bloquear como mínimo viable |
+| La búsqueda sin Function obliga a leer todos los perfiles | Se implementó el índice de alias + range query; el coste es 1 lectura por resultado (límite 20) |
+| El modelo nuevo rompe los amigos existentes | T2.9 ejecutada con backup; 16 aristas, 0 fallos, re-ejecución idempotente limpia |
+| Contenido inapropiado | D2.5: reportar + bloquear implementados y verificados (CA2.9/CA2.10) |
 
 ## Cómo se verifica
 
-Dos cuentas reales en el emulador (y una en segundo dispositivo si hay) + comprobación
-REST de que las lecturas públicas ya no exponen la colección completa.
+Dos cuentas reales en el emulador + comprobación REST sin autenticar. **Hecho**: Pixel 9 API 36,
+`adb` por UI (uiautomator) + REST con la service key; resultados arriba CA por CA.
 
 ---
 
 ## 🔍 Auditoría de cierre de fase
 
-> Aplica el [protocolo de auditoría de cierre](../metodologia/auditoria-de-cierre.md).
-> **Particularidad de F2:** hay contenido de terceros y datos nuevos (username, seguidores,
-> feed), así que el bloque 4 revisa las **reglas de Firestore** y el bloque 6 los estados de
-> un feed vacío y de perfiles privados.
+> Protocolo: [auditoria-de-cierre.md](../metodologia/auditoria-de-cierre.md).
+> Particularidad de F2: contenido de terceros y datos nuevos (username, seguidores, feed), por lo
+> que el bloque 4 revisa las reglas y el bloque 6 los estados de feed vacío y perfil privado.
 
-- [ ] Bloque 1: build debug y release (R8) sin warnings nuevos
-- [ ] Bloque 2: unitarios + instrumentados en verde; tests de seguimiento y visibilidad
-- [ ] Bloque 3: lint limpio; sin código muerto del modelo de amigos antiguo
-- [ ] Bloque 4: las lecturas públicas **no** exponen la colección `users` completa (CA2.6)
-- [ ] Bloque 5: docs + decisiones D2.x registradas; condiciones de seguridad de Firestore al día
-- [ ] Bloque 6: estados de **feed vacío**, **perfil privado** y **error de red** revisados
-- [ ] Auditoría firmada y validada por el propietario
+**Informe**
+
+```
+Fase: F2 — Social             Fecha: 30/09/2026
+Resultado: 🟡 Apta con reservas (pendiente validación del propietario)
+Bloques:  1 ✅  2 ✅  3 ✅  4 ✅  5 ✅  6 🟡
+```
+
+- **1 Compilación y build** ✅ — `assembleDebug` y `assembleRelease` (R8 + lintVital) verdes.
+- **2 Tests** ✅ — `testDebugUnitTest` **118/118** (30 de lógica social: seguimiento, visibilidad,
+  merge/orden, filtro de bloqueados, hitos, listas y compositor de posts). Instrumentados: no se
+  ejecutaron en esta sesión (deuda 5).
+- **3 Calidad estática** ✅ — `lintDebug` limpio; el fix de lint previo (uid como estado composable)
+  sigue en pie.
+- **4 Arquitectura y consistencia** ✅ — SSOT respetado (`SessionRepository` → `UserViewModel` →
+  `SocialViewModel`); la UI no toca Firestore; las reglas se despliegan solo con la suite verde
+  (**94 checks OK**). Sin DTOs de API en la UI.
+- **5 Documentación y trazabilidad** ✅ — este documento, `AGENTS.md` §4/§6, `firebase/firestore.indexes.json`,
+  scripts de migración/backfill/índices y el registro de deuda actualizados.
+- **6 Experiencia y estados** 🟡 — revisados: **feed vacío** (estado con llamada a la acción),
+  **feed en vivo**, **error de feed** (se reprodujo el fallo real y su mensaje antes del fix),
+  **perfil público propio y ajeno**, **perfil privado** (lectura denegada → autor sin resolver),
+  diálogos de **reporte** y **bloqueo**. No revisados: **offline** y el aviso visual de perfil
+  privado para quien no sigue (deuda 3).
+
+**Hallazgos y acciones**
+
+- El feed **no cargaba en producción**: faltaba el índice compuesto `feed(authorUid, createdAt)` y
+  la service account no puede crearlo (403). → Fallback en cliente (D2.8) + índice declarado y
+  script de despliegue listo; **crear el índice desde consola** (enlace que da el propio logcat).
+- Guardar en *Editar perfil* **vaciaba el perfil** si antes se había usado la pantalla de login
+  (los `formFields` del login hacían que el prefill no se ejecutara). → `clearFormFields()` al
+  iniciar sesión + datos de la cuenta 2 reparados. **Bug de pérdida de datos, corregido**.
+- El bloqueo **no quitaba los posts del bloqueado** del feed pese a lo que prometía el diálogo. →
+  `FeedQueryPlanner.filterBlocked` + refresco al bloquear (D2.9).
+- Los usuarios pre-F2 **no aparecían en la búsqueda** (sin alias). → Backfill de 9 alias (D2.10).
+- El feed **no ordenaba por recencia** (`createdAt` leído solo como `Number`). → D2.11.
+- Espera del handoff incorrecta: `users/{uid}` **no** es legible sin autenticar; las reglas exigen
+  sesión para el perfil raíz. → Documentado con el resultado real (403).
+
+**Reservas** → deuda con disparador, abajo.
+
+Firma del agente: **GameVision (agente)** · Validado por el propietario: **⏳ pendiente**
 
 ---
 
 ## Registro de decisiones
 
-**D2.1–D2.6 cerradas el 30/09** con el propietario. **D2.7 (chat):** congelado — se oculta
-sin borrar código ni datos; su destino se decide en la auditoría de cierre de F2.
-Detalles y modelo de datos en el [plan de F2](../plan/FASE-2-SOCIAL-2026.md).
+D2.1–D2.7 cerradas el 30/09 con el propietario. **D2.8–D2.11** se añadieron durante la
+verificación E2E del mismo día (fallos reales encontrados al usar la app con dos cuentas).
+Detalle y modelo de datos en el [plan de F2](../plan/FASE-2-SOCIAL-2026.md).
+
+## Deuda técnica (con disparador)
+
+1. **Índice compuesto `feed(authorUid ASC, createdAt DESC)` en producción** — declarado y con
+   script (`scripts/firestore-deploy/`), pero la service account no tiene `datastore.indexes.create`.
+   *Disparador:* crear desde consola antes de que el feed tenga volumen (o dar el rol al SA).
+   Mientras tanto funciona el fallback cliente (D2.8).
+2. **`reports` visibles solo en consola** — no hay pantalla de moderación. *Disparador:* cuando
+   lleguen reportes reales (o en F4).
+3. **Aviso visual de perfil privado** para quien no sigue — el fallo de lectura deja el perfil en
+   «Cargando perfil…» (el autor del feed aparece sin nombre). *Disparador:* F3 (estados de UI).
+4. **Lista privada creada a mano desde la UI** para CA2.4 (hoy verificado por reglas + código), y
+   **hito de reseña desde la UI** (el panel de biblioteca no responde a `input tap`;
+   ver deuda 5).
+5. **Instrumentados (Compose UI) de Social** — el panel de biblioteca de F1 no responde a `input
+   tap` en el emulador, así que automatizar hitos/reseñas necesita test instrumentado.
+6. **Offline y errores de red** en Social sin revisar en esta pasada (bloque 6).
+
+## Errores acumulados por las interrupciones (30/09)
+
+Errores encontrados al retomar la fase tras la pausa, todos corregidos y con test o evidencia:
+
+1. **Crash Hilt de la pestaña Social** (defaults `viewModel()` en rutas) — ya estaba corregido; se
+   **re-verificó** hoy: la pestaña abre sin `FATAL` y sin defaults en la firma.
+2. **Feed que no cargaba** (`FAILED_PRECONDITION` por índice compuesto ausente) → D2.8.
+3. **Bug propio durante el fix**: el refactor dejó `fun listen()` **sin invocar**, así que el flow
+   quedaba en `awaitClose` y el feed en carga infinita. Cazado comparando UI y logcat; corregido.
+4. **Pérdida de datos al guardar el perfil** (prefill saltado por `formFields` del login) → fix +
+   reparación de los datos de la cuenta 2.
+5. **Búsqueda ciega para usuarios pre-F2** (sin alias) → backfill (D2.10).
+6. **Bloqueo incompleto en el feed** → filtro cliente (D2.9).
+7. **Orden del feed roto** (`createdAt` como `Timestamp`) → D2.11.
+8. **Expectativa errónea del handoff** sobre REST anónimo del perfil → docs corregidos.
+9. **Metodológicos de la sesión** (para no repetirlos):
+   - Los ficheros del repo tienen **finales de línea mixtos por fichero** (unos LF, otros CRLF, y
+     algunos **mezclados dentro del mismo fichero**): editar con `node -e` + detección de `\r\n`
+     por bloque y **verificar con `grep`** tras cada edición. `git` normaliza al comitear
+     (`core.autocrlf=true`), así que los diffs salen limpios.
+   - Scripts de parche con **comillas invertidas** deben ir por *heredoc citado* (`<<'EOF'`): la
+     shell las interpreta dentro de un `node -e "..."`.
+   - `input text` de `adb` **no traga paréntesis** (shell del dispositivo); los espacios van como `%s`.
+   - Imprimir ids **truncados** llevó a borrar un documento inexistente (el DELETE devolvió 200 por
+     idempotencia): usar el id completo en operaciones destructivas.
+   - El teclado del emulador se come el primer `tap` de la barra inferior: cerrar con `BACK` antes.
 
 ## 💡 Ideas registradas (28/09/2026)
 

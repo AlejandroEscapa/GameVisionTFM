@@ -127,7 +127,11 @@ fun SocialScreen(
     // Grafo de seguimiento + feed en vivo (CA2.2). Re-observa al cambiar a quién sigues.
     LaunchedEffect(uid) {
         val userUid = uid
-        if (userUid != null && userUid.isNotBlank()) socialViewModel.refreshFollowEdges(userUid)
+        if (userUid != null && userUid.isNotBlank()) {
+            socialViewModel.refreshFollowEdges(userUid)
+            // D2.5: caché de bloqueados para filtrar el feed en cliente.
+            socialViewModel.refreshBlocked(userUid)
+        }
     }
     LaunchedEffect(uid, following) {
         val userUid = uid

@@ -223,6 +223,9 @@ fun PublicProfileScreen(
                     val me = uid.orEmpty()
                     socialViewModel.block(me, profileUid) { result ->
                         if (result.isSuccess) {
+                            // El feed se filtra por la lista de bloqueados: refresca
+                            // la caché para que desaparezca al volver a Social.
+                            socialViewModel.refreshBlocked(me)
                             userViewModel.setMessage("Usuario bloqueado")
                             navController.popBackStack()
                         } else {

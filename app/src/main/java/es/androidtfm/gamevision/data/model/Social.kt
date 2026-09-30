@@ -1,9 +1,26 @@
 package es.androidtfm.gamevision.data.model
 
+import com.google.firebase.Timestamp
+
 /*
  * Modelos sociales del usuario (F1) y de F2 (seguimiento, feed, listas).
  * Sustituyen a los Map<String, Any> a mano. D2.1–D2.7 en fase-2-social.md.
  */
+
+/**
+ * `createdAt` de un documento del feed en milisegundos.
+ *
+ * `FieldValue.serverTimestamp()` se materializa como `Timestamp` (no `Number`), así
+ * que leerlo solo como Number dejaba createdAt=0 en todas las entradas y el feed
+ * acababa ordenado por id de documento en vez de por recencia (bug detectado en el
+ * E2E del 30/09/2026: el hito recién publicado aparecía sin relación con su hora).
+ */
+private fun createdAtMillis(value: Any?): Long = when (value) {
+    is Number -> value.toLong()
+    // Timestamp del SDK Android: no expone toMillis(); se compone de segundos+nanos.
+    is Timestamp -> value.seconds * 1000L + value.nanoseconds / 1_000_000L
+    else -> 0L
+}
 
 data class Friend(
     val uid: String,
@@ -86,7 +103,7 @@ data class FeedEntry(
                 milestoneType = data["milestoneType"]?.toString().orEmpty(),
                 rating = (data["rating"] as? Number)?.toFloat(),
                 likesCount = (data["likesCount"] as? Number)?.toLong() ?: 0L,
-                createdAt = (data["createdAt"] as? Number)?.toLong() ?: 0L
+                createdAt = createdAtMillis(data["createdAt"])
             )
         }
     }
@@ -112,7 +129,7 @@ data class GameList(
                 description = data["description"]?.toString().orEmpty(),
                 isPublic = data["isPublic"] as? Boolean ?: true,
                 gameIds = (data["gameIds"] as? List<*>)?.map { it.toString() } ?: emptyList(),
-                createdAt = (data["createdAt"] as? Number)?.toLong() ?: 0L
+                createdAt = createdAtMillis(data["createdAt"])
             )
         }
     }

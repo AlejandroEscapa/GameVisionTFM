@@ -5,6 +5,7 @@ import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.toLibraryEntryOrNull
@@ -134,12 +135,19 @@ class SocialRepository @Inject constructor(
         limit: Long = FeedQueryPlanner.PAGE_SIZE.toLong()
     ): Result<List<FeedEntry>> = runCatching {
         if (authorUids.isEmpty()) return@runCatching emptyList()
-        db.collection(FEED)
+        val base = db.collection(FEED)
             .whereIn("authorUid", authorUids.take(MAX_FEED_CHUNK))
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(limit)
-            .get().await()
-            .documents.mapNotNull { doc -> doc.data?.let { FeedEntry.fromMap(doc.id, it) } }
+        val docs = try {
+            // Camino rápido: índice compuesto feed(authorUid, createdAt DESC) desplegado.
+            base.orderBy("createdAt", Query.Direction.DESCENDING).get().await().documents
+        } catch (e: Exception) {
+            // Fallback D2.4 (sin Blaze): sin índice, Firestore NO ordena por whereIn;
+            // se pide sin orderBy y FeedQueryPlanner ordena en cliente.
+            Log.w(TAG, "feed sin índice compuesto (fallback en cliente): " + e.message)
+            base.get().await().documents
+        }
+        docs.mapNotNull { doc -> doc.data?.let { FeedEntry.fromMap(doc.id, it) } }
     }.onFailure { Log.e(TAG, "feedPage(${authorUids.size} uids): ${it.message}") }
 
     /**
@@ -158,11 +166,27 @@ class SocialRepository @Inject constructor(
             return@callbackFlow
         }
         val chunk = authorUids.take(MAX_FEED_CHUNK)
-        val registration = db.collection(FEED)
-            .whereIn("authorUid", chunk)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .limit(limit)
-            .addSnapshotListener { snapshot, error ->
+        // La escucha intenta con el índice compuesto feed(authorUid, createdAt DESC);
+        // si Firestore responde FAILED_PRECONDITION (falta de índice: error ASYNC que
+        // llega por callback, no al construir la query) re-escucha sin orderBy:
+        // fallback D2.4 — el orden lo aplica FeedQueryPlanner en cliente.
+        var registration: com.google.firebase.firestore.ListenerRegistration? = null
+        var withOrder = true
+        fun listen() {
+            var query = db.collection(FEED)
+                .whereIn("authorUid", chunk)
+                .limit(limit)
+            if (withOrder) query = query.orderBy("createdAt", Query.Direction.DESCENDING)
+            registration = query.addSnapshotListener { snapshot, error ->
+                if (error is FirebaseFirestoreException &&
+                    error.code == FirebaseFirestoreException.Code.FAILED_PRECONDITION && withOrder
+                ) {
+                    Log.w(TAG, "feed en vivo sin índice compuesto (fallback en cliente): " + error.message)
+                    withOrder = false
+                    registration?.remove()
+                    listen()
+                    return@addSnapshotListener
+                }
                 if (error != null) {
                     trySend(Result.failure(error))
                     return@addSnapshotListener
@@ -177,7 +201,9 @@ class SocialRepository @Inject constructor(
                     trySend(Result.success(resolved))
                 }
             }
-        awaitClose { registration.remove() }
+        }
+        listen()
+        awaitClose { registration?.remove() }
     }
 
     private suspend fun FeedEntry.withAuthor(): FeedEntryPair {

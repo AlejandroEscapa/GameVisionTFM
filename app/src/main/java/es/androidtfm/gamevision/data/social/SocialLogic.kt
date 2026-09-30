@@ -103,6 +103,28 @@ object FeedQueryPlanner {
         )
     }
 
+    /**
+     * Ordena entradas de feed en cliente (mismo criterio que merge):
+     * createdAt descendente con empate estable por id.
+     * Usado por el fallback del repo cuando falta el índice compuesto
+     * feed(authorUid, createdAt) — D2.4 ya ordena en cliente al mezclar chunks.
+     */
+    fun sortFeedEntries(entries: List<FeedEntryPair>): List<FeedEntryPair> =
+        entries.sortedWith(
+            compareByDescending<FeedEntryPair> { it.entry.createdAt }.thenByDescending { it.id }
+        )
+
+    /**
+     * D2.5: quita del feed las entradas de autores bloqueados (en cualquier
+     * dirección). Las reglas dejan el listado del feed abierto con sesión (es la
+     * página pública del producto); el corte de visibilidad entre bloqueados lo
+     * aplica el cliente tras resolver el autor. Al fallar la lectura del perfil
+     * el autor viaja vacío, así que el filtro mira el uid, no el nombre.
+     */
+    fun filterBlocked(entries: List<FeedEntryPair>, blockedUids: Set<String>): List<FeedEntryPair> =
+        if (blockedUids.isEmpty()) entries
+        else entries.filter { it.entry.authorUid !in blockedUids }
+
     /** ¿Merece la pena pedir la página siguiente ya? */
     fun hasMorePages(loaded: Int, pageSize: Int = PAGE_SIZE): Boolean = loaded >= pageSize
 }

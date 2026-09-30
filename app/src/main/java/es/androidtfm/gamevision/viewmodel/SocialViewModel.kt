@@ -48,6 +48,21 @@ class SocialViewModel @Inject constructor(
 
     private var feedJob: Job? = null
     private var lastUids: List<String> = emptyList()
+
+    /** D2.5: uids bloqueados por el usuario actual (para filtrar el feed). */
+    private val _blockedUids = MutableStateFlow<Set<String>>(emptySet())
+    val blockedUids: StateFlow<Set<String>> = _blockedUids.asStateFlow()
+
+    /** Recarga la lista de bloqueados (al abrir Social y tras bloquear). */
+    fun refreshBlocked(me: String) {
+        if (me.isBlank()) return
+        viewModelScope.launch {
+            _blockedUids.value = socialRepository.blockedUids(me).getOrDefault(emptySet())
+        }
+    }
+
+    /** Al desbloquear desde otra superficie, refresca la lista local. */
+    fun clearBlockedCache() { _blockedUids.value = emptySet() }
     private var myUid: String? = null
 
     /**
@@ -64,9 +79,14 @@ class SocialViewModel @Inject constructor(
                     val likes = socialRepository
                         .likedByMe(pairs.map { it.id }, currentUid.orEmpty())
                         .getOrDefault(emptyMap())
-                    pairs.map { p ->
-                        p.copy(entry = p.entry.copy(likedByMe = likes[p.id] ?: false))
-                    }
+                    FeedQueryPlanner.sortFeedEntries(
+                        FeedQueryPlanner.filterBlocked(
+                            pairs.map { p ->
+                                p.copy(entry = p.entry.copy(likedByMe = likes[p.id] ?: false))
+                            },
+                            _blockedUids.value
+                        )
+                    )
                 }
             }
         }

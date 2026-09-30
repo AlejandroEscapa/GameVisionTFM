@@ -119,8 +119,12 @@ app/src/main/java/es/androidtfm/gamevision/
 │   └── AppModule.kt                Singletons: Firestore (caché offline explícita), Auth,
 │                                   Storage, APIs Retrofit, CredentialManager, webClientId,
 │                                   ThemeDataStore, SessionPreferences, CoroutineScope de aplicación
-├── data/                           11 paquetes (verificados 29/09/2026)
-│   ├── model/                      UserProfile · Social.kt (Friend, ChatMessage)
+├── data/                           12 paquetes (verificados 30/09/2026)
+│   ├── model/                      UserProfile · Social.kt (Friend, ChatMessage, FeedEntry,
+│   │                               GameList, FollowEdge, MilestoneTypes)
+│   ├── social/                     SocialLogic.kt — lógica PURA de F2 (JUnit): VisibilityLogic,
+│   │                               FollowLogic, FeedQueryPlanner (chunks, merge, orden,
+│   │                               filterBlocked), MilestonePlanner, ListProgress, PostComposer
 │   ├── session/                    SessionState (Anonymous|Guest|LoggedIn(uid, email)) ·
 │   │                               SessionRepository (SSOT de sesión + Auth + CredentialManager) ·
 │   │                               SavedPassword
@@ -191,6 +195,11 @@ con 5 (Home, Search, gamelist, Social, Profile). Back hacia `main` con popUpTo.
   `assembleDebugAndroidTest` y `assembleRelease` (R8 + lintVital) pasan.
 - ✅ Sin APIs deprecadas conocidas en el código (One Tap migrada a Credential Manager).
 - ✅ R8 con reglas mínimas (`proguard-rules.pro`): solo atributos de crash traceability.
+- ✅ **F2 (30/09/2026):** 118 unitarios verdes (30 de lógica social), `lintDebug` limpio,
+  suite de reglas **94 checks**, `assembleDebug` + `assembleRelease`. E2E con dos cuentas en
+  emulador (CA2.1–CA2.10) y REST sin autenticar (403). Detalle en
+  [fase 2](../docs/roadmap/fase-2-social.md): perfil público, seguir asimétrico, feed en vivo,
+  me gusta, Top 4, listas, reportar/bloquear y migración de amigos a aristas.
 - ⚠️ Pendiente de validación **en dispositivo** (no hubo emulador disponible):
   smoke test de la app release, test de UI `BottomBarNavigationTest`, trazas de
   android-profiler, baseline profiles.

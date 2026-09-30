@@ -181,6 +181,14 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 
 ## 5. Registro
 
+- **30/09/2026 (noche) — F2 ejecutada y auditada.** Se retoma la fase tras la pausa y se
+  completa la verificación E2E con dos cuentas (CA2.1–CA2.10), el bloqueo REST sin autenticar
+  (403 en listados) y la suite completa (118 unitarios · lint limpio · 94 checks de reglas ·
+  debug y release). Deuda abierta **con disparador** en
+  [fase 2, «Deuda técnica»](../roadmap/fase-2-social.md#deuda-técnica-con-disparador):
+  crear el índice compuesto `feed(authorUid, createdAt)` desde consola (la service account no
+  puede, 403), aviso visual de perfil privado, instrumentados de Social y estados offline.
+  Fase a la espera de **validación del propietario**.
 - **28/09/2026** — Plan creado. D-S1 resuelta y verificada (positivos). Bloque 0 en curso.
   Pendiente inmediato: B3 (limpieza) y decisión de ramas.
 - **28/09/2026 (noche)** — **Bloque 1 completado** (API adaptativa V2 · avisos a cero · código muerto

@@ -130,6 +130,48 @@ class SocialLogicTest {
     }
 
     @Test
+    fun `sortFeedEntries ordena descendente y es equivalente a merge`() {
+        val desordenadas = listOf(
+            FeedEntryPair("m1", entry("m1", "x", 5)),
+            FeedEntryPair("m2", entry("m2", "y", 100)),
+            FeedEntryPair("m3", entry("m3", "z", 50))
+        )
+        val ordenadas = FeedQueryPlanner.sortFeedEntries(desordenadas)
+        assertEquals(listOf("m2", "m3", "m1"), ordenadas.map { it.id })
+        assertEquals(
+            FeedQueryPlanner.merge(desordenadas).map { it.id },
+            ordenadas.map { it.id }
+        )
+    }
+
+    @Test
+    fun `sortFeedEntries desempata por id y no altera vacias`() {
+        val empate = listOf(
+            FeedEntryPair("b", entry("b", "x", 10)),
+            FeedEntryPair("a", entry("a", "y", 10))
+        )
+        assertEquals(listOf("b", "a"), FeedQueryPlanner.sortFeedEntries(empate).map { it.id })
+        assertTrue(FeedQueryPlanner.sortFeedEntries(emptyList()).isEmpty())
+    }
+
+    @Test
+    fun `filterBlocked quita solo las entradas de bloqueados`() {
+        val entries = listOf(
+            FeedEntryPair("p1", entry("p1", "alice", 10)),
+            FeedEntryPair("p2", entry("p2", "bob", 20)),
+            FeedEntryPair("p3", entry("p3", "carol", 30))
+        )
+        val filtrado = FeedQueryPlanner.filterBlocked(entries, setOf("bob"))
+        assertEquals(listOf("p1", "p3"), filtrado.map { it.id })
+    }
+
+    @Test
+    fun `filterBlocked sin bloqueados devuelve todo`() {
+        val entries = listOf(FeedEntryPair("p1", entry("p1", "alice", 10)))
+        assertEquals(entries, FeedQueryPlanner.filterBlocked(entries, emptySet()))
+    }
+
+    @Test
     fun `hitos solo de acciones soportadas y con juego`() {
         assertEquals(MilestoneTypes.COMPLETED, MilestonePlanner.forAction("game_completed", "28589"))
         assertEquals(MilestoneTypes.REVIEW, MilestonePlanner.forAction("review_published", "28589"))
