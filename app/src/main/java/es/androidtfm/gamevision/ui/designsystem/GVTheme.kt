@@ -12,75 +12,89 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 /*
- * GameVision Design System — tema (ver DESIGN.md §2).
+ * GameVision Design System — tema (re-anclado, ADR-0010).
  *
- * Monocromo cálido + spot verde ácido. El color dinámico de Material You es
- * opcional (opt-in) y la identidad de marca es el fallback y el default.
+ * Superficies blanco/pergamino y UN único azul interactivo (Action Blue). El
+ * modo oscuro se DERIVA de los tiles del documento (#272729/#2A2A2C): superficie
+ * casi-negra, texto pergamino, enlaces Sky Blue — no es una inversión del claro.
+ * Los valores marcados DERIVADO no existen como token en el documento fuente:
+ * son puentes que el documento no cubre (contenedores M3, escalera de superficies).
  */
 
-// Spot color: verde ácido (uso restringido: CTA, rating, foco)
-val GVAcid = Color(0xFFC8F135)
-val GVAcidContainer = Color(0xFF2E3A0A)
-val GVAcidOnContainer = Color(0xFFE4FF87)
+// Acento interactivo único + variante para enlaces sobre oscuro (del documento)
+val GVActionBlue = Color(0xFF0066CC)
+val GVActionBlueFocus = Color(0xFF0071E3)
+val GVSkyBlue = Color(0xFF2997FF)
+
+// Superficies y tintas del documento
+val GVCanvas = Color(0xFFFFFFFF)
+val GVParchment = Color(0xFFF5F5F7)
+val GVPearl = Color(0xFFFAFAFC)
+val GVTile1 = Color(0xFF272729)
+val GVTile2 = Color(0xFF2A2A2C)
+val GVInk = Color(0xFF1D1D1F)
+val GVMutedOnDark = Color(0xFFCCCCCC)
+val GVHairline = Color(0xFFE0E0E0)
+val GVDividerSoft = Color(0xFFF0F0F0)
 
 private val DarkColors = darkColorScheme(
-    primary = GVAcid,
-    onPrimary = Color(0xFF0D0D0D),
-    primaryContainer = GVAcidContainer,
-    onPrimaryContainer = GVAcidOnContainer,
-    secondary = Color(0xFF8C8C8C),
-    onSecondary = Color(0xFF0D0D0D),
-    secondaryContainer = Color(0xFF242424),
-    onSecondaryContainer = Color(0xFFF2F2F2),
-    background = Color(0xFF0D0D0D),
-    onBackground = Color(0xFFF2F2F2),
-    surface = Color(0xFF1A1A1A),
-    onSurface = Color(0xFFF2F2F2),
-    surfaceContainer = Color(0xFF242424),
-    surfaceContainerLow = Color(0xFF1F1F1F),
-    surfaceContainerLowest = Color(0xFF141414),
-    surfaceContainerHigh = Color(0xFF2A2A2A),
-    surfaceContainerHighest = Color(0xFF333333),
-    surfaceVariant = Color(0xFF242424),
-    surfaceDim = Color(0xFF0D0D0D),
-    surfaceBright = Color(0xFF333333),
-    onSurfaceVariant = Color(0xFF8C8C8C),
-    outline = Color(0xFF2E2E2E),
+    primary = GVSkyBlue,
+    onPrimary = Color(0xFF062033),          // DERIVADO: tinta azul oscura sobre sky (AA)
+    primaryContainer = Color(0xFF0A3A66),   // DERIVADO
+    onPrimaryContainer = Color(0xFFA8D8FF), // DERIVADO
+    secondary = GVInk,                      // botón utilitario oscuro
+    onSecondary = Color(0xFFF5F5F7),
+    secondaryContainer = GVTile2,
+    onSecondaryContainer = Color(0xFFF5F5F7),
+    background = Color(0xFF0E0E10),         // DERIVADO: negro apagado, no puro
+    onBackground = GVParchment,
+    surface = Color(0xFF161619),            // DERIVADO: paso entre negro y tile-1
+    onSurface = GVParchment,
+    surfaceContainer = GVTile1,
+    surfaceContainerLow = Color(0xFF202023),     // DERIVADO
+    surfaceContainerLowest = Color(0xFF0E0E10),  // DERIVADO
+    surfaceContainerHigh = GVTile2,
+    surfaceContainerHighest = Color(0xFF2E2E30), // DERIVADO
+    surfaceVariant = GVTile1,
+    surfaceDim = Color(0xFF0E0E10),
+    surfaceBright = Color(0xFF333335),           // DERIVADO
+    onSurfaceVariant = GVMutedOnDark,
+    outline = Color(0xFF3A3A3E),            // DERIVADO: hairline oscura
     error = Color(0xFFFF5449)
 )
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF4A6B00),
-    onPrimary = Color(0xFFF2F2F2),
-    primaryContainer = Color(0xFFE4FF87),
-    onPrimaryContainer = Color(0xFF1E2600),
-    secondary = Color(0xFF5A5A5A),
-    onSecondary = Color(0xFFF2F2F2),
-    secondaryContainer = Color(0xFFE6E6E6),
-    onSecondaryContainer = Color(0xFF0D0D0D),
-    background = Color(0xFFF2F2F2),
-    onBackground = Color(0xFF0D0D0D),
-    surface = Color(0xFFFAFAFA),
-    onSurface = Color(0xFF0D0D0D),
-    surfaceContainer = Color(0xFFEDEDED),
-    surfaceContainerLow = Color(0xFFF2F2F2),
-    surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerHigh = Color(0xFFE6E6E6),
-    surfaceContainerHighest = Color(0xFFD9D9D9),
-    surfaceVariant = Color(0xFFE6E6E6),
-    surfaceDim = Color(0xFFD6D6D6),
-    surfaceBright = Color(0xFFFAFAFA),
-    onSurfaceVariant = Color(0xFF5A5A5A),
-    outline = Color(0xFFD4D4D4),
+    primary = GVActionBlue,
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFD6E9FB),   // DERIVADO
+    onPrimaryContainer = Color(0xFF00325A), // DERIVADO
+    secondary = GVInk,                      // botón utilitario oscuro (Sign In/Bag)
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = GVDividerSoft,
+    onSecondaryContainer = GVInk,
+    background = GVCanvas,
+    onBackground = GVInk,
+    surface = GVCanvas,
+    onSurface = GVInk,
+    surfaceContainer = GVParchment,
+    surfaceContainerLow = GVPearl,
+    surfaceContainerLowest = GVCanvas,
+    surfaceContainerHigh = GVDividerSoft,
+    surfaceContainerHighest = Color(0xFFE8E8EC), // DERIVADO
+    surfaceVariant = GVParchment,
+    surfaceDim = Color(0xFFE8E8EC),              // DERIVADO
+    surfaceBright = GVCanvas,
+    onSurfaceVariant = Color(0xFF6E6E73),   // DERIVADO: gris de copy secundario
+    outline = GVHairline,
     error = Color(0xFFB3261E)
 )
 
 /**
- * Tema de GameVision. Sustituye al antiguo AppTheme.
+ * Tema de GameVision (sistema Apple re-anclado, ADR-0010).
  *
- * @param darkTheme true para tema oscuro (identidad principal).
- * @param dynamicColor true para Material You (extrae la paleta del wallpaper);
- *   por defecto false: la identidad verde/monocromo manda.
+ * @param darkTheme true para el modo oscuro derivado de los tiles.
+ * @param dynamicColor true para Material You; por defecto false: el único
+ *   acento de marca manda.
  */
 @Composable
 fun GameVisionTheme(

@@ -17,11 +17,11 @@ import es.androidtfm.gamevision.ui.designsystem.GVShapeFull
 import es.androidtfm.gamevision.ui.designsystem.GameVisionTheme
 
 /*
- * GameVision Design System — GVButton y GVChip (ver DESIGN.md §6).
+ * GameVision Design System — GVButton y GVChip (re-anclado, ADR-0010).
  *
- * Primary: relleno verde ácido, texto oscuro, pill completa.
- * Secondary: outline del color de borde del sistema.
- * GVChip: outline; seleccionado relleno verde con texto oscuro.
+ * Primary: píldora Action Blue con texto blanco (claro) / Sky Blue con tinta
+ * oscura (oscuro). Secondary: píldora outline.
+ * GVChip: outline; seleccionado relleno del acento.
  */
 
 @Composable
