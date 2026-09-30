@@ -118,10 +118,10 @@ migración ejecutada (9 usuarios), suite de reglas con cobertura de `email_index
 
 ## Tareas del propietario (consola Firebase + QA manual)
 
-**1. Índice compuesto del feed** (Firestore → Índices compuestos):
-- Colección `feed` · campos: `authorUid` **ASC**endente, `createdAt` **DESC**endente · alcance:
-  **Colección**. (Ya declarado en `firebase/firestore.indexes.json`; la service account no puede
-  crearlo, 403.) Cuando exista, el fallback cliente de D2.8 deja de usarse y yo lo verifico por REST.
+**1. Índice compuesto del feed** (Firestore → Índices compuestos): ✅ **HECHO (01/10)** — creado
+por el propietario (`feed` · `authorUid` ASC · `createdAt` DESC · ámbito Colección) y **verificado
+por REST**: `whereIn` + `orderBy` devuelve 200 ordenado por recencia. Deuda 1 de F2 cerrada;
+el fallback cliente (D2.8) se conserva como resiliencia.
 
 **2. Huellas SHA-1 en Firebase** (Authentication → Método de acceso → Google → Huellas digitales):
 ✅ **HECHO (01/10)** — release `F9:D6:25:…:F5:9E` y CI `51:57:9F:…:D8:E9` registradas (verificadas

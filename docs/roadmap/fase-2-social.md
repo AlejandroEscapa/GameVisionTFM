@@ -175,10 +175,10 @@ Detalle y modelo de datos en el [plan de F2](../plan/FASE-2-SOCIAL-2026.md).
 
 ## Deuda técnica (con disparador)
 
-1. **Índice compuesto `feed(authorUid ASC, createdAt DESC)` en producción** — declarado y con
-   script (`scripts/firestore-deploy/`), pero la service account no tiene `datastore.indexes.create`.
-   *Disparador:* crear desde consola antes de que el feed tenga volumen (o dar el rol al SA).
-   Mientras tanto funciona el fallback cliente (D2.8).
+1. ~~Índice compuesto `feed(authorUid ASC, createdAt DESC)` en producción~~ **CERRADO (01/10)** —
+   creado desde consola por el propietario y **verificado por REST**: la consulta
+   `whereIn(authorUid)` + `orderBy(createdAt DESC)` devuelve 200 ordenado por recencia (antes:
+   `FAILED_PRECONDITION`). El fallback cliente de D2.8 **se conserva** como resiliencia.
 2. **`reports` visibles solo en consola** — no hay pantalla de moderación. *Disparador:* cuando
    lleguen reportes reales (o en F4).
 3. ~~Aviso visual de perfil privado~~ **CERRADO (30/09, cierre pre-F3)** — `PublicProfileScreen`
