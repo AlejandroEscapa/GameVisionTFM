@@ -23,6 +23,9 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '..', '..');
 const WORKSPACE = path.resolve(REPO, '..');
+// En CI el repo se clona solo (sin el workspace padre): con esta flag se omiten
+// las comprobaciones del mapa y se verifica únicamente lo que vive en el repo.
+const SKIP_WORKSPACE = process.env.CHECK_DOCS_SKIP_WORKSPACE === '1';
 const MAPA = path.join(WORKSPACE, 'mapa-gamevision.md');
 const TOML = path.join(REPO, 'gradle', 'libs.versions.toml');
 const ROADMAP = path.join(REPO, 'docs', 'roadmap', 'README.md');
@@ -37,7 +40,7 @@ function read(p) {
 }
 
 // --- 1. El mapa no declara estado ------------------------------------------
-const mapa = read(MAPA);
+const mapa = SKIP_WORKSPACE ? null : read(MAPA);
 if (mapa) {
   // Solo los símbolos de estado de fase (los del roadmap). 🔴/🟠/🟡 de *riesgo* son otra
   // cosa y se permiten.

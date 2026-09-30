@@ -4,6 +4,7 @@ on:
   push:
     branches: [ master, ui-redesign-2026 ]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -83,3 +84,62 @@ jobs:
       - name: Ejecutar tests de reglas (Emulator Suite)
         working-directory: firebase-tests
         run: npm test
+
+  # ---------------------------------------------------------------------------
+  # Job 3 — Chequeo anti-deriva de la documentación (check-docs)
+  # ---------------------------------------------------------------------------
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # En CI el repo va solo, sin el workspace padre (mapa-gamevision.md):
+      # la flag omite esas comprobaciones y verifica lo que vive en el repo.
+      - name: check-docs (modo CI)
+        run: node scripts/check-docs/check-docs.js
+        env:
+          CHECK_DOCS_SKIP_WORKSPACE: '1'
+
+  # ---------------------------------------------------------------------------
+  # Job 4 — Tests instrumentados con emulador (D-OP2, plan de optimización)
+  #
+  # Solo a demanda (workflow_dispatch): los instrumentados tocan Firestore de
+  # PRODUCCIÓN con las cuentas QA, así que necesitan el google-services.json
+  # real (secreto GOOGLE_SERVICES_B64) y el SHA-1 del keystore de CI registrado
+  # en Firebase (ver docs/plan/optimizacion-ciclo-verificacion-2026.md).
+  # ---------------------------------------------------------------------------
+  instrumented:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: google-services.json real (secreto GOOGLE_SERVICES_B64)
+        env:
+          GOOGLE_SERVICES_B64: ${{ secrets.GOOGLE_SERVICES_B64 }}
+        run: echo "$GOOGLE_SERVICES_B64" | base64 -d > app/google-services.json
+
+      - name: Permisos de ejecución del wrapper
+        run: chmod +x gradlew
+
+      - name: Tests instrumentados (AVD API 36)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          script: GV_CI_KEYSTORE=1 ./gradlew --no-daemon connectedDebugAndroidTest

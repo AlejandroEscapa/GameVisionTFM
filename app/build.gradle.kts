@@ -44,9 +44,25 @@ android {
                 keyPassword = localProps.getProperty("keyPassword")
             }
         }
+        // Keystore de CI (D-OP2): SHA-1 estable para que Firebase acepte las peticiones
+        // del emulador de GitHub Actions. Solo se usa si el workflow exporta GV_CI_KEYSTORE;
+        // en local el debug sigue usando ~/.android/debug.keystore de siempre.
+        if (System.getenv("GV_CI_KEYSTORE") != null) {
+            create("ci") {
+                storeFile = rootProject.file("scripts/ci/debug-ci.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            if (System.getenv("GV_CI_KEYSTORE") != null) {
+                signingConfig = signingConfigs.getByName("ci")
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
