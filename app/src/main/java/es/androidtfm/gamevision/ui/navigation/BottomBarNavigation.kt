@@ -1,44 +1,62 @@
 package es.androidtfm.gamevision.ui.navigation
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.window.core.layout.WindowSizeClass
+import es.androidtfm.gamevision.ui.designsystem.GVMotion
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
 /*
- * Autor: Alejandro Olivares Escapa
- * Fecha: 17/01/2025
- * Descripción: navegación adaptativa (ver DESIGN.md).
+ * Dock flotante de navegación ("Galería", barra 2026 — ver
+ * docs/plan/barra-y-home-2026.md).
  *
- * Teléfono (ancho compacto): Scaffold + NavigationBar.
- * Tablet/ventana ancha: NavigationSuiteScaffold con rail/drawer automático.
+ * La píldora se despega del borde (márgenes laterales e inferiores), respira
+ * sobre el fondo con superficie translúcida y hairline — sin sombra: la
+ * separación la da el tono, como manda el design system. El activo se anuncia
+ * con relleno suave del acento + micro-escala del icono (muelle). Ventana
+ * ancha: rail M3 automático (igual que antes).
  */
 
 data class BottomNavItem(
@@ -58,36 +76,33 @@ fun AppScaffold(
 
     val items = if (isGuest) {
         listOf(
-            BottomNavItem("news", Icons.Default.Home, "Home"),
-            BottomNavItem("gameSearch", Icons.Filled.Search, "Search")
+            BottomNavItem("news", Icons.Default.Newspaper, "Noticias"),
+            BottomNavItem("gameSearch", Icons.Filled.Search, "Buscar")
         )
     } else {
         listOf(
-            BottomNavItem("gameSearch", Icons.Filled.Search, "Search"),
-            BottomNavItem("gamelist", Icons.AutoMirrored.Filled.List, "Game List"),
+            BottomNavItem("gameSearch", Icons.Filled.Search, "Buscar"),
+            BottomNavItem("gamelist", Icons.AutoMirrored.Filled.List, "Biblioteca"),
             BottomNavItem("diary", Icons.AutoMirrored.Filled.MenuBook, "Diario"),
-            BottomNavItem("news", Icons.Default.Home, "Home"),
-            BottomNavItem("profile", Icons.Default.Person, "Profile"),
+            BottomNavItem("news", Icons.Default.Newspaper, "Noticias"),
+            BottomNavItem("profile", Icons.Default.Person, "Perfil"),
             BottomNavItem("social", Icons.Default.Face, "Social")
         )
     }
 
-    // API adaptativa V2 (material3-adaptive 1.3 + window-core 1.5): ancho compacto =
-    // por debajo del breakpoint medio (soporta además L y XL como no compacto).
+    // API adaptativa V2: ancho compacto = por debajo del breakpoint medio.
     val isCompactWidth = !currentWindowAdaptiveInfoV2()
         .windowSizeClass
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
 
     if (isCompactWidth) {
-        // Teléfono: barra inferior (comportamiento verificado)
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
-            bottomBar = { BottomNavigationBar(navController, items) }
+            bottomBar = { GVDock(navController, items) }
         ) { innerPadding ->
             content(innerPadding)
         }
     } else {
-        // Ventana ancha: rail lateral automático vía NavigationSuiteScaffold
         NavigationSuiteScaffold(
             containerColor = MaterialTheme.colorScheme.background,
             navigationSuiteItems = {
@@ -106,31 +121,65 @@ fun AppScaffold(
 }
 
 @Composable
-private fun BottomNavigationBar(navController: NavController, items: List<BottomNavItem>) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
+private fun GVDock(navController: NavController, items: List<BottomNavItem>) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(70.dp)
-            .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
-        items.forEach { item ->
-            val isSelected = navController.currentDestination?.route == item.route
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { navController.navigate(item.route) },
-                icon = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f))
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(50)
+                ),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { item ->
+                val selected = navController.currentDestination?.route == item.route
+                val tint by animateColorAsState(
+                    targetValue = if (selected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    animationSpec = GVMotion.springStandard(),
+                    label = "dock-tint"
+                )
+                val scale by animateFloatAsState(
+                    targetValue = if (selected) 1.12f else 1f,
+                    animationSpec = GVMotion.springBouncy(),
+                    label = "dock-scale"
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(
+                            if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                            else androidx.compose.ui.graphics.Color.Transparent
+                        )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { navController.navigate(item.route) }
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.label,
-                        modifier = Modifier.size(if (isSelected) 28.dp else 24.dp),
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        tint = tint,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .scale(scale)
                     )
-                },
-                alwaysShowLabel = false
-            )
+                }
+            }
         }
+        Spacer(Modifier.height(2.dp))
     }
 }
