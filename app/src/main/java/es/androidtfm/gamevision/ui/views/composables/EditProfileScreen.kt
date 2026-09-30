@@ -102,7 +102,9 @@ fun EditProfileScreen(
     }
 
     var isPrivate by remember { mutableStateOf(profile.isPrivate) }
-    val library by ddbbViewModel.observeLibrary(userViewModel.currentUid.value.orEmpty())
+    // El uid también es estado composable: leer .value directo en composición dispara lint.
+    val currentUid by userViewModel.currentUid.collectAsState()
+    val library by ddbbViewModel.observeLibrary(currentUid.orEmpty())
         .collectAsState(initial = null)
     Column(
         modifier = Modifier
