@@ -114,7 +114,7 @@ fun GameListScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var genreFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var platformFilter by rememberSaveable { mutableStateOf<String?>(null) }
-    var filtersExpanded by rememberSaveable { mutableStateOf(false) }
+    var filtersExpanded by rememberSaveable { mutableStateOf(true) }
 
     // Identidad desde el SSOT de sesión.
     val uid by userViewModel.currentUid.collectAsStateWithLifecycle()

@@ -5,6 +5,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.material3.ButtonDefaults
+import com.composables.icons.lucide.ChartBarBig
+import com.composables.icons.lucide.LogOut
+import com.composables.icons.lucide.Settings
+import com.composables.icons.lucide.Users
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -115,8 +121,10 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                // El padding del Scaffold va FUERA del scroll: si va dentro, el hueco
+                // del dock no se reserva y el último elemento cae debajo de la barra.
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
         ) {
             // Sección del encabezado con fondo gradiente
             Box(
@@ -132,31 +140,15 @@ fun ProfileScreen(
                         )
                     )
             ) {
-                // Botón para cambiar el tema
-                val iconTextColor = if (isDarkTheme) Color.White else Color.Black
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp)
+                // Acceso a Ajustes (el modo noche vive allí desde la iteración 02/10)
+                IconButton(
+                    onClick = { navController?.navigate("ajustes") },
+                    modifier = Modifier.align(Alignment.Center)
                 ) {
-                    IconButton(
-                        onClick = { onThemeChange(!isDarkTheme) }
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                id = if (isDarkTheme) R.drawable.daynightthemewhite
-                                else R.drawable.daynightthemeblack
-                            ),
-                            contentDescription = "Theme",
-                            tint = iconTextColor
-                        )
-                    }
-                    Text(
-                        text = if (isDarkTheme) "Modo noche" else "Modo día",
-                        fontSize = 12.sp,
-                        color = iconTextColor
+                    Icon(
+                        imageVector = Lucide.Settings,
+                        contentDescription = "Ajustes",
+                        tint = if (isDarkTheme) Color.White else Color.Black
                     )
                 }
             }
@@ -322,23 +314,22 @@ private fun ProfileHeaderSection(
 @Composable
 private fun ProfileDetailsCard(description: String, country: String, email: String) {
     Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
                 text = "Biografía",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = if (description.isEmpty()) "No description provided" else description,
-                maxLines = 2,
-                style = MaterialTheme.typography.bodyMedium,
+                text = if (description.isEmpty()) "Aún no has escrito tu biografía." else description,
+                maxLines = 6,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -397,54 +388,36 @@ private fun ProfileActionsSection(
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
-    Column(modifier = modifier) {
-        // Botón de estadísticas (F1/T1.12)
-        FilledTonalButton(
-            onClick = { navController?.navigate("stats") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Lucide.Star,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Estadísticas")
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        // Botón para ver la lista de amigos
-        FilledTonalButton(
-            onClick = { navController?.navigate("friendlist") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Lucide.CircleUserRound,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Seguidos")
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        // Botón para editar el perfil
-        FilledTonalButton(
-            onClick = { navController?.navigate("editProfile") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Lucide.Pencil,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Editar perfil")
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        // Botón para cerrar sesión
-        OutlinedButton(
+
+    // Acciones principales: grid 1x3 de cuadrados (criterio del propietario)
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        AccionCuadrada(
+            label = "Estadísticas",
+            icon = Lucide.ChartBarBig,
+            modifier = Modifier.weight(1f),
+            onClick = { navController?.navigate("stats") }
+        )
+        AccionCuadrada(
+            label = "Seguidos",
+            icon = Lucide.Users,
+            modifier = Modifier.weight(1f),
+            onClick = { navController?.navigate("friendlist") }
+        )
+        AccionCuadrada(
+            label = "Editar perfil",
+            icon = Lucide.Pencil,
+            modifier = Modifier.weight(1f),
+            onClick = { navController?.navigate("editProfile") }
+        )
+    }
+
+    Spacer(modifier = Modifier.height(32.dp))
+
+    // Botón para cerrar sesión (al fondo, discreto)
+    OutlinedButton(
             onClick = {
                 coroutineScope.launch {
                     // El cierre de sesión pasa por el SSOT: cierra Firebase Auth,
@@ -462,13 +435,39 @@ private fun ProfileActionsSection(
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Lucide.X,
+                imageVector = Lucide.LogOut,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text("Cerrar sesión")
         }
+}
+
+/** Cuadrado de acción del perfil (grid 1x3): superficie por tono, sin sombra. */
+@Composable
+private fun AccionCuadrada(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .clickable(onClick = onClick)
+            .padding(vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(label, style = MaterialTheme.typography.titleSmall)
     }
 }
 

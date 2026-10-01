@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.ui.views.composables.EditProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.DiaryScreen
+import es.androidtfm.gamevision.ui.views.composables.SettingsScreen
 import es.androidtfm.gamevision.ui.views.composables.FriendsList
 import es.androidtfm.gamevision.ui.views.composables.GameDetails
 import es.androidtfm.gamevision.ui.views.composables.GameListScreen
@@ -206,6 +207,16 @@ fun NavHost(
         }
 
         // Pantalla de edición del perfil
+        // Ajustes (iteración 02/10): modo noche real + esqueleto de secciones
+        composable("ajustes") {
+            SettingsScreen(
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                userViewModel = userViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable("editProfile") {
             EditProfileScreen(
                 isDarkTheme = isDarkTheme,
