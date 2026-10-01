@@ -66,6 +66,7 @@ import coil3.compose.rememberAsyncImagePainter
 import es.androidtfm.gamevision.R
 import es.androidtfm.gamevision.data.library.TopGamesLogic
 import es.androidtfm.gamevision.data.model.TopGame
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.views.composables.profile.CrearListaDialog
 import es.androidtfm.gamevision.ui.views.composables.profile.MisListasSection
@@ -201,30 +202,27 @@ fun ProfileScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Sección del encabezado con fondo gradiente
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.secondaryContainer
-                            )
-                        )
-                    )
-            ) {
-                // Acceso a Ajustes (el modo noche vive allí desde la iteración 02/10)
-                IconButton(
-                    onClick = { navController?.navigate("ajustes") },
-                    modifier = Modifier.align(Alignment.Center)
+            // Cabecera del perfil SIN el degradado de 100 dp (iteración 02/10,
+            // segunda vuelta). Era lo primero que se veía del perfil y lo más
+            // anticuado de la app: un gradiente decorativo —prohibido por el
+            // sistema— con dos familias de color y el engranaje flotando en el
+            // centro de una banda vacía. Ahora el contenido empieza arriba y el
+            // accionar vive donde le corresponde: en la esquina.
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = GVSpacing.screenPadding),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Icon(
-                        imageVector = Lucide.Settings,
-                        contentDescription = "Ajustes",
-                        tint = if (isDarkTheme) Color.White else Color.Black
-                    )
+                    // Acceso a Ajustes (el modo noche vive allí desde la iteración 02/10)
+                    IconButton(onClick = { navController?.navigate("ajustes") }) {
+                        Icon(
+                            imageVector = Lucide.Settings,
+                            contentDescription = "Ajustes",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -235,17 +233,21 @@ fun ProfileScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(top = 60.dp, bottom = 20.dp)
+                        .padding(horizontal = GVSpacing.screenPadding)
+                        .padding(bottom = GVSpacing.xl)
                 ) {
-                    // Imagen de perfil con efecto de offset
+                    // Foto de perfil: redonda y a sangre de contenido. Fuera la
+                    // elevación de 8 dp y el offset de -25 dp (el sistema separa
+                    // por tono, y el desplazamiento negativo era un parche del
+                    // degradado que ya no existe).
                     Card(
                         shape = CircleShape,
-                        elevation = CardDefaults.cardElevation(8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer
+                        ),
                         modifier = Modifier
                             .size(140.dp)
                             .align(Alignment.CenterHorizontally)
-                            .offset(y = (-25).dp)
                     ) {
                         ProfileImage(
                             imageUri = imageModel,
@@ -368,7 +370,9 @@ fun ProfileImage(
             Icon(
                 imageVector = Lucide.Pencil,
                 contentDescription = "Añadir foto de perfil",
-                tint = Color.White,
+                // Sin foto: tinta del tema, no blanco fijo. Sobre la superficie de
+                // contenedor clara, el blanco era invisible.
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(48.dp)

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Button
@@ -52,6 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,11 +61,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.R
+import es.androidtfm.gamevision.ui.designsystem.GVShapeFull
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Eye
+import com.composables.icons.lucide.EyeOff
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Mail
 
@@ -161,28 +168,27 @@ fun LoginScreen(
 
 @Composable
 private fun LoginHeader(isDarkTheme: Boolean) {
-    // Encabezado con el logo y el mensaje de bienvenida
+    // Encabezado: TEXTO SIMPLE, como manda el sistema. Antes era "Bienvenido" en
+    // azul de acción con peso Black (900) — un peso que no existe en GVTypography
+    // y que además convertía el acento en decoración en vez de acción.
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 90.dp), // Ajustado a 0.dp
+            .padding(top = GVSpacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp)) // Mantener este espacio si es necesario
         Text(
             text = "Bienvenido",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
-            )
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(GVSpacing.sm))
         Text(
             text = "Inicia sesión para continuar",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(GVSpacing.md))
     }
 }
 
@@ -212,90 +218,90 @@ private fun LoginForm(
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // Tarjeta que contiene el formulario de inicio de sesión
+    // Tarjeta del formulario re-anclada al sistema: radio 18 (GVShapes.large), SIN
+    // sombra (la separación la da el tono de superficie) y superficie de
+    // contenedor en vez de `surfaceVariant` (vocabulario M2).
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(top = 8.dp),
-        shape = RoundedCornerShape(32.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            .padding(horizontal = GVSpacing.screenPadding)
+            .padding(top = GVSpacing.sm),
+        shape = GVShapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Column(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(GVSpacing.lg)
                 .fillMaxWidth()
         ) {
-            // Mensaje de error o información
+            // Mensaje de error o información. Antes: `onErrorContainer` sobre
+            // `errorContainer` al 20% — dos rosas del mismo tono que daban ~3,3:1,
+            // o sea que el mensaje que HAY que leer no pasaba AA. Ahora fondo
+            // sólido del rol de error y su tinta correspondiente.
             if (message.isNotEmpty()) {
                 Text(
                     text = message,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = GVSpacing.lg)
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(8.dp)
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = GVShapes.medium
                         )
-                        .padding(12.dp)
+                        .padding(GVSpacing.md)
                 )
             }
             // Campo de correo electrónico
             OutlinedTextField(
                 value = formFields["email"] ?: "",
                 onValueChange = onEmailChange,
-                label = {
-                    Text(
-                        text = "Introduce el email: ",
-                        fontSize = 14.sp)
-                },
+                label = { Text("Correo electrónico") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = GVShapes.medium,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 leadingIcon = {
                     Icon(
                         imageVector = Lucide.Mail,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(GVSpacing.md))
 
             // Campo de contraseña
             OutlinedTextField(
                 value = formFields["password"] ?: "",
                 onValueChange = onPasswordChange,
-                label = {
-                    Text(
-                        text = "Introduce la contraseña:",
-                        fontSize = 14.sp // Cambia este valor según el tamaño que quieras
-                    )
-                },
+                label = { Text("Contraseña") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = GVShapes.medium,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (!passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 leadingIcon = {
                     Icon(
                         imageVector = Lucide.Lock,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = {
-                    IconButton(
-                        modifier = Modifier.padding(end = 10.dp),
-                        onClick = { passwordVisible = !passwordVisible })
-                    {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = Lucide.Eye,
-                            contentDescription = "Mostrar contraseña",
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                            imageVector = if (passwordVisible) Lucide.EyeOff else Lucide.Eye,
+                            contentDescription = if (passwordVisible) {
+                                "Ocultar contraseña"
+                            } else {
+                                "Mostrar contraseña"
+                            },
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -306,33 +312,26 @@ private fun LoginForm(
                 onClick = onForgotPasswordClick,
                 modifier = Modifier
                     .align(Alignment.End)
-                    .padding(top = 8.dp)
+                    .padding(top = GVSpacing.xs)
             ) {
                 Text(
-                    "Recuperar contraseña",
+                    "He olvidado mi contraseña",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelLarge
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(GVSpacing.sm))
 
-            // Botón de inicio de sesión
-            Button(
+            // Botón de inicio de sesión: píldora del sistema (GVButton), que es la
+            // forma reservada a la ACCIÓN.
+            GVButton(
+                text = "Iniciar sesión",
                 onClick = onLoginClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text("Iniciar sesión", style = MaterialTheme.typography.labelLarge)
-            }
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(GVSpacing.xl))
 
             // Divisor
             Row(
@@ -341,37 +340,30 @@ private fun LoginForm(
             ) {
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    color = MaterialTheme.colorScheme.outlineVariant
                 )
                 Text(
-                    text = "o continuar con",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "o continúa con",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = GVSpacing.sm)
                 )
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    color = MaterialTheme.colorScheme.outlineVariant
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(GVSpacing.xl))
 
-            // Botón de inicio de sesión con Google
+            // Google: acción SECUNDARIA (píldora outline), no un primario más.
             OutlinedButton(
                 onClick = onGoogleSignInClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                )
+                    .height(48.dp),
+                shape = GVShapeFull,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -379,10 +371,10 @@ private fun LoginForm(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.android_light_rd_na),
-                        contentDescription = "Google",
+                        contentDescription = null,
                         modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(GVSpacing.md))
                     Text(
                         "Continuar con Google",
                         style = MaterialTheme.typography.labelLarge

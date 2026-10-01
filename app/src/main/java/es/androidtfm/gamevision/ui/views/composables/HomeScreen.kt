@@ -1,54 +1,57 @@
 package es.androidtfm.gamevision.ui.views.composables
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Moon
+import com.composables.icons.lucide.Sun
 import es.androidtfm.gamevision.R
-import kotlinx.coroutines.delay
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 
 /*
  * Autor: Alejandro Olivares Escapa
  * Fecha: 17/01/2025
- * Descripción: 
- */
-
-/**
- * Pantalla de inicio de la aplicación.
+ * Descripción: portada de entrada (sin sesión).
  *
- * @param isDarkTheme Indica si el tema oscuro está activado.
- * @param onThemeChange Función para cambiar el tema.
- * @param navController Controlador de navegación.
- * @param isGuest Indica si el usuario es invitado.
- * @param onGuestStatusChange Función para cambiar el estado de invitado.
+ * Re-anclada al design system (iteración 02/10, segunda vuelta). Esta pantalla
+ * es el `startDestination` del NavHost, o sea LA PRIMERA IMPRESIÓN del producto,
+ * y era la más anticuada de la app:
+ *
+ *  · Un `delay(1000)` que pintaba esqueletos grises durante un segundo entero
+ *    antes de enseñar nada (una lista falsa como bienvenida).
+ *  · `isDarkTheme!!` sobre un parámetro nullable: si el tema aún no había
+ *    resuelto, la primera pantalla del producto crasheaba.
+ *  · Gradiente de fondo + botones de esquina 5 dp + `FontWeight.Black` (900) con
+ *    el texto en azul: el look de 2021 que el ADR-0010 retiró.
+ *  · Dos botones PRIMARIOS rellenos: "Iniciar sesión" y "Continuar como
+ *    invitado" pesaban igual, así que la pantalla no decía cuál es el camino.
+ *
+ * Ahora: sin retardo ni esqueletos falsos, jerarquía clara (una sola acción
+ * primaria), alternancia de tema en el icono de siempre y aire de la escala.
  */
 
 @Composable
@@ -59,116 +62,95 @@ fun HomeScreen(
     isGuest: Boolean,
     onGuestStatusChange: (Boolean) -> Unit
 ) {
-    // Estado para controlar si el tema ya ha sido cargado
-    var isThemeLoaded by remember { mutableStateOf(false) }
+    // El tema llega nullable desde el DataStore. Antes reventaba con `!!`; ahora
+    // se asume el del sistema hasta que el valor real llegue (que es lo que ve
+    // el usuario mientras tanto).
+    val oscuro = isDarkTheme ?: androidx.compose.foundation.isSystemInDarkTheme()
 
-    // Efecto para actualizar el estado cuando el tema esté listo
-    LaunchedEffect(Unit) {
-        delay(1000) // Simula un retraso de carga
-        isThemeLoaded = true
-    }
-
-    // Muestra la pantalla de carga hasta que el tema esté listo
-    if (!isThemeLoaded) {
-        LoadingScreen()
-    } else {
-        // Asegúrate de que isDarkTheme no sea null
-        val theme = isDarkTheme!!
-
-        // Diseño principal de la pantalla de inicio
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            // Botón para cambiar el tema
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.align(Alignment.TopCenter).padding(vertical = 15.dp)
-            ) {
-                IconButton(
-                    onClick = { onThemeChange(!theme) }
-                ) {
-                    Image(
-                        painter = painterResource(
-                            id = if (theme) R.drawable.daynightthemewhite
-                            else R.drawable.daynightthemeblack
-                        ),
-                        contentDescription = "Cambiar Tema"
-                    )
-                }
-                Text(
-                    text = if (theme) "Modo día" else "Modo noche",
-                    fontSize = 12.sp
-                )
-            }
-
-            // Contenido de la pantalla de inicio
-            Column {
-                Spacer(modifier = Modifier.height(120.dp))
-
-                // Logo de la aplicación
-                Image(
-                    painter = painterResource(
-                        id = if (theme) R.drawable.gamevisionnight
-                        else R.drawable.gamevision2
-                    ),
-                    contentDescription = "Logo"
-                )
-
-                // Botón para iniciar sesión
-                Button(
-                    onClick = {
-                        navController.navigate("login") {
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(5.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(text = "Iniciar sesión")
-                }
-
-                // Botón para continuar como invitado
-                Button(
-                    onClick = {
-                        onGuestStatusChange(true)
-                        navController.navigate("news")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(5.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(text = "Continuar como invitado")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun LoadingScreen() {
-
-    // Pantalla de carga con un indicador circular
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
+            .padding(horizontal = GVSpacing.screenPadding)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        // Cambio de tema: esquina superior derecha, discreto. El icono dice el
+        // estado al que se CAMBIA, y el icono es del sistema (Lucide), no un
+        // drawable antiguo.
+        IconButton(
+            onClick = { onThemeChange(!oscuro) },
+            modifier = Modifier.align(Alignment.TopEnd)
         ) {
-            repeat(3) { GameRowSkeleton() }
+            Icon(
+                imageVector = if (oscuro) Lucide.Sun else Lucide.Moon,
+                contentDescription = if (oscuro) "Modo claro" else "Modo noche"
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 420.dp)
+                .align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // La marca manda: es el único elemento con peso visual propio.
+            Image(
+                painter = painterResource(
+                    id = if (oscuro) R.drawable.gamevisionnight else R.drawable.gamevision2
+                ),
+                contentDescription = "GameVision",
+                modifier = Modifier
+                    .fillMaxWidth(0.82f)
+                    .widthIn(max = 320.dp)
+            )
+            Spacer(Modifier.height(GVSpacing.lg))
+            Text(
+                text = "Tu biblioteca, tu tiempo y la gente con la que juegas.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = GVSpacing.sm)
+            )
+
+            Spacer(Modifier.height(GVSpacing.xxl))
+
+            // UNA acción primaria: entrar. La píldora es del sistema (GVButton) y
+            // ocupa el ancho de la columna, no toda la pantalla.
+            GVButton(
+                text = "Iniciar sesión",
+                onClick = {
+                    navController.navigate("login") {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(GVSpacing.md))
+
+            // El invitado es la salida secundaria: existe, se lee, pero no compite
+            // con la conversión. Antes era un segundo botón relleno idéntico.
+            TextButton(
+                onClick = {
+                    onGuestStatusChange(true)
+                    navController.navigate("news")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Explorar sin cuenta",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+
+            if (isGuest) {
+                Spacer(Modifier.height(GVSpacing.sm))
+                Text(
+                    text = "Estás explorando como invitado",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -176,15 +158,12 @@ fun LoadingScreen() {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    val context = LocalContext.current
     val navController = rememberNavController()
-
-    // Previsualización de la pantalla de inicio
     HomeScreen(
-        isDarkTheme = false, // Simula un tema cargado
-        onThemeChange = { /* No necesitas implementación en la vista previa */ },
+        isDarkTheme = false,
+        onThemeChange = { },
         navController = navController,
         isGuest = false,
-        onGuestStatusChange = { /* No necesitas implementación en la vista previa */ }
+        onGuestStatusChange = { }
     )
 }

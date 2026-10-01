@@ -34,10 +34,14 @@ class SearchViewModelTest {
     ) : GameCatalog {
         var lastQuery: String? = null
             private set
-
         override suspend fun search(query: String): Result<List<CatalogGame>> {
             lastQuery = query
             return searchResult
+        }
+
+        /** Deja constancia limpia: si no se vuelve a llamar, sigue en null. */
+        fun limpiarQuery() {
+            lastQuery = null
         }
 
         override suspend fun getDetails(gameId: Int): Result<CatalogGame?> = detailsResult
@@ -277,5 +281,101 @@ class SearchViewModelTest {
         assertTrue(viewModel.topSearchResults.value.isEmpty())
         assertNull(viewModel.topSearchError.value)
         assertFalse(viewModel.topSearchLoading.value)
+    }
+
+    // ---- Búsqueda EN VIVO de la pantalla Buscar (revisión 02/10) --------
+
+    @Test
+    fun `la busqueda en vivo trae resultados sin pulsar nada`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarEnVivo("ze", debounceMs = 0)
+
+        assertEquals("ze", catalog.lastQuery)
+        assertEquals(listOf("Zelda"), viewModel.games.value.map { it.name })
+        assertTrue(viewModel.hasSearched.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `menos de dos caracteres devuelve al descubrimiento sin tocar la red`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+        viewModel.buscarEnVivo("zelda", debounceMs = 0)
+        catalog.limpiarQuery()
+
+        viewModel.buscarEnVivo("z", debounceMs = 0)
+
+        // Un solo carácter no gasta cuota y sale del modo búsqueda: la pantalla
+        // vuelve a las filas de descubrimiento.
+        assertNull(catalog.lastQuery)
+        assertTrue(viewModel.games.value.isEmpty())
+        assertFalse(viewModel.hasSearched.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `vaciar la busqueda no deja el estado en buscando`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarEnVivo("   ", debounceMs = 0)
+
+        assertFalse(viewModel.isLoading.value)
+        assertFalse(viewModel.hasSearched.value)
+        assertTrue(viewModel.games.value.isEmpty())
+    }
+
+    @Test
+    fun `la busqueda en vivo con fallo avisa y sale del modo buscando`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.failure(java.net.UnknownHostException("api.rawg.io"))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarEnVivo("halo", debounceMs = 0)
+
+        assertTrue(viewModel.error.value?.contains("Sin conexión") == true)
+        assertFalse(viewModel.error.value.orEmpty().contains("api.rawg.io"))
+        assertFalse(viewModel.isLoading.value)
+        assertFalse(viewModel.fromCache.value)
+    }
+
+    @Test
+    fun `limpiar la busqueda en vivo deja la pantalla lista para el descubrimiento`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+        viewModel.buscarEnVivo("zelda", debounceMs = 0)
+
+        viewModel.limpiarBusquedaEnVivo()
+
+        assertTrue(viewModel.games.value.isEmpty())
+        assertNull(viewModel.error.value)
+        assertFalse(viewModel.hasSearched.value)
+        assertFalse(viewModel.fromCache.value)
+    }
+
+    @Test
+    fun `fetchGames vacio devuelve al descubrimiento en vez de a sin resultados`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+        viewModel.fetchGames("zelda")
+
+        viewModel.fetchGames("   ")
+
+        assertTrue(viewModel.games.value.isEmpty())
+        assertFalse(viewModel.hasSearched.value)
+        assertFalse(viewModel.isLoading.value)
     }
 }

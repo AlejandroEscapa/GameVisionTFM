@@ -332,7 +332,7 @@ private fun ProfileHeader(
                     onClick = onToggleFollow,
                     modifier = Modifier.fillMaxWidth(),
                     colors = if (isFollowing) {
-                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                     } else {
                         ButtonDefaults.buttonColors()
                     }
@@ -381,7 +381,7 @@ private fun NotAvailableNotice(onBack: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Card(
             modifier = Modifier.padding(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -412,7 +412,7 @@ private fun NotAvailableNotice(onBack: () -> Unit) {
 private fun PrivateNotice() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

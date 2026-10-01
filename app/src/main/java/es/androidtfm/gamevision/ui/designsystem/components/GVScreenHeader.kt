@@ -42,7 +42,9 @@ fun GVScreenHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, bottom = GVSpacing.headerGap),
+            // El top es el último número crudo que quedaba en el componente que
+            // fija la escala (iteración 02/10, segunda vuelta).
+            .padding(top = GVSpacing.sm, bottom = GVSpacing.headerGap),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, content = leading)

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
@@ -122,26 +123,21 @@ fun ArticleCard(
     isDarkMode: Boolean, // Indica si el modo oscuro está activado
     viewModel: NewsViewModel = NewsViewModel() // ViewModel para formatear la fecha
 ) {
-    // Selección de colores en función del modo
-    val cardBackgroundColor = if (isDarkMode) {
-        MaterialTheme.colorScheme.surfaceVariant
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-
-    // Tarjeta que muestra el artículo
+    // Superficie y forma del sistema (iteración 02/10, segunda vuelta). Antes:
+    // sombra de 8 dp, radio 16 a mano y color calculado en la UI según el tema
+    // (con borde solo en oscuro). La separación la da el TONO, no una sombra, y
+    // el rol es el mismo en claro y en oscuro.
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(8.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-        border = if (isDarkMode) {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-        } else {
-            null
-        }
+            .padding(
+                horizontal = GVSpacing.screenPadding,
+                vertical = GVSpacing.sm
+            ),
+        shape = GVShapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Column(
             modifier = Modifier

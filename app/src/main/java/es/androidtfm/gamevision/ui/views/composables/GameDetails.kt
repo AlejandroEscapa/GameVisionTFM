@@ -447,7 +447,6 @@ fun GameContent(game: CatalogGame?) {
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 game?.let { g ->
@@ -623,7 +622,7 @@ private fun LibraryPanel(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -827,3 +826,16 @@ internal fun fechaEspanol(iso: String): String = try {
 } catch (_: Exception) {
     iso
 }
+
+/**
+ * Año de lanzamiento, o null si el dato no lo trae.
+ *
+ * RAWG devuelve `released = ""` en juegos sin fecha o TBA, y `String.substring(0, 4)`
+ * sobre la cadena vacía lanza `StringIndexOutOfBoundsException`: al caer dentro de
+ * la composición de un ítem de `LazyColumn`, no se pinta la lista ENTERA (el
+ * usuario cree que no hay resultados). Pasó en la pantalla Buscar. Esta es la
+ * única forma de sacar el año: nada de `substring` con índices fijos sobre datos
+ * de red.
+ */
+internal fun anioDe(released: String): String? =
+    released.take(4).takeIf { it.length == 4 }

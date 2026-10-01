@@ -164,9 +164,8 @@ private fun RegistrationForm(
             .padding(horizontal = 24.dp)
             .padding(top = 8.dp), // Reducido de 16dp
         shape = RoundedCornerShape(32.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Column(

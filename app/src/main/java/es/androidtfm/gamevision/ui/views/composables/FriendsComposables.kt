@@ -47,6 +47,7 @@ import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
+import es.androidtfm.gamevision.ui.designsystem.components.GVSearchField
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -150,12 +151,14 @@ fun FriendsList(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Mensaje si no se encuentra un amigo
+            // Mensaje si no se encuentra un amigo. `Color.Red` no existe en el tema:
+            // el color de error es un ROL, no un literal.
             if (showNoFriendFound) {
                 Text(
                     text = "No existe ningún amigo con ese email",
-                    style = MaterialTheme.typography.titleMedium.copy(color = Color.Red),
-                    modifier = Modifier.padding(bottom = 20.dp)
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = GVSpacing.lg)
                 )
             }
             // Buscador + acción de añadir. El botón es explícito (un icono dentro
@@ -163,30 +166,16 @@ fun FriendsList(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(GVSpacing.sm)
             ) {
-                TextField(
+                GVSearchField(
                     value = searchField,
                     onValueChange = {
                         searchField = it
                         showNoFriendFound = false
                     },
-                    placeholder = { Text("Email de tu amigo...") },
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .shadow(4.dp, RoundedCornerShape(24.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        cursorColor = MaterialTheme.colorScheme.primary
-                    ),
-                    singleLine = true,
+                    placeholder = "Email de tu amigo...",
+                    modifier = Modifier.weight(1f)
                 )
                 GVButton(
                     text = "Añadir",
@@ -241,43 +230,43 @@ fun FriendItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(GVSpacing.sm)
         ) {
             // Icono del amigo (inicial del nombre de usuario)
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Text(
                     text = username.take(1).uppercase(),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
-            Spacer(modifier = Modifier.width(15.dp)) // Añadido un espacio entre elementos
+            Spacer(modifier = Modifier.width(GVSpacing.md))
 
-            // Información del amigo (nombre visible y nombre de usuario)
+            // Información del amigo (nombre visible y nombre de usuario). El color
+            // es rol, no decoración: el nombre es tinta y el alias, tinta suave.
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .align(Alignment.CenterVertically) // Alinea verticalmente los textos al centro
+                    .align(Alignment.CenterVertically)
             ) {
                 Text(
                     text = displayName,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = username,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

@@ -57,6 +57,18 @@ class SearchViewModel @Inject constructor(
     private val _fromCache = MutableStateFlow(false)
     val fromCache: StateFlow<Boolean> = _fromCache
 
+    /**
+     * true cuando hay una búsqueda en curso o resuelta (por teclado o por la lupa).
+     * Lo lleva el ViewModel y no la pantalla: con la búsqueda en vivo, el término
+     * llega en cada carácter y la UI no puede decidir por su cuenta cuándo dejar de
+     * enseñar el descubrimiento.
+     */
+    private val _hasSearched = MutableStateFlow(false)
+    val hasSearched: StateFlow<Boolean> = _hasSearched
+
+    /** Job de la búsqueda en vivo: se cancela con cada carácter nuevo. */
+    private var liveSearchJob: Job? = null
+
     // ---- Descubrimiento (bloque B, iteración 02/10) ----------------------
     // Filas que llenan la pantalla Buscar cuando no hay término escrito.
     private val _populares = MutableStateFlow<List<CatalogGame>>(emptyList())
@@ -122,6 +134,65 @@ class SearchViewModel @Inject constructor(
     val errorDetails: StateFlow<String?> = _errorDetails
 
     /**
+     * Búsqueda EN VIVO de la pantalla Buscar (iteración 02/10, segunda vuelta).
+     *
+     * Antes había que pulsar la lupa para que pasara algo: escribir y no ver nada
+     * se siente roto en 2026. Este método se llama en CADA carácter y espera
+     * [debounceMs] desde el último, así que teclear «zelda» no dispara 5 consultas
+     * al catálogo.
+     *
+     * Convenios (los mismos que el buscador del Top 4, para que se comporten igual):
+     *  · Menos de [minChars] caracteres no toca la red: se limpia y se vuelve al
+     *    descubrimiento (peor caso, una búsqueda real de 1 letra devuelve relleno
+     *    y gasta cuota). Al limpiar el campo se sale del modo búsqueda.
+     *  · `hasSearched` es del ViewModel, no de la pantalla: así el descubrimiento
+     *    y los resultados no se pelean cuando el término llega por teclado.
+     */
+    fun buscarEnVivo(
+        query: String,
+        debounceMs: Long = 350L,
+        minChars: Int = 2
+    ) {
+        liveSearchJob?.cancel()
+        val limpio = query.trim().replace("\"", "")
+        if (limpio.length < minChars) {
+            _games.value = emptyList()
+            _error.value = null
+            _fromCache.value = false
+            _isLoading.value = false
+            _hasSearched.value = false
+            return
+        }
+        liveSearchJob = viewModelScope.launch {
+            delay(debounceMs)
+            _isLoading.value = true
+            _error.value = null
+            _hasSearched.value = true
+            catalog.search(limpio)
+                .onSuccess { games ->
+                    _games.value = games
+                    _fromCache.value = catalog.isServingFromCache()
+                }
+                .onFailure {
+                    _games.value = emptyList()
+                    _fromCache.value = false
+                    _error.value = it.toCatalogUserMessage()
+                }
+            _isLoading.value = false
+        }
+    }
+
+    /** Limpia el estado del buscador en vivo (al salir de la pantalla). */
+    fun limpiarBusquedaEnVivo() {
+        liveSearchJob?.cancel()
+        _games.value = emptyList()
+        _error.value = null
+        _fromCache.value = false
+        _isLoading.value = false
+        _hasSearched.value = false
+    }
+
+    /**
      * Función para buscar juegos.
      * @param query: Término de búsqueda para encontrar juegos.
      */
@@ -132,6 +203,14 @@ class SearchViewModel @Inject constructor(
 
             // Limpia la consulta eliminando espacios innecesarios y comillas
             val cleanedQuery = query.trim().replace("\"", "")
+            // Vaciar el campo devuelve la pantalla al descubrimiento, no a un
+            // «no hay resultados» que no ha pedido nadie.
+            _hasSearched.value = cleanedQuery.isNotBlank()
+            if (cleanedQuery.isBlank()) {
+                _games.value = emptyList()
+                _isLoading.value = false
+                return@launch
+            }
 
             catalog.search(cleanedQuery)
                 .onSuccess { games ->

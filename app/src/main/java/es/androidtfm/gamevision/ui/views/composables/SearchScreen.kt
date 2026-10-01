@@ -1,6 +1,7 @@
 package es.androidtfm.gamevision.ui.views.composables
 
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -24,18 +25,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,20 +57,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.data.catalog.CatalogGame
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameGridSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.GVSearchField
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.ArrowUpDown
+import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Star
+import com.composables.icons.lucide.X
 
 /*
  * Autor: Alejandro Olivares Escapa
@@ -94,7 +106,6 @@ fun SearchScreen(
 ) {
     // Estados locales para controlar la búsqueda, criterios de ordenación y visibilidad del menú.
     var searchQuery by remember { mutableStateOf("") }
-    var hasSearched by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
     var sortCriteria by rememberSaveable { mutableStateOf("rating") }
     var sortAscending by rememberSaveable { mutableStateOf(false) } // Orden descendente por defecto
@@ -104,6 +115,9 @@ fun SearchScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val fromCache by viewModel.fromCache.collectAsStateWithLifecycle()
+    // En modo búsqueda lo decide el ViewModel: con búsqueda en vivo el término
+    // llega en cada carácter y la pantalla no puede adivinarlo.
+    val hasSearched by viewModel.hasSearched.collectAsStateWithLifecycle()
     // Bloque B: filas de descubrimiento cuando no hay término escrito
     val populares by viewModel.populares.collectAsStateWithLifecycle()
     val paraTi by viewModel.paraTi.collectAsStateWithLifecycle()
@@ -112,6 +126,18 @@ fun SearchScreen(
     // La fila «Para ti» se siembra con los géneros del perfil (onboarding).
     LaunchedEffect(generosFavoritos) {
         viewModel.cargarDescubrimiento(generosFavoritos)
+    }
+
+    // BÚSQUEDA EN VIVO (iteración 02/10, segunda vuelta): se busca al escribir,
+    // con debounce en el ViewModel. La lupa sigue ahí para cerrar el teclado y
+    // forzar la búsqueda ya, no para que ocurra algo.
+    LaunchedEffect(searchQuery) {
+        viewModel.buscarEnVivo(searchQuery)
+    }
+    // Al salir de la pantalla se limpia: volver a Buscar debe enseñar el
+    // descubrimiento, no los resultados de la búsqueda anterior.
+    DisposableEffect(Unit) {
+        onDispose { viewModel.limpiarBusquedaEnVivo() }
     }
 
     // Cálculo de la lista ordenada según el criterio y orden especificado.
@@ -131,16 +157,79 @@ fun SearchScreen(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column {
+                // Cabecera con el título y el ORDEN como acción (iteración 02/10,
+                // segunda vuelta). Antes la pantalla no tenía cabecera —empezaba
+                // con un campo de texto— y el orden vivía en un FloatingActionButton
+                // con sombra de 8 dp y `primaryContainer`, el patrón Material 2 que
+                // el re-anclaje retiró, flotando sobre un dock ya presente.
+                GVScreenHeader(
+                    title = "Buscar",
+                    modifier = Modifier.padding(horizontal = GVSpacing.screenPadding),
+                    actions = {
+                        if (games.isNotEmpty()) {
+                            Box {
+                                IconButton(onClick = { sortMenuExpanded = true }) {
+                                    Icon(
+                                        imageVector = Lucide.ArrowUpDown,
+                                        contentDescription = "Ordenar resultados",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = sortMenuExpanded,
+                                    onDismissRequest = { sortMenuExpanded = false }
+                                ) {
+                                    OpcionOrden(
+                                        texto = "Mejor nota",
+                                        seleccionada = sortCriteria == "rating" && !sortAscending
+                                    ) {
+                                        sortCriteria = "rating"; sortAscending = false
+                                        sortMenuExpanded = false
+                                    }
+                                    OpcionOrden(
+                                        texto = "Peor nota",
+                                        seleccionada = sortCriteria == "rating" && sortAscending
+                                    ) {
+                                        sortCriteria = "rating"; sortAscending = true
+                                        sortMenuExpanded = false
+                                    }
+                                    OpcionOrden(
+                                        texto = "Nombre (A-Z)",
+                                        seleccionada = sortCriteria == "name"
+                                    ) {
+                                        sortCriteria = "name"; sortAscending = true
+                                        sortMenuExpanded = false
+                                    }
+                                    OpcionOrden(
+                                        texto = "Más recientes",
+                                        seleccionada = sortCriteria == "release" && !sortAscending
+                                    ) {
+                                        sortCriteria = "release"; sortAscending = false
+                                        sortMenuExpanded = false
+                                    }
+                                    OpcionOrden(
+                                        texto = "Más antiguos",
+                                        seleccionada = sortCriteria == "release" && sortAscending
+                                    ) {
+                                        sortCriteria = "release"; sortAscending = true
+                                        sortMenuExpanded = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
+
                 // Barra de búsqueda para introducir el término de búsqueda
                 SearchBar(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     onSearch = {
-                        if (searchQuery.isNotBlank()) {
-                            hasSearched = true
-                            viewModel.fetchGames(searchQuery)
-                        }
-                    }
+                        // La lupa no dispara la búsqueda (ya ocurre al escribir):
+                        // cierra el teclado y la fuerza sin esperar al debounce.
+                        viewModel.fetchGames(searchQuery)
+                    },
+                    buscando = isLoading
                 )
 
                 // F0/T0.5: aviso discreto de modo degradado (datos servidos desde caché)
@@ -215,75 +304,31 @@ fun SearchScreen(
                     }
                 }
             }
+        }
+    }
+}
 
-            // Botón flotante para abrir el menú de ordenación, visible si hay juegos en la lista.
-            if (games.isNotEmpty()) {
-                FloatingActionButton(
-                    onClick = { sortMenuExpanded = true },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(30.dp)
-                        .shadow(8.dp, RoundedCornerShape(16.dp)),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ) {
-                    Icon(
-                        imageVector = Lucide.ChevronDown,
-                        contentDescription = "Abrir menú de ordenación",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            // Menú desplegable para seleccionar el criterio y orden de clasificación
-            DropdownMenu(
-                expanded = sortMenuExpanded,
-                onDismissRequest = { sortMenuExpanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Nombre ${if (sortCriteria == "name") "✓" else ""}") },
-                    onClick = {
-                        sortCriteria = "name"
-                        sortAscending = true
-                        sortMenuExpanded = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Rating (Asc.) ${if (sortCriteria == "rating" && sortAscending) "✓" else ""}") },
-                    onClick = {
-                        sortCriteria = "rating"
-                        sortAscending = true
-                        sortMenuExpanded = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Rating (Desc.) ${if (sortCriteria == "rating" && !sortAscending) "✓" else ""}") },
-                    onClick = {
-                        sortCriteria = "rating"
-                        sortAscending = false
-                        sortMenuExpanded = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Lanzamiento (Asc.) ${if (sortCriteria == "release" && sortAscending) "✓" else ""}") },
-                    onClick = {
-                        sortCriteria = "release"
-                        sortAscending = true
-                        sortMenuExpanded = false
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Lanzamiento (Desc.) ${if (sortCriteria == "release" && !sortAscending) "✓" else ""}") },
-                    onClick = {
-                        sortCriteria = "release"
-                        sortAscending = false
-                        sortMenuExpanded = false
-                    }
+/** Opción del menú de orden, con el check del sistema en vez de un "✓" en texto. */
+@Composable
+private fun OpcionOrden(
+    texto: String,
+    seleccionada: Boolean,
+    onClick: () -> Unit
+) {
+    DropdownMenuItem(
+        text = { Text(texto) },
+        onClick = onClick,
+        trailingIcon = {
+            if (seleccionada) {
+                Icon(
+                    imageVector = Lucide.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
-    }
+    )
 }
 
 /**
@@ -297,177 +342,108 @@ fun GameCard(
     game: CatalogGame,
     navController: NavController
 ) {
-    Card(
+    // FILA, no tarjeta full-bleed (iteración 02/10, segunda vuelta). Antes: 200 dp
+    // de portada recortada con un panel translúcido al 90% encima — el patrón
+    // "scrim + texto sobre imagen" de 2018. En una lista de resultados lo que
+    // hace falta es ESCANEAR: portada pequeña, nombre y datos, todos legibles sin
+    // depender de la foto que haya debajo.
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .height(200.dp)
-            .clickable { navController.navigate("gameDetails/${game.id}") },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            .clip(GVShapes.medium)
+            .clickable { navController.navigate("gameDetails/${game.id}") }
+            .padding(vertical = GVSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen de fondo del juego (shared element: vuela al detalle)
-            GameCover(
-                imageUrl = game.coverUrl,
-                title = game.name,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .gvSharedElement(key = "cover-${game.id}")
-            )
+        GameCover(
+            imageUrl = game.coverUrl,
+            title = game.name,
+            shape = GVShapes.medium,
+            modifier = Modifier
+                .size(width = 64.dp, height = 86.dp)
+                .gvSharedElement(key = "cover-${game.id}")
+        )
 
-            // Panel inferior semitransparente con detalles del juego
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-                    )
-                    .padding(12.dp)
-            ) {
-                // Nombre del juego
+        Spacer(Modifier.width(GVSpacing.md))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = game.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(Modifier.height(GVSpacing.xs))
+            // Año y géneros en una línea: sin etiquetas "Año:"/"Géneros:", que era
+            // jerga de formulario dentro de una tarjeta.
+            val anio = anioDe(game.released)
+            val meta = listOfNotNull(
+                anio,
+                game.genres.take(2).joinToString(", ").takeIf { it.isNotBlank() }
+            ).joinToString(" · ")
+            if (meta.isNotBlank()) {
                 Text(
-                    text = game.name,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
+                    text = meta,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+        }
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Fila con el año de lanzamiento, géneros y rating
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        // Año de lanzamiento
-                        Text(
-                            text = buildAnnotatedString {
-                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("Año: ")
-                                }
-                                append(game.released.substring(0, 4))
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        // Géneros (si están disponibles)
-                        if (game.genres.isNotEmpty()) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("Géneros: ")
-                                    }
-                                    append(game.genres.joinToString(", "))
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    // Chip que muestra el rating del juego
-                    Chip(
-                        text = "⭐ ${"%.1f".format(game.rating)}",
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        textColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+        // La nota, si la hay: dato, no decoración. Sin emoji: la estrella es del
+        // set de iconos del sistema (Lucide), no un glifo de otra fuente.
+        if (game.rating > 0.0) {
+            Spacer(Modifier.width(GVSpacing.sm))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Lucide.Star,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(Modifier.width(GVSpacing.xs))
+                Text(
+                    text = String.format(java.util.Locale.US, "%.1f", game.rating),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
 }
 
 /**
- * Componente tipo chip para mostrar información compacta, como el rating.
- */
-@Composable
-private fun Chip(
-    text: String,
-    containerColor: Color,
-    textColor: Color
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(containerColor)
-            .padding(horizontal = 10.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = textColor
-        )
-    }
-}
-
-/**
- * Barra de búsqueda personalizada.
+ * Barra de búsqueda de la pantalla Buscar.
  *
- * @param query Término de búsqueda actual.
- * @param onQueryChange Función para manejar cambios en el término de búsqueda.
- * @param onSearch Función para manejar la acción de buscar.
+ * Re-anclada al design system (iteración 02/10, segunda vuelta): era un
+ * `TextField` relleno con `surfaceVariant`, sombra de 4 dp y esquinas de 24 dp
+ * — un buscador de Material 2 en una app que ya no usa ni sombras ni rellenos.
+ * Ahora es **`GVSearchField`**, el único buscador del sistema, el mismo que usa
+ * el Top 4 y Social.
+ *
+ * @param buscando muestra progreso en el hueco de la acción derecha.
  */
 @Composable
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit
+    onSearch: () -> Unit,
+    buscando: Boolean = false
 ) {
-    // Se utiliza para detectar la interacción y animar el ícono de búsqueda.
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed = interactionSource.collectIsPressedAsState().value
-    val searchButtonScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.9f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = ""
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        TextField(
-            value = query,
-            onValueChange = onQueryChange,
-            placeholder = { Text("Buscar juegos...") },
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .shadow(4.dp, RoundedCornerShape(24.dp)),
-            trailingIcon = {
-                IconButton(
-                    onClick = onSearch,
-                    modifier = Modifier.scale(searchButtonScale)
-                ) {
-                    Icon(
-                        imageVector = Lucide.Search,
-                        contentDescription = "Iniciar búsqueda",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                cursorColor = MaterialTheme.colorScheme.primary
-            ),
-            singleLine = true,
-            interactionSource = interactionSource
+    GVSearchField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = "Buscar juegos...",
+        buscando = buscando,
+        onSearch = onSearch,
+        modifier = Modifier.padding(
+            horizontal = GVSpacing.screenPadding,
+            vertical = GVSpacing.sm
         )
-    }
+    )
 }
 
 @Preview(showBackground = true)

@@ -427,7 +427,6 @@ private fun GameListCard(
             .height(200.dp)
             .clickable { navController.navigate("gameDetails/${item.gameId}") },
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Imagen de fondo (shared element: vuela al detalle)
@@ -472,7 +471,7 @@ private fun GameListCard(
                                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                         append("Año: ")
                                     }
-                                    append(item.released.substring(0, 4))
+                                    append(anioDe(item.released).orEmpty())
                                 },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

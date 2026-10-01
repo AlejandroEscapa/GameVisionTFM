@@ -69,6 +69,7 @@ import es.androidtfm.gamevision.data.model.MilestoneTypes
 import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.social.FeedEntryPair
+import es.androidtfm.gamevision.ui.designsystem.components.GVSearchField
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
@@ -411,22 +412,16 @@ private fun SearchTab(
     onUnfollow: (String) -> Unit,
     onOpenProfile: (String) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = searchText,
-                onValueChange = onSearchTextChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                placeholder = { Text("Nombre de usuario (mín. 3)") },
-                trailingIcon = {
-                    IconButton(onClick = onSearch, enabled = searchText.trim().length >= 3) {
-                        Icon(Lucide.User, contentDescription = "Buscar")
-                    }
-                }
-            )
-        }
-        Spacer(Modifier.height(8.dp))
+    Column(modifier = Modifier.fillMaxSize().padding(GVSpacing.sm)) {
+        // Mismo buscador que la pantalla Buscar y el Top 4 (GVSearchField): el
+        // sistema tenía tres campos distintos para la misma acción.
+        GVSearchField(
+            value = searchText,
+            onValueChange = onSearchTextChange,
+            placeholder = "Nombre de usuario (mín. 3)",
+            onSearch = { if (searchText.trim().length >= 3) onSearch() }
+        )
+        Spacer(Modifier.height(GVSpacing.sm))
         when {
             results == null -> Text(
                 "Encuentra jugadores por su nombre de usuario y sigue su progreso.",
@@ -701,8 +696,8 @@ fun CommentBar(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 cursorColor = MaterialTheme.colorScheme.primary

@@ -156,8 +156,7 @@ fun ProfileCard(
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 16.dp),
         shape = RoundedCornerShape(32.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Se itera sobre los campos del perfil para generar cada campo de texto.
@@ -267,7 +266,7 @@ private fun PrivacyCard(isPrivate: Boolean, onToggle: (Boolean) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

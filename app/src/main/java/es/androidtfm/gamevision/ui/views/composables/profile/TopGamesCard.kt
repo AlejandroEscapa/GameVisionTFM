@@ -23,12 +23,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,22 +39,20 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
-import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.X
 import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.TopGamesLogic
 import es.androidtfm.gamevision.data.model.TopGame
-import es.androidtfm.gamevision.ui.designsystem.GVShapeFull
 import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
+import es.androidtfm.gamevision.ui.designsystem.components.GVSearchField
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 
 /*
@@ -160,14 +154,16 @@ fun TopGamesCard(
 
             if (mostrarBuscador && !completo) {
                 Spacer(Modifier.height(GVSpacing.md))
-                BuscadorTop(
-                    query = query,
-                    onQueryChange = {
+                // El mismo buscador del sistema que la pantalla Buscar y Social.
+                GVSearchField(
+                    value = query,
+                    onValueChange = {
                         query = it
                         onBuscar(it)
                     },
+                    placeholder = "Busca un juego para añadirlo",
                     buscando = buscando,
-                    onBuscarAhora = {
+                    onSearch = {
                         keyboard?.hide()
                         onBuscar(query)
                     }
@@ -331,55 +327,6 @@ private fun SlotTop(
             overflow = TextOverflow.Ellipsis
         )
     }
-}
-
-/** Campo de búsqueda del Top: píldora, con el acento del sistema. */
-@Composable
-private fun BuscadorTop(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    buscando: Boolean,
-    onBuscarAhora: () -> Unit
-) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        shape = GVShapeFull,
-        placeholder = {
-            Text("Busca un juego para añadirlo", style = MaterialTheme.typography.bodyMedium)
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Lucide.Search,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-        },
-        trailingIcon = {
-            if (buscando) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                )
-            } else if (query.isNotBlank()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        imageVector = Lucide.X,
-                        contentDescription = "Borrar búsqueda",
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(onSearch = { onBuscarAhora() }),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-        )
-    )
 }
 
 /** Resultado del buscador: portada pequeña, nombre, año y estado en el Top. */
