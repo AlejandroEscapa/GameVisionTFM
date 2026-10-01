@@ -46,6 +46,8 @@ import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.library.RecommendationEngine
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Candidate
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Mood
+import com.composables.icons.lucide.Gamepad2
+import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
@@ -83,6 +85,8 @@ fun ParaTiScreen(
     generosFavoritos: List<String>
 ) {
     val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
+    // Perfil en vivo: decide si mostrar la invitación a conectar Steam.
+    val perfilSteam by userViewModel.profile.collectAsStateWithLifecycle()
     var biblioteca by remember { mutableStateOf<List<es.androidtfm.gamevision.data.library.LibraryEntry>>(emptyList()) }
     var minutosDisponibles by remember { mutableStateOf(120) }
     var animo by remember { mutableStateOf(Mood.ANY) }
@@ -328,6 +332,44 @@ fun ParaTiScreen(
             }
         }
 
+        // ---- Steam (bloque 5): invitación indirecta, oculta si ya está vinculada
+        if (perfilSteam.steamId.isBlank()) {
+            Column(modifier = Modifier.padding(horizontal = GVSpacing.screenPadding)) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Lucide.Gamepad2,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(GVSpacing.sm))
+                            Text("Tu tiempo real", style = MaterialTheme.typography.titleMedium)
+                        }
+                        Spacer(Modifier.height(GVSpacing.xs))
+                        Text(
+                            text = "Conecta Steam y tus horas jugadas entrarán solas en tu " +
+                                "biblioteca: sin apuntar nada a mano.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(GVSpacing.md))
+                        GVButton(
+                            text = "Conectar Steam",
+                            onClick = { navController.navigate("steam") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+
         // ---- Lo que está pasando (noticias, ya no pestaña: D-F3) ---------
         SeccionCabecera("Lo que está pasando", "Ver todas") { navController.navigate("news") }
         Text(
@@ -352,7 +394,11 @@ private fun SeccionCabecera(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            // Más aire arriba (iteración 02/10): el título de página en Home va
+            // seguido de OTRO título grande; con 8dp el bloque se sentía pegado
+            // comparado con pantallas donde debajo hay tarjetas.
+            .padding(horizontal = GVSpacing.screenPadding, vertical = 8.dp)
+            .padding(top = GVSpacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
