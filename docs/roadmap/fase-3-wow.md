@@ -42,7 +42,9 @@ compartible como imagen** listo para enseñar y publicar.
 ## Tareas
 
 ### A. Decidir: "¿Qué juego ahora?"
-- [ ] T3.1 Motor de recomendación (lógica pura y testeable) con factores y pesos de D3.1
+- [x] T3.1 Motor de recomendación (lógica pura y testeable) con factores y pesos de D3.1 —
+  `data/library/RecommendationEngine.kt`, **13 tests** (`RecommendationEngineTest`), commit `ac0baae`
+  (*evidencia:* 132 unitarios en verde; regla CA3.1 con el matiz anti-caja-vacía)
 - [ ] T3.2 Pantalla "¿Qué juego ahora?" con el tiempo disponible como entrada rápida (30 min / 2 h / una tarde)
 - [ ] T3.3 Explicación de cada recomendación en lenguaje natural
 - [ ] T3.4 Acciones directas desde la recomendación (empezar, marcar como jugando, descartar)
