@@ -203,4 +203,79 @@ class SearchViewModelTest {
 
         assertFalse(viewModel.fromCache.value)
     }
+
+    // ---- Buscador del Top 4 (revisión 02/10) ----------------------------
+
+    @Test
+    fun `buscarParaTop con menos de dos caracteres no llama al catalogo`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarParaTop("z", debounceMs = 0)
+
+        assertNull(catalog.lastQuery)
+        assertTrue(viewModel.topSearchResults.value.isEmpty())
+        assertFalse(viewModel.topSearchLoading.value)
+    }
+
+    @Test
+    fun `buscarParaTop publica resultados y limpia el estado de carga`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda"), game(2, "Mario")))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarParaTop("  zelda  ", debounceMs = 0)
+
+        assertEquals("zelda", catalog.lastQuery)
+        assertEquals(listOf("Zelda", "Mario"), viewModel.topSearchResults.value.map { it.name })
+        assertFalse(viewModel.topSearchLoading.value)
+        assertNull(viewModel.topSearchError.value)
+    }
+
+    @Test
+    fun `buscarParaTop con fallo avisa sin detalle tecnico`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.failure(java.net.UnknownHostException("api.rawg.io"))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarParaTop("halo", debounceMs = 0)
+
+        val msg = viewModel.topSearchError.value.orEmpty()
+        assertTrue(msg.contains("Sin conexión"))
+        assertFalse(msg.contains("api.rawg.io"))
+        assertTrue(viewModel.topSearchResults.value.isEmpty())
+    }
+
+    @Test
+    fun `buscarParaTop no toca el buscador de la pantalla Buscar`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+
+        viewModel.buscarParaTop("zelda", debounceMs = 0)
+
+        // Estados independientes: escribir en el Top 4 no cambia la pantalla Buscar.
+        assertTrue(viewModel.games.value.isEmpty())
+        assertEquals(listOf("Zelda"), viewModel.topSearchResults.value.map { it.name })
+    }
+
+    @Test
+    fun `limpiarBusquedaTop deja el estado en blanco`() = runTest {
+        val catalog = FakeGameCatalog(
+            searchResult = Result.success(listOf(game(1, "Zelda")))
+        )
+        val viewModel = SearchViewModel(catalog)
+        viewModel.buscarParaTop("zelda", debounceMs = 0)
+
+        viewModel.limpiarBusquedaTop()
+
+        assertTrue(viewModel.topSearchResults.value.isEmpty())
+        assertNull(viewModel.topSearchError.value)
+        assertFalse(viewModel.topSearchLoading.value)
+    }
 }

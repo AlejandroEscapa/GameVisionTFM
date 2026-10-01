@@ -398,7 +398,11 @@ class SocialRepository @Inject constructor(
         runCatching {
             listsCollection(uid, isPublic).document(listId).delete().await()
             Unit
-        }.onFailure { Log.e(TAG, "deleteList($uid/$listId): ${it.message}") }
+        }.onFailure {
+            // Borrar un documento que no existe NO es un fallo para el llamante
+            // (syncTop4List limpia siempre el lado contrario), pero se registra.
+            Log.w(TAG, "deleteList($uid/$listId, public=$isPublic): ${it.message}")
+        }
 
     /**
      * Biblioteca pública de `uid` (T2.4). Las reglas ya la gobernan con

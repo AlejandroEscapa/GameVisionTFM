@@ -92,7 +92,23 @@ spinners.
 - **GameCover/GameCard** — la carátula manda: radio, sin borde, sin elevación.
 - **GVSkeleton / EmptyState / OfflineBanner / RatingBadge / NewsCard / FriendAvatar** — mismos
   roles de tema; nada hardcodeado.
-- Regla de convivencia (ADR-0009, vigente): nada visual fuera de `ui/designsystem/`.
+- **Regla de convivencia (ADR-0009, vigente): nada visual fuera de `ui/designsystem/`.**
+
+**Componentes de superficie** (viven junto a su pantalla porque son contenido, no vocabulario
+compartido; consumen tokens y componentes del sistema, jamás colores sueltos):
+`ui/views/composables/profile/`
+
+- **TopGamesCard** — el cuadro del Top 4: fila de **4 slots siempre visibles** (portada con número
+  de posición, o hueco con `+`), contador `n/4` y **buscador de catálogo** en píldora. Un solo
+  componente para los dos modos: `editable = true` (tu perfil: buscador + ✕ por slot) y
+  `editable = false` (perfil de otro: solo lectura).
+- **MisListasSection / CrearListaDialog / TarjetaCrearLista** — listas curadas: sección del perfil
+  con su acción, **un único diálogo** para perfil y Home, y la entrada ligera de «Para ti».
+- **ListaPublicaCard** — lista en lectura, dentro del perfil de otro.
+
+**Buscador en píldora.** El campo de búsqueda del sistema es **píldora** (`GVShapeFull`), borde
+`outlineVariant` en reposo y acento al enfocar; icono de lupa a la izquierda y limpiar a la derecha.
+La píldora está reservada a la ACCIÓN: buscadores, chips y CTA. Es la firma del sistema.
 
 ## 7. Espaciado y pantallas (`GVSpacing`)
 

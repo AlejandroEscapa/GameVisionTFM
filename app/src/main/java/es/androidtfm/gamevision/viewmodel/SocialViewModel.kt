@@ -43,6 +43,17 @@ class SocialViewModel @Inject constructor(
     companion object {
         private const val TAG = "SocialViewModel"
         private const val USERS = "users"
+
+        /**
+         * gameId del hito `list_published`: una lista NO es un juego, así que el
+         * hito se ancla a la propia lista con esta clave (el id del hito es
+         * determinista, así que publicar dos veces la misma lista no duplica).
+         */
+        private const val LIST_MILESTONE_KEY = "list"
+
+        private const val TOP4_LIST_ID = GameList.TOP4_ID
+        private const val TOP4_LIST_NAME = GameList.TOP4_NAME
+        private const val TOP4_LIST_DESCRIPTION = GameList.TOP4_DESCRIPTION
     }
 
     // ------------------------------------------------------------- feed (D2.3)
@@ -246,6 +257,79 @@ class SocialViewModel @Inject constructor(
 
     fun saveList(uid: String, list: GameList, onDone: (Result<Unit>) -> Unit) {
         viewModelScope.launch { onDone(socialRepository.saveList(uid, list)) }
+    }
+
+    fun deleteList(uid: String, listId: String, isPublic: Boolean = true, onDone: (Result<Unit>) -> Unit) {
+        viewModelScope.launch { onDone(socialRepository.deleteList(uid, listId, isPublic)) }
+    }
+
+    /**
+     * Crea una lista curada MANUAL (acción del usuario desde el perfil o desde
+     * «Para ti»). Si nace pública, publica el hito `list_published` — que es
+     * justo lo que NO debe hacer el Top 4 (ver [syncTop4List]).
+     */
+    fun createList(
+        uid: String,
+        name: String,
+        description: String,
+        isPublic: Boolean,
+        onDone: (Result<Unit>) -> Unit = {}
+    ) {
+        if (uid.isBlank() || name.isBlank()) return
+        saveList(
+            uid,
+            GameList(name = name.trim(), description = description.trim(), isPublic = isPublic)
+        ) { result ->
+            if (result.isSuccess && isPublic) {
+                val milestone = MilestonePlanner.forAction("list_published", LIST_MILESTONE_KEY)
+                if (milestone != null) {
+                    publishMilestone(
+                        uid = uid,
+                        milestoneType = milestone,
+                        gameId = LIST_MILESTONE_KEY,
+                        gameName = name.trim(),
+                        gameCover = ""
+                    )
+                }
+            }
+            onDone(result)
+        }
+    }
+
+    /**
+     * Top 4 (T2.5, revisión 02/10) — sincroniza el Top con su documento de lista
+     * para que aparezca en «Listas» del perfil con sus 4 juegos.
+     *
+     * SILENCIOSO a propósito: editar el Top 4 es una acción de perfil, no una
+     * publicación. Sin esto, cada retoque del Top llenaría el feed de «Publicó
+     * una lista».
+     *
+     * @param isPublic lista pública (cuenta pública) o privada (cuenta privada).
+     *   Al cambiar la privacidad de la cuenta, la lista SE MUEVE de colección:
+     *   se borra la del otro lado para no dejar una copia huérfana (CA2.4).
+     */
+    fun syncTop4List(
+        uid: String,
+        gameIds: List<String>,
+        isPublic: Boolean,
+        onDone: (Result<Unit>) -> Unit = {}
+    ) {
+        if (uid.isBlank()) return
+        viewModelScope.launch {
+            val resultado = socialRepository.saveList(
+                uid,
+                GameList(
+                    id = TOP4_LIST_ID,
+                    name = TOP4_LIST_NAME,
+                    description = TOP4_LIST_DESCRIPTION,
+                    isPublic = isPublic,
+                    gameIds = gameIds.take(4)
+                )
+            )
+            // Limpieza del lado contrario (el repo no sabe de ids compartidos).
+            socialRepository.deleteList(uid, TOP4_LIST_ID, isPublic = !isPublic)
+            onDone(resultado)
+        }
     }
 
     // ------------------------------------------------------------- hitos (D2.3)

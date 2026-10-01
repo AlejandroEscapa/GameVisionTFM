@@ -120,6 +120,15 @@ data class GameList(
     val createdAt: Long = 0
 ) {
     companion object {
+        /**
+         * T2.5 (revisión 02/10): el Top 4 es ADEMÁS una lista real del usuario.
+         * Id fijo y reservado: se sincroniza, no se duplica. Al ser determinista,
+         * un cambio en el Top actualiza el mismo documento en vez de crear otro.
+         */
+        const val TOP4_ID = "top4"
+        const val TOP4_NAME = "Top 4"
+        const val TOP4_DESCRIPTION = "Mis cuatro juegos imprescindibles"
+
         fun fromMap(id: String, ownerUid: String, data: Map<String, Any?>?): GameList {
             if (data == null) return GameList(id = id, ownerUid = ownerUid)
             return GameList(

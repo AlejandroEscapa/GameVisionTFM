@@ -52,6 +52,11 @@ hasta que existe el diario y las notas**.
 - [x] T2.3 Seguir / dejar de seguir (asimétrico) + contadores (aggregate `count()`).
 - [x] T2.4 Feed de actividad (hitos + posts) con listener en vivo y chunks `whereIn`.
 - [x] T2.5 Top 4 editable y visible en el perfil — `TopGamesEditor` (persiste `topGameIds`).
+  **Revisado el 02/10/2026** (ver [acta](../plan/perfil-top4-listas-2026-10-02.md)): el editor vive
+  en el **perfil propio** justo debajo de la información, con **buscador de catálogo** (no solo la
+  biblioteca), la miniatura se guarda en el propio perfil (`topGames`, se acabó el «Sin definir») y
+  el Top 4 es además una **lista real** (`gamelist/top4`, sincronizada en silencio). `TopGamesEditor`
+  y `CreateListCard` salen de «Editar perfil».
 - [x] T2.6 Listas curadas: crear, públicas o privadas, con progreso — `gamelist` / `gamelist_private`.
 - [x] T2.7 Me gusta en entradas del feed (`feed/{id}/likes/{uid}` + `likesCount`).
 - [x] T2.8 Reportar y bloquear usuario — `reports/{id}`, `blocks/{me}/people/{uid}`.

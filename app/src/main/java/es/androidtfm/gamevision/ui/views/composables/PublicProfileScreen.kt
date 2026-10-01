@@ -50,6 +50,9 @@ import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.model.GameList
 import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.views.composables.profile.ListaPublicaCard
+import es.androidtfm.gamevision.ui.views.composables.profile.TopGamesRow
+import es.androidtfm.gamevision.ui.views.composables.profile.resolvedorDesdeBiblioteca
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import com.composables.icons.lucide.Lucide
@@ -105,10 +108,6 @@ fun PublicProfileScreen(
         }
     }
 
-    // Cruce Top 4 ↔ biblioteca: nombre y portada reales desde la instantánea.
-    val libraryById: Map<String, LibraryEntry> =
-        libraryState?.getOrNull()?.associateBy { it.gameId }.orEmpty()
-
     Surface(
         modifier = Modifier
             .padding(paddingValues)
@@ -162,11 +161,15 @@ fun PublicProfileScreen(
                     )
                 }
 
-                // Top 4 (T2.5) — identidad del jugador
-                if (p.topGameIds.isNotEmpty()) {
+                // Top 4 (T2.5) — identidad del jugador. Desde la revisión 02/10 el
+                // perfil trae su propia miniatura (topGames): la biblioteca es solo
+                // el respaldo de las cuentas antiguas (solo ids).
+                if (p.topGameIds.isNotEmpty() || p.topGames.isNotEmpty()) {
                     item {
                         SectionTitle("Top 4")
-                        TopGamesRow(topGameIds = p.topGameIds, catalog = libraryById)
+                        TopGamesRow(
+                            juegos = p.topGamesResolved(resolvedorDesdeBiblioteca(libraryState?.getOrNull()))
+                        )
                     }
                 }
 
@@ -197,7 +200,7 @@ fun PublicProfileScreen(
                         EmptyLine("Sin listas públicas.")
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            lists.forEach { list -> PublicListCard(list) }
+                            lists.forEach { list -> ListaPublicaCard(list) }
                         }
                     }
                 }
@@ -426,57 +429,12 @@ private fun PrivateNotice() {
 }
 
 /**
- * Top 4 del jugador (T2.5). Los nombres y portadas salen de la instantánea de
- * catálogo guardada en la biblioteca; si un juego del Top no está en ella se
- * muestra la posición con placeholder — nunca un número suelto sin contexto.
- * La edición del Top vive en el perfil propio (T2.5).
+ * Top 4 del jugador (T2.5). Desde la revisión 02/10 el perfil guarda su propia
+ * miniatura (`topGames`), así que la fila vive en el componente compartido
+ * `profile/TopGamesCard.kt` (junto a [ListaPublicaCard] para las listas) y NO se
+ * resuelve contra la biblioteca: eso era lo que pintaba «Sin definir» cuando el
+ * juego del Top no estaba en ella. La edición del Top vive en el perfil propio.
  */
-@Composable
-private fun TopGamesRow(
-    topGameIds: List<String>,
-    catalog: Map<String, LibraryEntry>
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        topGameIds.take(4).forEachIndexed { index, gameId ->
-            val entry = catalog[gameId]
-            Column(modifier = Modifier.weight(1f)) {
-                if (entry != null) {
-                    GameCover(
-                        imageUrl = entry.coverUrl,
-                        title = entry.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(96.dp)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(96.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "#${index + 1}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = entry?.name.orEmpty().ifBlank { "Sin definir" },
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun LibraryPreview(entries: List<LibraryEntry>) {
@@ -504,32 +462,6 @@ private fun LibraryPreview(entries: List<LibraryEntry>) {
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun PublicListCard(list: GameList) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(list.name.ifBlank { "Lista" }, style = MaterialTheme.typography.titleSmall)
-            if (list.description.isNotBlank()) {
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    list.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${list.gameIds.size} juegos",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }

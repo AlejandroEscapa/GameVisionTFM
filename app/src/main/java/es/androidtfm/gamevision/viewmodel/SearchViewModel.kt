@@ -10,7 +10,9 @@ import es.androidtfm.gamevision.data.catalog.CatalogGame
 import es.androidtfm.gamevision.data.catalog.GameCatalog
 import es.androidtfm.gamevision.data.catalog.rawg.RawgGameCatalog
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -142,6 +144,65 @@ class SearchViewModel @Inject constructor(
                 }
             _isLoading.value = false
         }
+    }
+
+    // ---- Buscador del Top 4 (revisión 02/10) ----------------------------
+    // Canal INDEPENDIENTE del buscador de la pantalla Buscar: si compartiera
+    // `games`, escribir en el Top 4 cambiaría los resultados de la otra pantalla.
+    // Con debounce, porque es un campo que se escribe letra a letra y cada tecla
+    // sería una llamada al catálogo.
+    private val _topSearchResults = MutableStateFlow<List<CatalogGame>>(emptyList())
+    val topSearchResults: StateFlow<List<CatalogGame>> = _topSearchResults
+
+    private val _topSearchLoading = MutableStateFlow(false)
+    val topSearchLoading: StateFlow<Boolean> = _topSearchLoading
+
+    private val _topSearchError = MutableStateFlow<String?>(null)
+    val topSearchError: StateFlow<String?> = _topSearchError
+
+    private var topSearchJob: Job? = null
+
+    /**
+     * Busca juegos para el Top 4, esperando [debounceMs] desde la última tecla.
+     *
+     * Con menos de 2 caracteres no se llama a la red (RAWG devuelve relleno y se
+     * gasta cuota para nada) y se limpian los resultados.
+     *
+     * @param minChars mínimo de caracteres para disparar la búsqueda.
+     */
+    fun buscarParaTop(
+        query: String,
+        debounceMs: Long = 350L,
+        minChars: Int = 2
+    ) {
+        topSearchJob?.cancel()
+        val limpio = query.trim().replace("\"", "")
+        if (limpio.length < minChars) {
+            _topSearchResults.value = emptyList()
+            _topSearchError.value = null
+            _topSearchLoading.value = false
+            return
+        }
+        topSearchJob = viewModelScope.launch {
+            delay(debounceMs)
+            _topSearchLoading.value = true
+            _topSearchError.value = null
+            catalog.search(limpio)
+                .onSuccess { _topSearchResults.value = it }
+                .onFailure {
+                    _topSearchResults.value = emptyList()
+                    _topSearchError.value = it.toCatalogUserMessage()
+                }
+            _topSearchLoading.value = false
+        }
+    }
+
+    /** Limpia el estado del buscador del Top 4 (al cerrarlo o cerrar sesión). */
+    fun limpiarBusquedaTop() {
+        topSearchJob?.cancel()
+        _topSearchResults.value = emptyList()
+        _topSearchError.value = null
+        _topSearchLoading.value = false
     }
 
     /**

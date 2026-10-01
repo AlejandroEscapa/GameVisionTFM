@@ -22,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,22 +30,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import es.androidtfm.gamevision.data.library.LibraryEntry
-import es.androidtfm.gamevision.data.model.GameList
-import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
-import kotlinx.coroutines.launch
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import com.composables.icons.lucide.ArrowLeft
@@ -56,7 +47,6 @@ import com.composables.icons.lucide.CircleUserRound
 import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.MapPin
 import com.composables.icons.lucide.Pencil
-import com.composables.icons.lucide.Star
 import com.composables.icons.lucide.User
 
 /*
@@ -79,17 +69,14 @@ import com.composables.icons.lucide.User
 
 @Composable
 fun EditProfileScreen(
-    isDarkTheme: Boolean,
     paddingValues: PaddingValues,
     navController: NavController?,
     userViewModel: UserViewModel,
-    socialViewModel: SocialViewModel,
-    libraryViewModel: LibraryViewModel
+    socialViewModel: SocialViewModel
 ) {
     // Campos de edición, precargados una vez desde el perfil del SSOT.
     val profile by userViewModel.profile.collectAsStateWithLifecycle()
     val loginFields by userViewModel.formFields.collectAsStateWithLifecycle()
-    val coroutineScope = rememberCoroutineScope()
 
     // Rellena el formulario con el perfil actual la primera vez que llega el dato.
     LaunchedEffect(profile) {
@@ -104,10 +91,6 @@ fun EditProfileScreen(
     }
 
     var isPrivate by remember { mutableStateOf(profile.isPrivate) }
-    // El uid también es estado composable: leer .value directo en composición dispara lint.
-    val currentUid by userViewModel.currentUid.collectAsStateWithLifecycle()
-    val library by libraryViewModel.observeLibrary(currentUid.orEmpty())
-        .collectAsStateWithLifecycle(initialValue = null)
     // Cabecera FIJA (iteración 02/10): la pantalla tenía un Spacer de 150 dp en
     // vez de un título; ahora tiene header unificado con vuelta a la izquierda.
     Column(
@@ -131,32 +114,24 @@ fun EditProfileScreen(
                 .verticalScroll(rememberScrollState())
         ) {
         // Se utiliza un componente personalizado que agrupa los campos del perfil.
-        // ---- F2 — Social: privacidad (D2.2), Top 4 (T2.5), listas (T2.6) ----
+        // ---- F2 — Social: privacidad (D2.2) ----
+        // El Top 4 (T2.5) y las listas curadas (T2.6) YA NO viven aquí: son
+        // contenido del perfil, no edición de la cuenta. Se movieron a la
+        // pantalla de perfil, con el buscador de catálogo y su sección propia
+        // (revisión 02/10). Editar perfil se queda con lo que dice su nombre.
         PrivacyCard(isPrivate = isPrivate, onToggle = { isPrivate = it })
-        TopGamesEditor(
-            selectedIds = profile.topGameIds,
-            library = library?.getOrNull(),
-            onPersist = { ids -> userViewModel.updateProfile(mapOf("topGameIds" to ids)) }
-        )
-        CreateListCard(
-            onCreate = { name, description, listPublic ->
-                val currentUid = userViewModel.currentUid.value.orEmpty()
-                if (currentUid.isNotBlank() && name.isNotBlank()) {
-                    socialViewModel.saveList(
-                        currentUid,
-                        GameList(name = name.trim(), description = description.trim(), isPublic = listPublic)
-                    ) { result ->
-                        if (result.isSuccess) socialViewModel.loadLists(currentUid)
-                    }
-                }
-            },
-            onOpenLibrary = { navController?.navigate("gamelist") }
-        )
         ProfileCard(loginFields, userViewModel) { updatedFields ->
             // Al hacer clic en guardar, se lanza una corrutina para actualizar la información del usuario.
             // El perfil se guarda a través del SSOT y el flujo en vivo refleja el
             // cambio en el resto de pantallas; al terminar se vuelve atrás.
             userViewModel.updateProfile(updatedFields + ("isPrivate" to isPrivate)) {
+                // Cambiar la privacidad MUEVE la lista del Top 4 de colección
+                // (pública ↔ privada). La sincronización es silenciosa: no toca
+                // el feed. Sin esto, la lista se quedaría en el lado antiguo.
+                val uid = userViewModel.currentUid.value.orEmpty()
+                if (uid.isNotBlank()) {
+                    socialViewModel.syncTop4List(uid, profile.topGameIds, !isPrivate)
+                }
                 navController?.popBackStack()
             }
         }
@@ -312,118 +287,13 @@ private fun PrivacyCard(isPrivate: Boolean, onToggle: (Boolean) -> Unit) {
 }
 
 /**
- * F2/T2.5 — Editor del Top 4: hasta 4 juegos de tu biblioteca, orden según
- * selección. Persistencia inmediata (updateProfile topGameIds).
+ * F2/T2.5 — El editor del Top 4 se movió al PERFIL (revisión 02/10):
+ * `ui/views/composables/profile/TopGamesCard.kt`. Ahora tiene buscador de
+ * catálogo (puedes elegir juegos que no están en tu biblioteca) y el slot guarda
+ * su propia miniatura. Aquí solo quedaba una lista sin buscador ni portadas,
+ * limitada a los 12 primeros juegos de la biblioteca.
  */
-@Composable
-private fun TopGamesEditor(
-    selectedIds: List<String>,
-    library: List<LibraryEntry>?,
-    onPersist: (List<String>) -> Unit
-) {
-    val entries = library.orEmpty()
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Tu Top 4", style = MaterialTheme.typography.titleSmall)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                "Elige hasta 4 juegos de tu biblioteca: serán tu carta de presentación.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (entries.isEmpty()) {
-                Text(
-                    "Añade juegos a tu biblioteca para elegir tu Top.",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            } else {
-                entries.take(12).forEach { entry ->
-                    val selected = entry.gameId in selectedIds
-                    val enabled = selected || selectedIds.size < 4
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled) {
-                                val next = if (selected) selectedIds - entry.gameId
-                                else (selectedIds + entry.gameId).take(4)
-                                onPersist(next)
-                            }
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = if (selected) Lucide.Star else Lucide.Star,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            entry.name.ifBlank { entry.gameId },
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
-/**
- * F2/T2.6 — Creación rápida de listas curadas (públicas o privadas).
- */
-@Composable
-private fun CreateListCard(
-    onCreate: (String, String, Boolean) -> Unit,
-    onOpenLibrary: () -> Unit
-) {
-    var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var listPublic by remember { mutableStateOf(true) }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Crear una lista", style = MaterialTheme.typography.titleSmall)
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre de la lista") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descripción (opcional)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(checked = listPublic, onCheckedChange = { listPublic = it })
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(if (listPublic) "Pública" else "Privada", style = MaterialTheme.typography.bodyMedium)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { onCreate(name, description, listPublic); name = ""; description = "" }, enabled = name.isNotBlank()) {
-                    Text("Crear")
-                }
-                OutlinedButton(onClick = onOpenLibrary) { Text("Ir a mi biblioteca") }
-            }
-        }
-    }
-}
 /**
  * Vista previa de la pantalla de edición de perfil.
  */

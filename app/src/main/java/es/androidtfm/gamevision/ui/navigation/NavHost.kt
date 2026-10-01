@@ -142,6 +142,7 @@ fun NavHost(
                     userViewModel = userViewModel,
                     libraryViewModel = libraryViewModel,
                     searchViewModel = searchViewModel,
+                    socialViewModel = socialViewModel,
                     generosFavoritos = generosPerfil
                 )
             }
@@ -171,11 +172,13 @@ fun NavHost(
             ) { paddingValues ->
                 ProfileScreen(
                     isDarkTheme = isDarkTheme,
-                    onThemeChange = onThemeChange,
                     paddingValues = paddingValues,
                     navController = navController,
                     userViewModel = userViewModel,
-                    googleViewModel = googleViewModel
+                    googleViewModel = googleViewModel,
+                    libraryViewModel = libraryViewModel,
+                    socialViewModel = socialViewModel,
+                    searchViewModel = searchViewModel
                 )
             }
         }
@@ -284,12 +287,10 @@ fun NavHost(
 
         composable("editProfile") {
             EditProfileScreen(
-                isDarkTheme = isDarkTheme,
                 paddingValues = PaddingValues(),
                 navController = navController,
                 userViewModel = userViewModel,
-                socialViewModel = socialViewModel,
-                libraryViewModel = libraryViewModel
+                socialViewModel = socialViewModel
             )
         }
 

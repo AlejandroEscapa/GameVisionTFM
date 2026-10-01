@@ -21,6 +21,12 @@ data class UserProfile(
     /** T2.5: Top 4 del perfil (identidad), como gameIds en orden. */
     val topGameIds: List<String> = emptyList(),
     /**
+     * T2.5 (revisión 02/10): el Top 4 con su propia miniatura (id + nombre +
+     * portada), en orden. Permite elegir juegos que NO están en la biblioteca y
+     * que el perfil —propio y ajeno— se pinte sin depender de ella.
+     */
+    val topGames: List<TopGame> = emptyList(),
+    /**
      * Géneros favoritos elegidos en el onboarding (iteración 02/10). Array en
      * `users/{uid}` para poder consultar por género con `array-contains` sin
      * subcolecciones. Alimenta el motor de recomendación y el descubrimiento.
@@ -55,6 +61,7 @@ data class UserProfile(
                 imageUri = value("imageUri"),
                 isPrivate = data["isPrivate"] as? Boolean ?: false,
                 topGameIds = (data["topGameIds"] as? List<*>)?.map { it.toString() } ?: emptyList(),
+                topGames = TopGame.fromList(data["topGames"]),
                 favoriteGenres = (data["favoriteGenres"] as? List<*>)?.map { it.toString() } ?: emptyList(),
                 onboardingDone = data["onboardingDone"] as? Boolean ?: false,
                 steamId = value("steamId"),
@@ -74,9 +81,34 @@ data class UserProfile(
         "imageUri" to imageUri,
         "isPrivate" to isPrivate,
         "topGameIds" to topGameIds,
+        "topGames" to TopGame.toMapList(topGames),
         "favoriteGenres" to favoriteGenres,
         "onboardingDone" to onboardingDone,
         "steamId" to steamId,
         "steamSyncAt" to steamSyncAt
     )
+
+    /**
+     * Top 4 listo para pintar, resolviendo la compatibilidad hacia atrás.
+     *
+     * Las cuentas anteriores al 02/10 tienen `topGameIds` (solo ids) y
+     * `topGames` vacío: ahí la miniatura se resuelve con [porId], que la UI
+     * alimenta desde la biblioteca. En cuanto el usuario toca su Top desde el
+     * buscador, `topGames` queda relleno y la resolución deja de hacer falta.
+     *
+     * El ORDEN manda siempre `topGameIds` cuando existe: es el orden elegido.
+     *
+     * @param porId resolver id → (nombre, portada) para los perfiles antiguos.
+     */
+    fun topGamesResolved(
+        porId: (String) -> Pair<String, String>? = { null }
+    ): List<TopGame> {
+        val conMiniatura = topGames.associateBy { it.gameId }
+        val orden = topGameIds.ifEmpty { topGames.map { it.gameId } }
+        return orden.take(TopGame.MAX).map { id ->
+            conMiniatura[id] ?: porId(id)?.let { (name, cover) ->
+                TopGame(gameId = id, name = name, coverUrl = cover)
+            } ?: TopGame(gameId = id)
+        }
+    }
 }

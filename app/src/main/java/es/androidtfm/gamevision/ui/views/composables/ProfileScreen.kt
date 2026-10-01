@@ -64,8 +64,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
 import es.androidtfm.gamevision.R
+import es.androidtfm.gamevision.data.library.TopGamesLogic
+import es.androidtfm.gamevision.data.model.TopGame
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.views.composables.profile.CrearListaDialog
+import es.androidtfm.gamevision.ui.views.composables.profile.MisListasSection
+import es.androidtfm.gamevision.ui.views.composables.profile.TopGamesCard
+import es.androidtfm.gamevision.ui.views.composables.profile.resolvedorDesdeBiblioteca
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
+import es.androidtfm.gamevision.viewmodel.LibraryViewModel
+import es.androidtfm.gamevision.viewmodel.SearchViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Lucide
@@ -73,6 +82,7 @@ import com.composables.icons.lucide.CircleUserRound
 import com.composables.icons.lucide.Mail
 import com.composables.icons.lucide.MapPin
 import com.composables.icons.lucide.Pencil
+import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Star
 import com.composables.icons.lucide.X
 
@@ -99,7 +109,9 @@ fun ProfileScreen(
     navController: NavController?, // Se usa para acceder al SavedStateHandle y para la navegación
     userViewModel: UserViewModel,
     googleViewModel: GoogleViewModel,
-    onThemeChange: (Boolean) -> Unit
+    libraryViewModel: LibraryViewModel,
+    socialViewModel: SocialViewModel,
+    searchViewModel: SearchViewModel
 ) {
     // Perfil en vivo desde el SSOT (UserViewModel.profile): se actualiza solo
     // cuando cambia el documento en Firestore, sin refetch manual por pantalla.
@@ -107,7 +119,70 @@ fun ProfileScreen(
     val isLoading by userViewModel.isLoading.collectAsStateWithLifecycle()
     val profileImageData by userViewModel.profileImageData.collectAsStateWithLifecycle()
     val imageError by userViewModel.imageError.collectAsStateWithLifecycle()
+    val currentUid by userViewModel.currentUid.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    // ---- Top 4 (T2.5, revisión 02/10): vive en el perfil, no en «Editar perfil»
+    // La biblioteca solo hace falta como RESPALDO de las cuentas antiguas, que
+    // guardaron los ids sin miniatura (ver UserProfile.topGamesResolved).
+    val library by libraryViewModel.observeLibrary(currentUid.orEmpty())
+        .collectAsStateWithLifecycle(initialValue = null)
+    val seleccionTop = remember(profile.topGameIds, profile.topGames, library) {
+        profile.topGamesResolved(resolvedorDesdeBiblioteca(library?.getOrNull()))
+    }
+
+    // Buscador del Top 4: estado propio (no comparte el de la pantalla Buscar).
+    var consultaTop by remember { mutableStateOf("") }
+    val resultadosTop by searchViewModel.topSearchResults.collectAsStateWithLifecycle()
+    val buscandoTop by searchViewModel.topSearchLoading.collectAsStateWithLifecycle()
+    val errorTop by searchViewModel.topSearchError.collectAsStateWithLifecycle()
+    LaunchedEffect(consultaTop) {
+        searchViewModel.buscarParaTop(consultaTop)
+    }
+
+    // ---- Listas curadas (T2.6): se crean y se ven AQUÍ, no en «Editar perfil»
+    val listas by socialViewModel.lists.collectAsStateWithLifecycle()
+    var mostrarCrearLista by remember { mutableStateOf(false) }
+    LaunchedEffect(currentUid) {
+        currentUid?.takeIf { it.isNotBlank() }?.let { socialViewModel.loadLists(it) }
+    }
+
+    // Reconciliación del Top 4 con su documento de lista. Hace falta para las
+    // cuentas que YA tenían Top antes de esta revisión (solo `topGameIds`): sin
+    // esto su lista `top4` no existiría hasta que volvieran a tocar el Top, y el
+    // Top 4 no es un dato que caduque (si no existe, la lista está incompleta).
+    // Se escribe UNA vez por valor y sesión de pantalla, no en cada recomposición.
+    val topFirmado = profile.topGameIds.joinToString(",")
+    var topSincronizado by remember(currentUid) { mutableStateOf<String?>(null) }
+    LaunchedEffect(currentUid, topFirmado, profile.isPrivate) {
+        val uid = currentUid.orEmpty()
+        if (uid.isNotBlank() && topSincronizado != topFirmado) {
+            topSincronizado = topFirmado
+            socialViewModel.syncTop4List(uid, profile.topGameIds, !profile.isPrivate) {
+                socialViewModel.loadLists(uid)
+            }
+        }
+    }
+
+    fun persistirTop(nuevos: List<TopGame>) {
+        // Solo el perfil: el documento de lista `top4` lo reconcilia el efecto de
+        // arriba al cambiar `topGameIds`. Un único camino de sincronización.
+        userViewModel.updateProfile(
+            mapOf(
+                "topGameIds" to TopGamesLogic.ids(nuevos),
+                "topGames" to TopGame.toMapList(nuevos)
+            )
+        )
+    }
+
+    fun anadirAlTop(juego: TopGame) {
+        val nuevos = TopGamesLogic.add(seleccionTop, juego) ?: return
+        persistirTop(nuevos)
+    }
+
+    fun quitarDelTop(gameId: String) {
+        persistirTop(TopGamesLogic.remove(seleccionTop, gameId))
+    }
 
     // Imagen a mostrar: la gestionada por la app (data URI desde Firestore) o, si no,
     // una URL antigua que ya estuviera guardada en el perfil.
@@ -203,11 +278,39 @@ fun ProfileScreen(
                         email = profile.email
                     )
 
+                    // ---- Top 4 (T2.5) ------------------------------------
+                    // Justo debajo de la información del perfil: es la carta de
+                    // presentación del jugador, antes que las acciones de la cuenta.
+                    Spacer(modifier = Modifier.height(24.dp))
+                    TopGamesCard(
+                        seleccionados = seleccionTop,
+                        editable = true,
+                        resultados = resultadosTop,
+                        buscando = buscandoTop,
+                        errorBusqueda = errorTop,
+                        onBuscar = { consultaTop = it },
+                        onLimpiarBusqueda = {
+                            consultaTop = ""
+                            searchViewModel.limpiarBusquedaTop()
+                        },
+                        onAnadir = { anadirAlTop(it) },
+                        onQuitar = { quitarDelTop(it) }
+                    )
+
+                    // ---- Mis listas (T2.6) -------------------------------
+                    Spacer(modifier = Modifier.height(24.dp))
+                    MisListasSection(
+                        listas = listas?.getOrDefault(emptyList()).orEmpty(),
+                        onCrear = { mostrarCrearLista = true },
+                        onAbrirBiblioteca = { navController?.navigate("gamelist") }
+                    )
+
                     // Sección de acciones del perfil (incluye el botón de "Cerrar sesión")
                     ProfileActionsSection(
                         navController = navController,
                         userViewModel = userViewModel,
                         googleViewModel = googleViewModel,
+                        onNuevaLista = { mostrarCrearLista = true },
                         modifier = Modifier.padding(top = 24.dp)
                     )
 
@@ -216,6 +319,25 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+
+    if (mostrarCrearLista) {
+        CrearListaDialog(
+            onDismiss = { mostrarCrearLista = false },
+            onCrear = { nombre, descripcion, esPublica ->
+                mostrarCrearLista = false
+                val uid = currentUid.orEmpty()
+                if (uid.isNotBlank()) {
+                    socialViewModel.createList(uid, nombre, descripcion, esPublica) { result ->
+                        if (result.isSuccess) {
+                            socialViewModel.loadLists(uid)
+                        } else {
+                            userViewModel.setMessage("No se pudo crear la lista")
+                        }
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -385,11 +507,13 @@ private fun ProfileActionsSection(
     navController: NavController?,
     userViewModel: UserViewModel,
     googleViewModel: GoogleViewModel,
+    onNuevaLista: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    // Acciones principales: grid 1x3 de cuadrados (criterio del propietario)
+    // Acciones principales: grid 1x4 de cuadrados (criterio del propietario:
+    // 1x3 + «Nueva lista», que es la acción que da sentido a la sección de arriba)
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -407,7 +531,13 @@ private fun ProfileActionsSection(
             onClick = { navController?.navigate("friendlist") }
         )
         AccionCuadrada(
-            label = "Editar perfil",
+            label = "Nueva lista",
+            icon = Lucide.Plus,
+            modifier = Modifier.weight(1f),
+            onClick = onNuevaLista
+        )
+        AccionCuadrada(
+            label = "Editar",
             icon = Lucide.Pencil,
             modifier = Modifier.weight(1f),
             onClick = { navController?.navigate("editProfile") }

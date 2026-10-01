@@ -46,14 +46,18 @@ import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.library.RecommendationEngine
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Candidate
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Mood
+import es.androidtfm.gamevision.data.model.GameList
 import com.composables.icons.lucide.Gamepad2
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.views.composables.profile.CrearListaDialog
+import es.androidtfm.gamevision.ui.views.composables.profile.TarjetaCrearLista
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
+import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
 /*
@@ -82,6 +86,7 @@ fun ParaTiScreen(
     userViewModel: UserViewModel,
     libraryViewModel: LibraryViewModel,
     searchViewModel: SearchViewModel,
+    socialViewModel: SocialViewModel,
     generosFavoritos: List<String>
 ) {
     val uid by userViewModel.currentUid.collectAsStateWithLifecycle()
@@ -90,6 +95,17 @@ fun ParaTiScreen(
     var biblioteca by remember { mutableStateOf<List<es.androidtfm.gamevision.data.library.LibraryEntry>>(emptyList()) }
     var minutosDisponibles by remember { mutableStateOf(120) }
     var animo by remember { mutableStateOf(Mood.ANY) }
+
+    // Listas curadas (T2.6): la Home ofrece crearlas y cuenta cuántas hay.
+    val listas by socialViewModel.lists.collectAsStateWithLifecycle()
+    var mostrarCrearLista by remember { mutableStateOf(false) }
+    // El Top 4 es una lista real, pero la Home no lo cuenta como «tuya»: ya tiene
+    // su propio hueco en el perfil y aquí sería confuso.
+    val listasCount = listas?.getOrDefault(emptyList())
+        ?.count { it.id != GameList.TOP4_ID } ?: 0
+    LaunchedEffect(uid) {
+        uid?.takeIf { it.isNotBlank() }?.let { socialViewModel.loadLists(it) }
+    }
 
     // Biblioteca en vivo: alimenta «Continúa» y el motor de recomendación.
     LaunchedEffect(uid) {
@@ -182,6 +198,18 @@ fun ParaTiScreen(
                     }
                 }
             }
+        }
+
+        // ---- Tus listas (T2.6, revisión 02/10) --------------------------
+        // Entrada LIGERA: en la Home no se crea una lista con un formulario en
+        // medio del scroll, se ofrece el acceso. El diálogo es el mismo que usa
+        // el perfil (un solo sitio con la regla de nombre/privacidad).
+        SeccionCabecera("Tus listas", null) { }
+        Column(modifier = Modifier.padding(horizontal = GVSpacing.screenPadding)) {
+            TarjetaCrearLista(
+                onCrear = { mostrarCrearLista = true },
+                listasCount = listasCount
+            )
         }
 
         // ---- ¿Qué juego ahora? (T3.2) -----------------------------------
@@ -382,6 +410,25 @@ fun ParaTiScreen(
 
         Spacer(Modifier.height(24.dp))
         }
+    }
+
+    if (mostrarCrearLista) {
+        CrearListaDialog(
+            onDismiss = { mostrarCrearLista = false },
+            onCrear = { nombre, descripcion, esPublica ->
+                mostrarCrearLista = false
+                val miUid = uid.orEmpty()
+                if (miUid.isNotBlank()) {
+                    socialViewModel.createList(miUid, nombre, descripcion, esPublica) { result ->
+                        if (result.isSuccess) {
+                            socialViewModel.loadLists(miUid)
+                        } else {
+                            userViewModel.setMessage("No se pudo crear la lista")
+                        }
+                    }
+                }
+            }
+        )
     }
 }
 
