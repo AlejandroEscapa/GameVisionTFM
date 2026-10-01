@@ -27,6 +27,12 @@ class CachedGameCatalogTest {
     ) : GameCatalog {
         override suspend fun search(query: String) = searchResult
         override suspend fun getDetails(gameId: Int) = detailsResult
+        override suspend fun popular(limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
+        override suspend fun byGenres(genres: List<String>, limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
+        override suspend fun discover(seed: Long, limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
     }
 
     /** DAO en memoria que implementa la interfaz real. */

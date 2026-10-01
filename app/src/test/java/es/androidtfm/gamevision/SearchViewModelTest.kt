@@ -41,6 +41,12 @@ class SearchViewModelTest {
         }
 
         override suspend fun getDetails(gameId: Int): Result<CatalogGame?> = detailsResult
+        override suspend fun popular(limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
+        override suspend fun byGenres(genres: List<String>, limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
+        override suspend fun discover(seed: Long, limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
     }
 
     private fun game(id: Int, name: String) = CatalogGame(
@@ -164,6 +170,12 @@ class SearchViewModelTest {
     ) : GameCatalog {
         override suspend fun search(query: String): Result<List<CatalogGame>> = searchResult
         override suspend fun getDetails(gameId: Int): Result<CatalogGame?> = Result.success(null)
+        override suspend fun popular(limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
+        override suspend fun byGenres(genres: List<String>, limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
+        override suspend fun discover(seed: Long, limit: Int): Result<List<CatalogGame>> =
+            Result.success(emptyList())
         override suspend fun isServingFromCache(): Boolean = servingFromCache
     }
 
