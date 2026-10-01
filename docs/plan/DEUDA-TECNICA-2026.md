@@ -88,6 +88,26 @@
 | **D-U3** | 40 `collectAsState` y 0 `collectAsStateWithLifecycle`; falta `lifecycle-runtime-compose` en el catálogo | ✅ **Resuelto (30/09)**: 52 usos migrados (0 restantes) + dependencia en el catálogo |
 | **D-U4** | `AGENTS.md` desfasado (6.900 líneas / 36 archivos / 12 rutas → 10.513 / 79 / 14) y cita `ui/theme/Theme.kt`, que no existe | ✅ **Resuelto (30/09)**: cifras reales y ruta `ui/designsystem/GVTheme.kt`; `03-stack-android-2026.md` marcado DOCUMENTO HISTÓRICO |
 
+### 2.8 UI / adopción del design system (auditoría del 02/10/2026)
+
+> Origen: [auditoría de diseño 2026-10-02](auditoria-diseno-2026-10-02.md) (43 ficheros de `ui/`,
+> ~11.000 líneas). **Diagnóstico:** los tokens están bien construidos; **19 ficheros maquetaban a mano
+> al margen del sistema**. La primera pasada ya se aplicó (sombras, superficies, colores literales,
+> copy, emoji, contraste y tamaño táctil), además de cuatro bugs reales.
+
+| ID | Deuda | Notas |
+|---|---|---|
+| **D-U5** | **Margen de pantalla sin unificar**: Login/Pass/Register/Onboarding a 24, el perfil a 20, Social a 8 y Amigos a 10, con `GVSpacing.screenPadding = 16` | ⬜ Pendiente. Dentro de `EditProfileScreen` el título va a 16 y sus tarjetas a 24: **no comparten línea**, que es la primera regla de `GVScreenHeader`. Relleno de tarjeta también variable (12/16/20/24) |
+| **D-U6** | **68 `RoundedCornerShape(n.dp)` a mano** (5/12/16/20/24/32) frente a los 3 tokens de `GVShapes` | ⬜ Pendiente. Las tarjetas de las pantallas de entrada (32 dp) son las más visibles |
+| **D-U7** | **La Ficha enseña `e.message` al usuario en 7 sitios** (`GameDetails`), más Amigos, Diario y Social | ⬜ Pendiente. Es el hallazgo **H1** que ya se corrigió para el catálogo: la lección se aplicó en un ViewModel y **no** en las pantallas. Pide un `Throwable.aMensajeUsuario()` |
+| **D-U8** | **Estados vacíos esquivados**: Social y Buscar pintan un `Text` suelto; Biblioteca y Diario usan `icon = Lucide.X` (una ✕ significa cerrar, no "aquí no hay nada") | ⬜ Pendiente. `EmptyState` con icono contextual y **acción** opcional |
+| **D-U9** | **`RatingStars` son cinco nodos** ("1 estrellas", "2 estrellas"…) para expresar una nota de 4,5 | ⬜ Pendiente. Debe ser **un** nodo con `progressBarRangeInfo` |
+| **D-U10** | **`Switch`/`RadioButton` de M3 sin estilizar** (Ajustes, Editar perfil, diálogos) contra un lenguaje tipo iOS | ⬜ Pendiente. Pide `GVSwitch`/`GVRadio` |
+| **D-U11** | **Componentes duplicados**: 3 tarjetas de juego (una **muerta**: `designsystem/GameCard.kt`), 2 de noticia (`NewsCard.kt` sin usar), 5 cabeceras de sección | ⬜ Pendiente (refactor mayor). Anotado además en `DESIGN.md` §6 para que nadie lo "arregle" ni lo adopte sin decidir |
+| **D-U12** | **`GVMotion` casi sin usar**: solo el dock y las transiciones del NavHost | ⬜ Pendiente — es materia de **F4.5** (bloque B), no de un barrido |
+| **D-U13** | `NewsScreen` mete "Cargando noticias..." junto a los skeletons; barras de progreso hechas a mano con dos `Box` (Estadísticas) | ⬜ Pendiente (pulido) |
+| **D-U14** | Parámetros sin uso: `EditProfileScreen(isDarkTheme)`, `GameListEmptyState(selectedList)` | ⬜ Pendiente (higiene) |
+
 ---
 
 ## 3. Plan por bloques
@@ -160,6 +180,20 @@ con placeholders monocromo, `ui-tooling` fuera de release (manifest verificado c
 52 `collectAsState` migrados a `WithLifecycle`, `AGENTS.md` con cifras reales.
 **Verificación:** build debug/release + tests (118/118) + lint en verde.
 
+### Bloque 6 — Adopción del design system ⬜ (abierto 02/10/2026, parcialmente pagado)
+**Alcance:** D-U5…D-U14, por orden de impacto × esfuerzo del
+[informe de auditoría](auditoria-diseno-2026-10-02.md).
+**Ya pagado en la primera pasada (02/10):** buscador único (`GVSearchField`) + búsqueda en vivo ·
+**crash** de `substring` en Buscar · `isDarkTheme!!` en la portada · botón inerte del feed ·
+«me gusta» sin estado visible · 14 sombras fuera · `surfaceVariant` → `surfaceContainer` ·
+colores literales a roles · copy en español y emoji fuera · contraste del feed y del dock ·
+tamaños táctiles bajo 48 dp · alcance del acento ([ADR-0012](../metodologia/adr/0012-alcance-del-acento.md)).
+**Criterio de cierre:** cero `RoundedCornerShape` fuera de `GVShapes`, cero margen de pantalla fuera
+de `screenPadding`, cero `e.message` al usuario, cero componente duplicado y `DESIGN.md` sin deuda
+declarada en §6 y §7.
+**Evidencia:** `testDebugUnitTest` + `lintDebug` + `assembleDebug` en verde y recorrido en emulador
+con capturas.
+
 ### Diferidos con disparador (no se tocan ahora)
 | Deuda | Disparador |
 |---|---|
@@ -181,6 +215,13 @@ inflar la mochila: deuda = riesgo acumulado; roadmap = producto pendiente.
 
 ## 5. Registro
 
+- **02/10/2026 — auditoría de diseño y Bloque 6 abierto.** Se audita la adopción del design system
+  ([informe](auditoria-diseno-2026-10-02.md)): **19 ficheros maquetaban a mano** al margen de los
+  tokens. Primera pasada aplicada y **cuatro bugs reales cerrados** —uno de ellos un **crash** en la
+  pantalla Buscar (`substring` sobre un campo que RAWG deja vacío, que dejaba la lista entera sin
+  pintar) y un `!!` sobre el tema en la portada, que es el `startDestination` del NavHost. Se fija el
+  **alcance del acento** en [ADR-0012](../metodologia/adr/0012-alcance-del-acento.md) y **DX.8 de
+  F4.5 se cierra** (el re-anclaje se adelantó, ADR-0010). Entra la deuda **D-U5…D-U14** (Bloque 6).
 - **30/09/2026 (madrugada del 01/10, cierre pre-F3 completado)** — **D-C2 cerrada** (split de
   `DDBBViewModel`), **Bloque 5 cerrado** (D-U1…D-U4), **D-C3 cerrada** (reacciones reales de F2),
   D0.5 anotada como cerrada en fase-0 (seguir asimétrico), backup de la migración `uid` copiado a

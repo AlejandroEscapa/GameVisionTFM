@@ -45,6 +45,35 @@ alterna superficie antes de añadir chrome.
 Regla dura: **un solo acento por tema, en todo el tema**. Prohibido introducir un segundo color de
 marca, glow, o sombras en tarjetas/botones/texto.
 
+### Alcance del acento (decidido el 02/10/2026)
+
+> Contexto: la auditoría de diseño encontró que Action Blue se usaba **también como color
+> informativo** — los números de Estadísticas, los totales del Diario, la fuente de una noticia, el
+> resumen de éxito de Steam y los antetítulos de tarjeta. Ninguno de esos elementos es interactivo,
+> y pintarlos de azul diluía justo lo que el re-anclaje quería proteger.
+
+**El acento es para lo que se TOCA.** Con acento:
+
+- CTAs y botones (`GVButton`, botones de formulario), y su estado pulsado.
+- Enlaces de texto ("He olvidado mi contraseña", "Regístrate").
+- Chips de opción seleccionados, focos de campo y el buscador (`GVSearchField`).
+- Iconos y elementos **interactivos**: el engranaje de Ajustes, el cuadro de acción del perfil, la ✕
+  de quitar del Top 4, los indicadores de selección activos (check del menú de orden, "me gusta"
+  marcado) y las barras de progreso **activas**.
+
+**Sin acento** (tinta normal o `onSurfaceVariant`):
+
+- **Datos**: cifras de Estadísticas, totales del Diario, nota de un juego, fuente de una noticia.
+  La jerarquía se da por **tamaño y peso** (`displayLarge`/`headlineLarge` están para esto), nunca
+  por color.
+- Iconos decorativos: los que acompañan a una etiqueta que ya dice lo mismo (metadatos de la ficha,
+  ítems de Ajustes, iconos de campo de texto).
+- Antetítulos de tarjeta ("Biografía", "Tu Top 4", "Mis listas"): son etiquetas, no acciones.
+- Resúmenes de éxito o estado: un resultado no es un botón.
+
+**Antipatrón a evitar:** `color = colorScheme.primary` en un `Text` que no se pulsa. Si dudas,
+pregúntate si el usuario puede tocar ese elemento; si no, es tinta.
+
 ## 3. Tipografía
 
 **Inter** (Google Fonts descargable) como sustituta de SF Pro — pesos **400 / 600 / 700**.
@@ -87,12 +116,25 @@ spinners.
 - **GVButton** — primario: píldora Action Blue texto blanco (oscuro: Sky Blue texto `#062033`);
   secundario: píldora outline.
 - **GVChip** — píldora outline; seleccionada rellena del acento.
+- **GVSearchField** — **el ÚNICO buscador del sistema** (02/10/2026). Píldora, borde `outlineVariant`
+  en reposo y acento al enfocar; lupa a la izquierda y, a la derecha, lo que toque: progreso mientras
+  busca, ✕ para limpiar o el disparador manual. Lo usan Buscar, Top 4, Social y Amigos.
+  *Motivo de existir:* había **cuatro** buscadores distintos (uno relleno con sombra de 4 dp y
+  esquinas de 24, otro píldora sin sombra, otro a 12 dp…). La misma acción resuelta de tres formas es
+  exactamente lo que rompe un design system. **No se crea otro campo de búsqueda.**
 - **Tarjetas** — superficie de contenedor (pergamino claro / tile-1 oscuro), radio 18, SIN sombra:
   la separación la da el tono.
-- **GameCover/GameCard** — la carátula manda: radio, sin borde, sin elevación.
-- **GVSkeleton / EmptyState / OfflineBanner / RatingBadge / NewsCard / FriendAvatar** — mismos
-  roles de tema; nada hardcodeado.
+- **GameCover** — la carátula manda: radio, sin borde, sin elevación.
+- **GVSkeleton / EmptyState / OfflineBanner / RatingBadge / FriendAvatar** — mismos
+  roles de tema; nada hardcodeado. `RatingBadge` usa el icono `Lucide.Star`, nunca el carácter "★"
+  (un glifo de otra fuente en el mismo renglón desalinea la línea tipográfica).
 - **Regla de convivencia (ADR-0009, vigente): nada visual fuera de `ui/designsystem/`.**
+
+> **Código muerto a no resucitar.** `ui/designsystem/components/GameCard.kt` y `NewsCard.kt` **no se
+> usan** (sus pantallas tienen su propia implementación). Están marcados por la auditoría del
+> 02/10/2026: antes de "arreglarlos" o adoptarlos, decidir si se consolidan o se borran. Un
+> componente muerto en el design system es peor que uno muerto en una pantalla, porque invita a
+> usarlo y a multiplicar el problema.
 
 **Componentes de superficie** (viven junto a su pantalla porque son contenido, no vocabulario
 compartido; consumen tokens y componentes del sistema, jamás colores sueltos):
@@ -106,9 +148,15 @@ compartido; consumen tokens y componentes del sistema, jamás colores sueltos):
   con su acción, **un único diálogo** para perfil y Home, y la entrada ligera de «Para ti».
 - **ListaPublicaCard** — lista en lectura, dentro del perfil de otro.
 
-**Buscador en píldora.** El campo de búsqueda del sistema es **píldora** (`GVShapeFull`), borde
-`outlineVariant` en reposo y acento al enfocar; icono de lupa a la izquierda y limpiar a la derecha.
-La píldora está reservada a la ACCIÓN: buscadores, chips y CTA. Es la firma del sistema.
+**Buscador en píldora.** El campo de búsqueda del sistema es **`GVSearchField`**: píldora
+(`GVShapeFull`), borde `outlineVariant` en reposo y acento al enfocar. La píldora está reservada a la
+ACCIÓN: buscadores, chips y CTA. Es la firma del sistema.
+
+**Búsqueda EN VIVO (02/10/2026).** Los buscadores de la app buscan **mientras se escribe**, con
+debounce (~350 ms) y un mínimo de 2 caracteres: por debajo de ese mínimo se limpia y se vuelve al
+descubrimiento, sin tocar la red (una consulta de 1 letra devuelve relleno y gasta cuota). El icono
+de lupa se queda para forzar la búsqueda ya y cerrar el teclado, **no** para que ocurra algo. Un
+buscador que no responde hasta pulsar se siente roto; es criterio de sistema, no de una pantalla.
 
 ## 7. Espaciado y pantallas (`GVSpacing`)
 
@@ -122,6 +170,13 @@ Primera escala de espaciado del sistema (iteración 02/10/2026): **antes no exis
 | `xs` / `sm` | 4 / 8 dp | separación dentro de un componente (icono↔texto, chips) |
 | `md` | 12 dp | entre elementos de contenido (tarjetas, filas) |
 | `xl` / `xxl` | 24 / 32 dp | separación entre secciones |
+
+> **Deuda abierta (auditoría del 02/10/2026):** la escala existe, pero **no está aplicada en todas
+> las pantallas**. Login/Pass/Register/Onboarding siguen a **24** y el perfil a **20** en lugar de
+> `screenPadding`; dentro de `EditProfileScreen` el título va a 16 y sus tarjetas a 24, así que **no
+> comparten línea** — que es la primera regla de `GVScreenHeader`. El relleno de tarjeta también
+> varía (12/16/20/24) y debería ser uno solo. Barrido pendiente, listado en
+> [auditoría de diseño](../docs/plan/auditoria-diseno-2026-10-02.md).
 
 **Cabeceras (`GVScreenHeader`).** Una sola forma para toda la app:
 
@@ -138,10 +193,16 @@ sin `overflow` Compose corta los glifos a media letra.
 
 ## 8. Do / Don't
 
-**Do:** un acento; superficies planas alternando tono; cuerpo 17; peso 600 + tracking apretado en
-titulares; píldora solo para acciones; hairline para bordes de tarjeta; contraste AA verificado en
-ambos temas.
+**Do:** un acento **y solo para lo que se toca**; superficies planas alternando tono; cuerpo 17;
+peso 600 + tracking apretado en titulares; píldora solo para acciones; jerarquía de un dato por
+**tamaño y peso**, nunca por color; hairline para bordes de tarjeta; contraste AA verificado en ambos
+temas; cero textos en inglés; iconos **Lucide** (nunca emoji ni caracteres como "★" o "✓" haciendo de
+icono).
 
 **Don't:** nada de verde ácido (histórico); nada de gradientes decorativos; nada de sombras en
 UI (solo sobre imágenes apoyadas); nada de peso 500; nada de negros/blancos puros en fondo de
-pantalla; nada de un segundo acento; nada de estilos fuera de `ui/designsystem/`.
+pantalla; nada de un segundo acento; nada de estilos fuera de `ui/designsystem/`; ningún dato
+pintado con el acento; ningún `substring` con índices fijos sobre datos de red (RAWG deja campos
+vacíos: un `StringIndexOutOfBounds` dentro de un `LazyColumn` deja la lista entera sin pintar); ningún
+componente nuevo que duplique uno existente (ver "código muerto" en §6); ningún `e.message` de una
+excepción enseñado al usuario.

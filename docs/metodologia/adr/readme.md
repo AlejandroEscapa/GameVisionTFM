@@ -19,8 +19,9 @@
 | [0007](0007-foto-perfil-firestore.md) | Foto de perfil: base64 comprimido en Firestore (sin Cloud Storage) | Aceptado | 2026-09-29 |
 | [0008](0008-clave-unica-uid.md) | Clave única de identidad: `uid` en lugar de email | **Aceptado** | 2026-09-29 |
 | [0009](0009-reanclaje-design-system.md) | Re-anclaje del design system visual (fuente entrante; `DESIGN.md` provisional) | **Aceptado (pendiente de recibir la fuente)** | 2026-09-29 |
-| [0011](0011-proxy-steam-cloudflare-workers.md) | Proxy de Steam en Cloudflare Workers (en lugar de Cloud Functions) | **Aceptado** | 2026-10-01 |
 | [0010](0010-reanclaje-adelantado-fuente-recibida.md) | Re-anclaje adelantado: fuente recibida (sistema Apple) — tokens y componentes antes de F3, supersede parcial del 0009 | **Aceptado** | 2026-10-01 |
+| [0011](0011-proxy-steam-cloudflare-workers.md) | Proxy de Steam en Cloudflare Workers (en lugar de Cloud Functions) | **Aceptado** | 2026-10-01 |
+| [0012](0012-alcance-del-acento.md) | Alcance del acento: Action Blue es para lo que se toca (los datos se jerarquizan por tamaño, no por color) | **Aceptado** | 2026-10-02 |
 
 ## Cuándo crear un ADR
 

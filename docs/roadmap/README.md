@@ -1,4 +1,4 @@
-﻿# Roadmap GameVision — cómo se trackea y se debate
+# Roadmap GameVision — cómo se trackea y se debate
 
 > Sistema de trabajo por fases para llevar GameVision al nivel descrito en
 > [product-vision-2026.md](../product-vision-2026.md).
@@ -45,7 +45,7 @@
 | [F2](fase-2-social.md) | Social | 1 semana | ✅ Completada (01/10) — auditoría validada por el propietario | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | 🟢 En ejecución (01/10) — T3.1 hecha; pantalla y Rewind pendientes | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |
-| [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | ⬜ Pendiente | F1–F4 |
+| [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | ⬜ Pendiente — **el re-anclaje ya está hecho** (adelantado el 01–02/10, ADR-0010) y la auditoría de diseño existe; le quedan motion, accesibilidad y el barrido de adopción | F1–F4 |
 
 > **Dónde vive el estado.** Esta tabla es un **índice**, no la fuente de verdad. El estado real de
 > una fase lo declara su fichero (`fase-N-*.md`, apartado "Progreso por bloques"). Si esta tabla y
@@ -73,6 +73,8 @@
 | **Actualización de Kotlin** (2.2.10 → 2.4.x) | Antes de la release / cuando el tooling lo exija | Diferida: "cuando sea oportuno" |
 | Integración parcial con IGDB | Cuando se cumpla una condición de disparo (ver F0) | Marcada para el futuro |
 | Modelo social: amigos vs seguir | Al empezar F2 | ✅ Cerrada (30/09): seguir asimétrico (D2.1, [fase 2](fase-2-social.md)) |
+| **Alcance del acento** (¿Action Blue para acción *y* dato?) | Antes de seguir tocando UI | ✅ Cerrada (02/10): **solo para lo que se toca** — los datos se jerarquizan por tamaño y peso ([ADR-0012](../metodologia/adr/0012-alcance-del-acento.md)) |
+| **¿Re-anclar el design system en F4.5 o antes?** | Al recibir la fuente | ✅ Cerrada (01/10): se **adelanta** a antes de F3 ([ADR-0010](../metodologia/adr/0010-reanclaje-adelantado-fuente-recibida.md)); el re-anclaje ya está ejecutado |
 
 ## Riesgo transversal (vigila todas las fases)
 

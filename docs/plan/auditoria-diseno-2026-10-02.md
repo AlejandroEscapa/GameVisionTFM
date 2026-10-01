@@ -9,6 +9,23 @@
 > **19 ficheros maquetaban a mano al margen del sistema**: la app se leía como dos productos
 > distintos según la pantalla que abrieras.
 
+**Estado de ejecución (actualizar al cerrar cada bloque):**
+
+| Bloque | Estado | Commits |
+|---|---|---|
+| Buscador único (`GVSearchField`) + búsqueda en vivo | ✅ Hecho | `f4ac73e` |
+| BUG: crash de `substring` en Buscar · BUG: `isDarkTheme!!` en la portada | ✅ Cerrados | `f4ac73e` |
+| Primera impresión (HomeScreen + LoginScreen) | ✅ Hecho | `f4ac73e` |
+| Barrido: 14 sombras, superficies, colores literales | ✅ Hecho | `f4ac73e` |
+| BUG: botón inerte del feed · BUG: «me gusta» sin estado | ✅ Cerrados | `aacfe5b` |
+| Copy en español, emoji fuera, contraste, a11y | ✅ Hecho | `aacfe5b` |
+| Alcance del acento (ADR-0012) | ✅ Decidido y aplicado | `ef1eccf` |
+| Margen único a `screenPadding` + formas a `GVShapes` | ⬜ Pendiente | — |
+| `e.message` al usuario en la Ficha (7 sitios) | ⬜ Pendiente | — |
+| Estados vacíos con acción · a11y de `RatingStars` · `GVSwitch` | ⬜ Pendiente | — |
+| Consolidar duplicados y borrar código muerto | ⬜ Pendiente (refactor mayor) | — |
+| Sistema de movimiento (`GVMotion` solo en el dock) | ⬜ Pendiente (es de **F4.5**) | — |
+
 ---
 
 ## 1. Lo ejecutado (commits `f4ac73e` y siguientes)
