@@ -30,6 +30,36 @@ class RawgGameCatalog @Inject constructor(
     override suspend fun getDetails(gameId: Int): Result<CatalogGame?> = runCatching {
         gamesApi.getGameDetails(gameId).toDomain()
     }.onFailure { Log.e(TAG, "Error cargando el juego $gameId: ${it.message}") }
+
+    override suspend fun popular(limit: Int): Result<List<CatalogGame>> = runCatching {
+        gamesApi.discoverGames(ordering = "-added", pageSize = limit).results.map { it.toDomain() }
+    }.onFailure { Log.e(TAG, "Error cargando populares: ${it.message}") }
+
+    override suspend fun byGenres(genres: List<String>, limit: Int): Result<List<CatalogGame>> =
+        runCatching {
+            val slugs = genres.joinToString(",") { it.lowercase().replace(" ", "-") }
+            gamesApi.discoverGames(
+                // Popularidad dentro del género: con -rating salen indies oscuros
+                // de nota alta; para «Para ti» queremos juegos reconocibles.
+                ordering = "-added",
+                genresSlugs = slugs.ifBlank { null },
+                pageSize = limit
+            ).results.map { it.toDomain() }
+        }.onFailure { Log.e(TAG, "Error descubriendo por géneros: ${it.message}") }
+
+    override suspend fun discover(seed: Long, limit: Int): Result<List<CatalogGame>> = runCatching {
+        // Estable dentro del día: la semilla deriva la página dentro de un rango
+        // razonable (RAWG no expone aleatorio) y el orden es por valoración.
+        val page = (seed % 20).toInt() + 1
+        // Filtro de nota: sin él, paginar el catálogo saca contenido de relleno
+        // (portadas y fichas de baja calidad). 75+ mantiene el listón.
+        gamesApi.discoverGames(
+            ordering = "-rating",
+            metacritic = "75,100",
+            page = page,
+            pageSize = limit
+        ).results.map { it.toDomain() }
+    }.onFailure { Log.e(TAG, "Error descubriendo: ${it.message}") }
 }
 
 /**

@@ -56,6 +56,30 @@ class CachedGameCatalog(
             )
         }
 
+    // Descubrimiento (bloque B): el caché de fichas ya lo aprovecha el decorador
+    // al pedir los detalles, así que aquí basta con delegar en el remoto y
+    // guardar las fichas que llegan para poder pintarlas sin red después.
+    override suspend fun popular(limit: Int): Result<List<CatalogGame>> =
+        withContext(ioDispatcher) {
+            remote.popular(limit).onSuccess { games ->
+                dao.upsertGames(games.map { it.toEntity(clock()) })
+            }
+        }
+
+    override suspend fun byGenres(genres: List<String>, limit: Int): Result<List<CatalogGame>> =
+        withContext(ioDispatcher) {
+            remote.byGenres(genres, limit).onSuccess { games ->
+                dao.upsertGames(games.map { it.toEntity(clock()) })
+            }
+        }
+
+    override suspend fun discover(seed: Long, limit: Int): Result<List<CatalogGame>> =
+        withContext(ioDispatcher) {
+            remote.discover(seed, limit).onSuccess { games ->
+                dao.upsertGames(games.map { it.toEntity(clock()) })
+            }
+        }
+
     override suspend fun getDetails(gameId: Int): Result<CatalogGame?> =
         withContext(ioDispatcher) {
             cacheServed = false

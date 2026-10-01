@@ -68,6 +68,9 @@ fun NavHost(
     val isDarkTheme by themeDataStore.isDarkTheme.collectAsStateWithLifecycle(initialValue = false)
     // Scope para el alta de invitado (suspend) desde un callback no composable
     val guestScope = rememberCoroutineScope()
+    // Géneros favoritos del perfil (onboarding): siembran el descubrimiento de Buscar
+    val perfilGeneros by userViewModel.profile.collectAsStateWithLifecycle()
+    val generosPerfil = perfilGeneros.favoriteGenres
 
 
     NavHost(
@@ -184,7 +187,8 @@ fun NavHost(
                     navController = navController,
                     isDarkTheme = isDarkTheme,
                     viewModel = searchViewModel,
-                    paddingValues = paddingValues
+                    paddingValues = paddingValues,
+                    generosFavoritos = generosPerfil
                 )
                 }
             }

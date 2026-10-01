@@ -1,5 +1,7 @@
 package es.androidtfm.gamevision.ui.views.composables
 
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -85,7 +88,9 @@ fun SearchScreen(
     navController: NavController,
     isDarkTheme: Boolean,
     viewModel: SearchViewModel,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    /** Géneros favoritos del perfil (onboarding): siembran la fila «Para ti». */
+    generosFavoritos: List<String> = emptyList()
 ) {
     // Estados locales para controlar la búsqueda, criterios de ordenación y visibilidad del menú.
     var searchQuery by remember { mutableStateOf("") }
@@ -99,6 +104,15 @@ fun SearchScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val fromCache by viewModel.fromCache.collectAsStateWithLifecycle()
+    // Bloque B: filas de descubrimiento cuando no hay término escrito
+    val populares by viewModel.populares.collectAsStateWithLifecycle()
+    val paraTi by viewModel.paraTi.collectAsStateWithLifecycle()
+    val descubre by viewModel.descubre.collectAsStateWithLifecycle()
+    val cargandoDescubrimiento by viewModel.cargandoDescubrimiento.collectAsStateWithLifecycle()
+    // La fila «Para ti» se siembra con los géneros del perfil (onboarding).
+    LaunchedEffect(generosFavoritos) {
+        viewModel.cargarDescubrimiento(generosFavoritos)
+    }
 
     // Cálculo de la lista ordenada según el criterio y orden especificado.
     val sortedGames = when (sortCriteria) {
@@ -137,14 +151,32 @@ fun SearchScreen(
                     )
                 }
 
-                // Mensaje inicial cuando aún no se ha realizado ninguna búsqueda
+                // Sin término escrito: la pantalla se llena de descubrimiento, no
+                // de un mensaje vacío (bloque B). Si aún no hay datos, skeletons.
                 if (!hasSearched && games.isEmpty()) {
-                    Spacer(modifier = Modifier.height(30.dp))
-                    Text(
-                        text = "¡Busca tu primer juego!",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    if (cargandoDescubrimiento) {
+                        GameGridSkeleton(modifier = Modifier.padding(top = 16.dp))
+                    } else {
+                        FilaDescubrimiento(
+                            titulo = "Populares ahora",
+                            juegos = populares,
+                            navController = navController
+                        )
+                        FilaDescubrimiento(
+                            titulo = if (generosFavoritos.isEmpty()) {
+                                "Novedades del catálogo"
+                            } else {
+                                "Porque te gusta " + generosFavoritos.take(2).joinToString(" y ")
+                            },
+                            juegos = paraTi,
+                            navController = navController
+                        )
+                        FilaDescubrimiento(
+                            titulo = "Descubre · sorpresa del día",
+                            juegos = descubre,
+                            navController = navController
+                        )
+                    }
                 }
 
                 // Indicador de carga mientras se obtienen los datos
@@ -451,4 +483,54 @@ fun SearchScreenPreview() {
         viewModel = fakeViewModel,
         paddingValues = PaddingValues()
     )
+}
+
+/**
+ * Fila horizontal de descubrimiento (bloque B, iteración 02/10).
+ *
+ * Carrusel de carátulas con su título. Se usa cuando la pantalla Buscar no tiene
+ * término escrito: en vez de un mensaje vacío, contenido que invita a explorar.
+ * LazyRow — la auditoría UI detectó que la app no tenía ninguno.
+ */
+@Composable
+private fun FilaDescubrimiento(
+    titulo: String,
+    juegos: List<CatalogGame>,
+    navController: NavController
+) {
+    if (juegos.isEmpty()) return
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(juegos, key = { it.id }) { juego ->
+                Column(
+                    modifier = Modifier
+                        .width(132.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { navController.navigate("gameDetails/${juego.id}") }
+                ) {
+                    GameCover(
+                        imageUrl = juego.coverUrl,
+                        title = juego.name,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(176.dp)
+                    )
+                    Text(
+                        text = juego.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                }
+            }
+        }
+    }
 }

@@ -18,6 +18,27 @@ interface GameApiService {
         @Query("key") key: String = BuildConfig.RAWG_API_KEY
     ): ApiResponse
 
+    /**
+     * Listado de catálogo sin término de búsqueda (bloque B de la iteración
+     * 02/10): alimenta las filas de descubrimiento de la pantalla Buscar.
+     *
+     * @param ordering criterio de RAWG: `-added` (populares), `-rating` (mejor
+     *   valorados), `-released` (novedades).
+     * @param genresSlugs géneros separados por coma (p. ej. `rpg,indie`).
+     * @param dates rango de lanzamiento `YYYY-MM-DD,YYYY-MM-DD`.
+     * @param page página (el "aleatorio" diario varía la página con una semilla).
+     */
+    @GET("games")
+    suspend fun discoverGames(
+        @Query("ordering") ordering: String,
+        @Query("genres") genresSlugs: String? = null,
+        @Query("dates") dates: String? = null,
+        @Query("metacritic") metacritic: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 12,
+        @Query("key") key: String = BuildConfig.RAWG_API_KEY
+    ): ApiResponse
+
     @GET("games/{id}") // La ruta incluye el parámetro {id}
     suspend fun getGameDetails(
         @Path("id") gameId: Int, // El ID del juego se pasa como parámetro

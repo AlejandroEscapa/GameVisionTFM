@@ -20,6 +20,25 @@ interface GameCatalog {
     suspend fun getDetails(gameId: Int): Result<CatalogGame?>
 
     /**
+     * Juegos populares del catálogo (bloque B, iteración 02/10). Alimenta la
+     * fila «Populares ahora» y, para cuentas nuevas, el relleno del inicio.
+     */
+    suspend fun popular(limit: Int = 12): Result<List<CatalogGame>>
+
+    /**
+     * Descubrimiento por género (los favoritos del onboarding/perfil). Si la
+     * lista viene vacía, la implementación devuelve novedades generales.
+     */
+    suspend fun byGenres(genres: List<String>, limit: Int = 12): Result<List<CatalogGame>>
+
+    /**
+     * Sorpresa del día: una selección distinta cada jornada. La implementación
+     * deriva la página de una semilla (no hay aleatorio en RAWG), así que el
+     * resultado es estable dentro del mismo día.
+     */
+    suspend fun discover(seed: Long, limit: Int = 12): Result<List<CatalogGame>>
+
+    /**
      * true si la última operación se respondió desde caché (modo degradado:
      * el proveedor remoto falló y sirvió datos guardados). La UI lo usa para
      * avisar con discreción; por defecto false (respuesta directa del remoto).
