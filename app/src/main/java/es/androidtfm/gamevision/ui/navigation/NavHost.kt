@@ -34,6 +34,7 @@ import es.androidtfm.gamevision.ui.views.composables.PassScreen
 import es.androidtfm.gamevision.ui.views.composables.ProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.PublicProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.OnboardingScreen
+import es.androidtfm.gamevision.ui.views.composables.ParaTiScreen
 import es.androidtfm.gamevision.ui.views.composables.RegisterScreen
 import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
@@ -121,6 +122,23 @@ fun NavHost(
                 googleViewModel = googleViewModel,
                 onGoogleSignInClick = onGoogleSignInClick
             )
+        }
+
+        // Home «Para ti» (bloque F): la pantalla central tras abrir sesión.
+        composable("home") {
+            AppScaffold(
+                navController = navController,
+                userViewModel = userViewModel
+            ) { paddingValues ->
+                ParaTiScreen(
+                    navController = navController,
+                    paddingValues = paddingValues,
+                    userViewModel = userViewModel,
+                    libraryViewModel = libraryViewModel,
+                    searchViewModel = searchViewModel,
+                    generosFavoritos = generosPerfil
+                )
+            }
         }
 
         // Pantalla de noticias: Es la pantalla principal donde se carga la información del usuario (fetch centralizado)

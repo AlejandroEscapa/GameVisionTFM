@@ -43,6 +43,7 @@ import androidx.window.core.layout.WindowSizeClass
 import es.androidtfm.gamevision.ui.designsystem.GVMotion
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import com.composables.icons.lucide.BookOpen
+import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Library
 import com.composables.icons.lucide.Newspaper
 import com.composables.icons.lucide.User
@@ -80,13 +81,15 @@ fun AppScaffold(
             BottomNavItem("gameSearch", Lucide.Search, "Buscar")
         )
     } else {
+        // 5 pestañas (D-NH1/D-F3): el máximo profesional. Diario y Noticias SALEN
+        // del dock — el diario se abre desde «Continúa» en la Home y las noticias
+        // pasan a ser una sección con su pantalla completa.
         listOf(
+            BottomNavItem("home", Lucide.House, "Inicio"),
             BottomNavItem("gameSearch", Lucide.Search, "Buscar"),
             BottomNavItem("gamelist", Lucide.Library, "Biblioteca"),
-            BottomNavItem("diary", Lucide.BookOpen, "Diario"),
-            BottomNavItem("news", Lucide.Newspaper, "Noticias"),
-            BottomNavItem("profile", Lucide.User, "Perfil"),
-            BottomNavItem("social", Lucide.Users, "Social")
+            BottomNavItem("social", Lucide.Users, "Social"),
+            BottomNavItem("profile", Lucide.User, "Perfil")
         )
     }
 

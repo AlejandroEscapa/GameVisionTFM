@@ -101,6 +101,16 @@ todo lo demás existe (biblioteca, HLTB, motor T3.1, NewsAPI, feed, RAWG).
 
 **D-F1 ✅ CERRADA (01/10)**: orden propuesto. **D-F2 ✅ CERRADA (01/10)**: sí, sub-pantalla. **D-F3 ✅ CERRADA (01/10)**: sí — «en home».
 
+## Estado de ejecución (01/10)
+
+- [x] **Bloque A** — filtros desplegados, perfil 1×3, bio con aire, Ajustes v1 (`abe7bff`).
+- [x] **Bloque C** — onboarding 3 pasos + seed de las 10 cuentas anteriores (`0cabf12`).
+- [x] **Bloque B** — descubrimiento en Buscar: populares / por géneros / sorpresa del día (`be437a0`).
+- [x] **Bloque F** — Home «Para ti» + dock de 5 pestañas (Inicio · Buscar · Biblioteca · Social ·
+  Perfil); diario y noticias fuera del dock; T3.2 y T3.3 de F3 cubiertos dentro de la Home.
+  *Nota:* la sección «Te está esperando» muestra la lista de deseos y enlaza a la ficha (la
+  integración de precios de CheapShark queda como siguiente paso; el servicio ya está cableado).
+
 ## Orden de ejecución (02/10)
 
 **A → D → C → B → F** (de lo rápido a lo grande; F necesita decisiones cerradas por la mañana).

@@ -168,7 +168,7 @@ fun MainScreen(
     LaunchedEffect(isNavHostInitialized, session, perfilCargado) {
         if (isNavHostInitialized && session is SessionState.LoggedIn && perfilCargado && !arranqueResuelto) {
             arranqueResuelto = true
-            val destino = if (perfilSesion.onboardingDone) "news" else "onboarding"
+            val destino = if (perfilSesion.onboardingDone) "home" else "onboarding"
             navController.navigate(destino) {
                 popUpTo("main") { inclusive = true }
             }
