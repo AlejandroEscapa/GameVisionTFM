@@ -10,8 +10,12 @@
 #   4. (opcional) `--install` reinstala el debug APK en el emulador.
 #
 # Uso:
-#   ./scripts/dev/arrancar-entorno.sh            # solo entorno
-#   ./scripts/dev/arrancar-entorno.sh --install  # entorno + APK debug
+#   ./scripts/dev/arrancar-entorno.sh              # emulador SIN ventana (agente/CI)
+#   ./scripts/dev/arrancar-entorno.sh --install    # + instalar y abrir el APK debug
+#   ./scripts/dev/arrancar-entorno.sh --window     # con ventana, para verlo tú
+#
+# Alternativa para el propietario: abrir el proyecto en Android Studio y darle a
+# Run sobre el AVD Pixel_9 — no rompe nada y no requiere este script.
 #
 # Nota de push: el push a GitHub no funciona con GCM; usar
 #   git -c credential.credentialStore=dpapi push origin master
@@ -33,8 +37,17 @@ export JAVA_HOME="C:/Program Files/Android/Android Studio/jbr"
 device() { "$ADB" devices | awk 'NR>1 && $2=="device" {print $1; exit}'; }
 
 if [ -z "$(device)" ]; then
-  echo "→ Arrancando emulador $AVD (headless)…"
-  "$EMULATOR" -avd "$AVD" -no-window -no-audio -no-boot-anim -no-snapshot \
+  # Por defecto SIN ventana (el agente va más rápido así). Para verlo tú:
+  # `--window`, o mejor, lanza el AVD desde Android Studio (Device Manager).
+  VENTANA="-no-window"
+  case " $* " in *" --window "*) VENTANA="" ;; esac
+  if [ -n "$VENTANA" ]; then
+    echo "→ Arrancando emulador $AVD (sin ventana)…"
+  else
+    echo "→ Arrancando emulador $AVD (con ventana)…"
+  fi
+  # shellcheck disable=SC2086
+  "$EMULATOR" -avd "$AVD" $VENTANA -no-audio -no-boot-anim -no-snapshot \
     -gpu swiftshader_indirect >/dev/null 2>&1 &
 fi
 
@@ -45,7 +58,7 @@ until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 
 done
 echo "✓ Emulador listo: $(device)"
 
-if [ "${1:-}" = "--install" ]; then
+if [ "${1:-}" = "--install" ] || [ "${2:-}" = "--install" ]; then
   APK="$REPO/app/build/outputs/apk/debug/app-debug.apk"
   [ -f "$APK" ] || { echo "✗ No hay APK debug: antes, ./gradlew assembleDebug" >&2; exit 1; }
   "$ADB" install -r "$APK"
