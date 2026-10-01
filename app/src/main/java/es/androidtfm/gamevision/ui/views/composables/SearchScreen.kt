@@ -513,7 +513,8 @@ private fun FilaDescubrimiento(
                 Column(
                     modifier = Modifier
                         .width(132.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        // El clip vive en la CARÁTULA (que ya trae su propia forma):
+                        // aquí recortaba el texto de debajo y cortaba la primera letra.
                         .clickable { navController.navigate("gameDetails/${juego.id}") }
                 ) {
                     GameCover(

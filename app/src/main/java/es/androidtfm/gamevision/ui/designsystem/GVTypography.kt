@@ -79,7 +79,9 @@ val GVTypography = Typography(
         fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp,
         lineHeight = 18.sp,
-        letterSpacing = (-0.016).em
+        // Sin tracking negativo por debajo de 17 px (regla del documento fuente):
+        // en tamaños pequeños el negativo recortaba el primer glifo contra el clip.
+        letterSpacing = 0.em
     ),
     // 17/400/1.47 (body): el ritmo de lectura de la marca
     bodyLarge = TextStyle(
@@ -95,14 +97,14 @@ val GVTypography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        letterSpacing = (-0.016).em
+        letterSpacing = 0.em
     ),
     bodySmall = TextStyle(
         fontFamily = GVFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = (-0.01).em
+        letterSpacing = 0.em
     ),
     // 14/600 (caption-strong)
     labelLarge = TextStyle(
@@ -110,7 +112,7 @@ val GVTypography = Typography(
         fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp,
         lineHeight = 18.sp,
-        letterSpacing = (-0.016).em
+        letterSpacing = 0.em
     ),
     // 12/400 (fine-print)
     labelSmall = TextStyle(
@@ -118,6 +120,6 @@ val GVTypography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 15.sp,
-        letterSpacing = (-0.01).em
+        letterSpacing = 0.em
     )
 )

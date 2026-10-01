@@ -53,6 +53,22 @@
 - Vinculación por OpenID 2.0 en Auth Tab (nunca WebView) con pantalla de consentimiento,
   e **import de horas reales** a la biblioteca (máximo local/Steam, sin inventar sesiones).
 
+## 2.bis Corrección posterior en la misma jornada: los nombres cortados
+
+El propietario detectó que en las carátulas (Home y Buscador) el **primer nombre de cada fila
+aparecía recortado en su primera letra** ("Limbo" → "┐imbo", "Grand Theft Auto V" con la G mordida).
+
+**Causa real (dos factores que se sumaban):**
+1. El `Column` de cada carátula aplicaba un `clip(...)` que envolvía **también al texto** — el clip
+   solo hacía falta para la imagen, que ya trae su propia forma.
+2. La tipografía usaba **tracking negativo en tamaños pequeños** (12–14 sp). Con el negativo, el
+   primer glifo puede sobresalir del área medida y quedar recortado por el clip del contenedor.
+
+**Arreglo:** el clip se queda en la carátula (se retira del contenedor de texto) y el **tracking
+negativo pasa a `0` por debajo de 17 sp**, que es exactamente lo que dice el documento fuente
+(«nunca por debajo de 12 px»). Verificado en emulador con recorte a resolución nativa en la Home y
+en Buscador.
+
 ## 3. Qué NO se hizo (y por qué)
 
 - **Fase 2 de Steam** (logros y % global, «Sigue jugando», arte de SteamGridDB, ofertas de la

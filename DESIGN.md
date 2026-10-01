@@ -63,6 +63,11 @@ Reglas: titulares siempre peso 600 con tracking apretado ("Apple tight"); cuerpo
 de 17 sp en lectura; sin serifa, sin mezcla de familias; el énfasis dentro de un titular es
 *cursiva o negrita de la misma familia*, nunca otra fuente.
 
+> **El tracking negativo es SOLO para display y titulares (≥17 sp).** Por debajo de 17 sp el
+> tracking es `0`: en tamaños pequeños el negativo hacía que el primer glifo sobresaliera del área
+> de texto y quedara recortado contra el contenedor (bug detectado el 01/10: "Limbo" se veía como
+> "┐imbo" en las carátulas). Regla del documento fuente, ahora además comprobada en el emulador.
+
 ## 4. Formas
 
 Escala cerrada: **8** (utilidad compacta: badges, inputs pequeños) · **11** (perla, imágenes

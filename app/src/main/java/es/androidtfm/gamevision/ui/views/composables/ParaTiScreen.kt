@@ -156,7 +156,8 @@ fun ParaTiScreen(
                     Column(
                         modifier = Modifier
                             .width(132.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            // El clip vive en la CARÁTULA (GameCover ya trae la suya):
+                            // aquí recortaba el texto de debajo y cortaba la 1ª letra.
                             .clickable { navController.navigate("gameDetails/${entrada.gameId}") }
                     ) {
                         GameCover(
@@ -263,7 +264,8 @@ fun ParaTiScreen(
                     Column(
                         modifier = Modifier
                             .width(132.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            // El clip vive en la CARÁTULA (GameCover ya trae la suya):
+                            // aquí recortaba el texto de debajo y cortaba la 1ª letra.
                             .clickable { navController.navigate("gameDetails/${entrada.gameId}") }
                     ) {
                         GameCover(
@@ -312,7 +314,6 @@ fun ParaTiScreen(
                     Column(
                         modifier = Modifier
                             .width(132.dp)
-                            .clip(RoundedCornerShape(14.dp))
                             .clickable { navController.navigate("gameDetails/${juego.id}") }
                     ) {
                         GameCover(
