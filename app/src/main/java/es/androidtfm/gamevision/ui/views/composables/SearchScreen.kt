@@ -527,6 +527,7 @@ private fun FilaDescubrimiento(
                         text = juego.name,
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 6.dp)
                     )
                 }

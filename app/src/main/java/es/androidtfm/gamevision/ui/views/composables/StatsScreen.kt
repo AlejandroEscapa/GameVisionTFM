@@ -34,6 +34,7 @@ import es.androidtfm.gamevision.data.library.LibraryInsights
 import es.androidtfm.gamevision.data.library.StatisticsUtils
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -67,15 +68,20 @@ fun StatsScreen(
     // Instrumentación: registro de visita (F1 — Bloque 4).
     androidx.compose.runtime.LaunchedEffect(Unit) { libraryViewModel.logScreen("stats") }
 
+    // Cabecera FIJA (iteración 02/10): el título no se desplaza, solo el contenido.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = GVSpacing.screenPadding)
     ) {
         GVScreenHeader(title = "Estadísticas")
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
         when {
             entries == null -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 repeat(3) { GameRowSkeleton() }
@@ -95,8 +101,6 @@ fun StatsScreen(
             }
 
             insights != null -> {
-                Spacer(Modifier.height(4.dp))
-
                 // KPIs principales
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -173,6 +177,7 @@ fun StatsScreen(
 
                 Spacer(Modifier.height(40.dp))
             }
+        }
         }
     }
 }

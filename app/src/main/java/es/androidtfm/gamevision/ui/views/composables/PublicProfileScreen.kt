@@ -37,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -469,7 +470,8 @@ private fun TopGamesRow(
                 Text(
                     text = entry?.name.orEmpty().ifBlank { "Sin definir" },
                     style = MaterialTheme.typography.labelSmall,
-                    maxLines = 2
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -491,7 +493,8 @@ private fun LibraryPreview(entries: List<LibraryEntry>) {
                     Text(
                         text = entry.name.ifBlank { "Juego" },
                         style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(

@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.data.model.Friend
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -104,7 +106,7 @@ fun FriendsList(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 10.dp)
+                .padding(horizontal = GVSpacing.screenPadding)
                 .padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)
         ) {
             if (isLoading) {
@@ -117,25 +119,8 @@ fun FriendsList(
                         .padding(0.dp, 0.dp, 0.dp, 30.dp)
                 ) {
                     item {
-                        // Encabezado de la lista de amigos
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.surface,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                                .padding(16.dp, 10.dp, 16.dp, 0.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Seguidos",
-                                style = MaterialTheme.typography.headlineLarge,
-                                textAlign = TextAlign.Start
-                            )
-                        }
+                        // Encabezado unificado (texto simple, sin tarjeta)
+                        GVScreenHeader(title = "Seguidos")
                     }
                     // Lista de amigos
                     val currentUid = uid

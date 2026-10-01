@@ -26,6 +26,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -55,6 +56,9 @@ import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.datastore.RecentGame
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
+import com.composables.icons.lucide.ArrowLeft
 import es.androidtfm.gamevision.ui.designsystem.components.RatingBadge
 import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
@@ -157,16 +161,26 @@ fun GameDetails(
             error != null -> ErrorMessage(error, onRetry = { viewModel.fetchGameDetails(gameId) })
             game == null -> EmptyState()
             else -> {
+                // Cabecera FIJA (iteración 02/10): título simple + vuelta a la izquierda.
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = GVSpacing.screenPadding)
                 ) {
-                    Text(
-                        text = "Detalles del juego",
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.padding(24.dp)
+                    GVScreenHeader(
+                        title = "Detalles del juego",
+                        leading = {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(Lucide.ArrowLeft, contentDescription = "Volver")
+                            }
+                        }
                     )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    ) {
 
                     GameContent(game = game)
 
@@ -356,6 +370,7 @@ fun GameDetails(
                 }
             }
         }
+                    }
     }
 }
 
@@ -670,36 +685,9 @@ private fun LibraryPanel(
 
                 HorizontalDivider()
 
-                // Duración manual (F1/T1.11): gana sobre el dato de HowLongToBeat.
-                Text("Duración manual (horas)", style = MaterialTheme.typography.titleSmall)
-                var manualText by remember(entry.gameId) {
-                    mutableStateOf(
-                        entry.playtimeManual?.let { m ->
-                            val h = m / 60.0
-                            if (h % 1.0 == 0.0) h.toInt().toString() else h.toString()
-                        }.orEmpty()
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = manualText,
-                        onValueChange = { txt -> manualText = txt.filter { it.isDigit() || it == '.' }.take(6) },
-                        label = { Text("Horas") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            val horas = manualText.toDoubleOrNull()
-                            onManualPlaytime(horas?.let { (it * 60).toInt() })
-                        },
-                        shape = RoundedCornerShape(12.dp)
-                    ) { Text("Guardar") }
-                }
+                // Duración manual RETIRADA (iteración 02/10): el tiempo real del
+                // usuario viene de sus sesiones (y de Steam al llegar); una
+                // estimación a mano se vuelve redundante.
 
                 HorizontalDivider()
 
@@ -745,30 +733,60 @@ private fun DurationCard(
     playtimes: es.androidtfm.gamevision.data.hltb.HltbPlaytimes?,
     modifier: Modifier = Modifier
 ) {
-    val manual = entry?.playtimeManual
+    val jugado = entry?.minutesTotal ?: 0
     val hasHltb = playtimes?.hasData == true
-    if (manual == null && !hasHltb) return
+    // La tarjeta se muestra si hay tiempo tuyo, estimación manual o dato de HLTB.
+    val manual = entry?.playtimeManual
+    if (jugado <= 0 && manual == null && !hasHltb) return
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = GVSpacing.screenPadding),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Duración estimada", style = MaterialTheme.typography.titleMedium)
+            Text("Tu tiempo", style = MaterialTheme.typography.titleMedium)
 
-            if (manual != null) {
+            // LO TUYO PRIMERO (criterio del propietario): lo que llevas jugado
+            // según tus sesiones (y, con Steam, según Steam). Si no has jugado,
+            // se omite y la referencia de HLTB queda sola.
+            if (jugado > 0) {
                 Text(
-                    text = "Tu estimación: " + es.androidtfm.gamevision.data.hltb.HltbUtils.format(manual),
+                    text = "Llevas jugado: " + es.androidtfm.gamevision.data.hltb.HltbUtils.format(jugado),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-            } else {
+                // Barra de progreso jugado / historia principal (si hay dato).
+                val referencia = manual ?: playtimes?.mainMinutes
+                if (referencia != null && referencia > 0) {
+                    val fraccion = (jugado.toFloat() / referencia).coerceIn(0f, 1f)
+                    LinearProgressIndicator(
+                        progress = { fraccion },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                }
+            }
+            if (manual != null) {
+                Text(
+                    text = "Tu estimación: " + es.androidtfm.gamevision.data.hltb.HltbUtils.format(manual),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // REFERENCIA debajo, pequeña y orientativa.
+            if (hasHltb) {
+                Text(
+                    text = "¿Cuánto dura?",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 playtimes?.mainMinutes?.let { DurationRow("Historia principal", it) }
                 playtimes?.plusMinutes?.let { DurationRow("Historia + extras", it) }
                 playtimes?.completeMinutes?.let { DurationRow("Completista", it) }

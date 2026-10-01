@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -79,15 +80,28 @@ private class CoverPlaceholderPainter(
 
     override fun DrawScope.onDraw() {
         drawRect(container)
-        drawText(
-            textMeasurer = textMeasurer,
-            text = title.take(2).uppercase(),
+        // Centrado y ESCALADO al tamaño de la portada (iteración 02/10): antes
+        // se dibujaba en Offset.Zero con 32.sp fijos, así que las iniciales
+        // quedaban pegadas a la esquina y el clip redondeado las cortaba —
+        // exactamente el bug que vio el propietario ("un círculo y fuera el borde").
+        val iniciales = title.take(2).uppercase()
+        // DrawScope implementa Density: puedo convertir px -> sp directamente.
+        val fontSize = if (size.width > 0f) (size.width * 0.34f).toSp() else 32.sp
+        val medida = textMeasurer.measure(
+            text = iniciales,
             style = TextStyle(
-                fontSize = 32.sp,
+                fontSize = fontSize,
                 fontWeight = FontWeight.Medium,
                 color = content
             ),
             maxLines = 1
+        )
+        drawText(
+            textLayoutResult = medida,
+            topLeft = Offset(
+                x = (size.width - medida.size.width) / 2f,
+                y = (size.height - medida.size.height) / 2f
+            )
         )
     }
 }

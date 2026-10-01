@@ -30,6 +30,9 @@ class HltbRepository @Inject constructor(
         private const val TAG = "HltbRepository"
     }
 
+    /** Memo por nombre normalizado; la instancia vive en Hilt durante la sesión. */
+    private val memo = java.util.concurrent.ConcurrentHashMap<String, HltbPlaytimes>()
+
     /**
      * Duración de un juego por su nombre. `null` si no hay dato disponible.
      * Nunca lanza: ante cualquier fallo devuelve lo cacheado o null.
@@ -39,10 +42,15 @@ class HltbRepository @Inject constructor(
         val key = HltbUtils.cacheKey(name)
         if (key.isBlank()) return@withContext null
 
+        // Memo en memoria (iteración 02/10): reabrir la misma ficha no debe ni
+        // tocar Room. Vida corta: la caché Room (TTL 90 días) sigue mandando.
+        memo[key]?.let { return@withContext it }
+
         val cached = runCatching { gameDao.hltb(key) }.getOrNull()?.toDomain()
         val now = System.currentTimeMillis()
 
         if (cached != null && HltbUtils.isFresh(cached.fetchedAt, now)) {
+            memo[key] = cached
             return@withContext cached
         }
 
@@ -55,10 +63,12 @@ class HltbRepository @Inject constructor(
             runCatching {
                 gameDao.upsertHltb(fresh.toEntity(key))
             }.onFailure { Log.w(TAG, "No se pudo cachear HLTB: ${it.message}") }
+            memo[key] = fresh
             return@withContext fresh
         }
 
         // Sin dato nuevo: lo caducado sigue siendo mejor que nada.
+        cached?.let { memo[key] = it }
         cached
     }
 }

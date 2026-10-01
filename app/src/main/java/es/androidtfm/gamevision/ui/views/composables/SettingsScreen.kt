@@ -41,6 +41,7 @@ import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Moon
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Trash2
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
@@ -58,20 +59,28 @@ fun SettingsScreen(
 ) {
     val profile by userViewModel.profile.collectAsStateWithLifecycle()
 
+    // Cabecera FIJA (iteración 02/10): el título no se desplaza.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
     ) {
         GVScreenHeader(
             title = "Ajustes",
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Lucide.ArrowLeft, contentDescription = "Volver")
+            modifier = Modifier.padding(horizontal = GVSpacing.screenPadding),
+            // La vuelta vive a la IZQUIERDA (regla de GVScreenHeader, iteración 02/10)
+            leading = {
+                IconButton(onClick = onBack) {
+                    Icon(Lucide.ArrowLeft, contentDescription = "Volver")
+                }
             }
-        }
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
 
         Seccion("Apariencia")
         FilaAjuste(
@@ -116,6 +125,7 @@ fun SettingsScreen(
         PlaceholderAjuste(Lucide.Info, "Versión 2.0.0 · Licencias")
 
         Spacer(Modifier.height(24.dp))
+        }
     }
 }
 

@@ -70,6 +70,7 @@ import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.social.FeedEntryPair
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.ui.designsystem.components.rememberIsOnline
@@ -258,9 +259,20 @@ private fun FeedTab(
             // El compositor vive ABAJO (fijo, tipo chat): el feed llena y el
             // campo de publicación se queda siempre a la vista, bajo la lista.
             Column(modifier = Modifier.fillMaxSize()) {
+                // Anclaje a la cima (bug 02/10): el listener del feed emite varias
+                // veces (caché -> servidor) y al insertar un post nuevo arriba la
+                // LazyColumn queda anclada a la tarjeta vieja — "empezabas por
+                // abajo" y no podías subir. Re-ancla cuando cambia el post más
+                // reciente (clave del primer elemento).
+                val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                val postIdMasReciente = entries.firstOrNull()?.id
+                LaunchedEffect(postIdMasReciente) {
+                    if (postIdMasReciente != null) listState.scrollToItem(0)
+                }
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().weight(1f),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    state = listState,
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = GVSpacing.screenPadding, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                 if (entries.isEmpty()) {

@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +46,7 @@ import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.library.RecommendationEngine
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Candidate
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Mood
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
@@ -124,14 +126,20 @@ fun ParaTiScreen(
         )
     }
 
+    // Cabecera FIJA (iteración 02/10): el título no se desplaza, solo el contenido.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(paddingValues)
-            .verticalScroll(rememberScrollState())
     ) {
-        GVScreenHeader(title = "Para ti", modifier = Modifier.padding(horizontal = 16.dp))
+        GVScreenHeader(title = "Para ti", modifier = Modifier.padding(horizontal = GVSpacing.screenPadding))
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
 
         // ---- Continúa ---------------------------------------------------
         if (enCurso.isNotEmpty()) {
@@ -156,6 +164,7 @@ fun ParaTiScreen(
                             text = entrada.name,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                         if (entrada.minutesTotal > 0) {
@@ -262,6 +271,7 @@ fun ParaTiScreen(
                             text = entrada.name,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -310,6 +320,7 @@ fun ParaTiScreen(
                             text = juego.name,
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                     }
@@ -327,6 +338,7 @@ fun ParaTiScreen(
         )
 
         Spacer(Modifier.height(24.dp))
+        }
     }
 }
 

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import es.androidtfm.gamevision.retrofit.Article
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -77,16 +78,17 @@ fun NewsScreen(
         // flujo en vivo (SSOT) y se mantiene actualizado por sí solo.
     }
 
-    LazyColumn(
+    // Cabecera FIJA (iteración 02/10): fuera de la lista, no se desplaza.
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Cabecera unificada de pantalla (GVScreenHeader)
-        item {
-            GVScreenHeader(title = "Noticias", modifier = Modifier.padding(horizontal = 16.dp))
-        }
+        GVScreenHeader(title = "Noticias", modifier = Modifier.padding(horizontal = GVSpacing.screenPadding))
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
         // Se muestran los artículos, un aviso de error sin conexión o el estado de carga
         if (newsState.value.isNotEmpty()) {
             items(newsState.value) { article ->
@@ -106,6 +108,7 @@ fun NewsScreen(
                 NewsLoadingIndicator()
             }
         }
+    }
     }
 }
 

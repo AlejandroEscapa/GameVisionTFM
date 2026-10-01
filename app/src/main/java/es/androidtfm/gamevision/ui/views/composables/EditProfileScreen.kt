@@ -47,6 +47,10 @@ import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
+import com.composables.icons.lucide.ArrowLeft
+import androidx.compose.material3.IconButton
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.CircleUserRound
 import com.composables.icons.lucide.Info
@@ -104,13 +108,28 @@ fun EditProfileScreen(
     val currentUid by userViewModel.currentUid.collectAsStateWithLifecycle()
     val library by libraryViewModel.observeLibrary(currentUid.orEmpty())
         .collectAsStateWithLifecycle(initialValue = null)
+    // Cabecera FIJA (iteración 02/10): la pantalla tenía un Spacer de 150 dp en
+    // vez de un título; ahora tiene header unificado con vuelta a la izquierda.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .verticalScroll(rememberScrollState())
     ) {
-        Spacer(modifier = Modifier.height(150.dp))
+        GVScreenHeader(
+            title = "Editar perfil",
+            modifier = Modifier.padding(horizontal = GVSpacing.screenPadding),
+            leading = {
+                IconButton(onClick = { navController?.popBackStack() }) {
+                    Icon(Lucide.ArrowLeft, contentDescription = "Volver")
+                }
+            }
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
         // Se utiliza un componente personalizado que agrupa los campos del perfil.
         // ---- F2 — Social: privacidad (D2.2), Top 4 (T2.5), listas (T2.6) ----
         PrivacyCard(isPrivate = isPrivate, onToggle = { isPrivate = it })
@@ -140,6 +159,7 @@ fun EditProfileScreen(
             userViewModel.updateProfile(updatedFields + ("isPrivate" to isPrivate)) {
                 navController?.popBackStack()
             }
+        }
         }
     }
 }
