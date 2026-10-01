@@ -41,12 +41,25 @@ import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
+import es.androidtfm.gamevision.viewmodel.SteamViewModel
 import es.androidtfm.gamevision.viewmodel.ThemeViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    // Retorno del OpenID de Steam (bloque 5): el navegador devuelve a
+    // gamevision://steam/linked?steamid=…; onNewIntent lo publica y el
+    // NavHost lo consume (se anula al leerlo).
+    private val steamLinkState = androidx.compose.runtime.mutableStateOf<String?>(null)
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        intent.data?.toString()?.takeIf { it.startsWith("gamevision://steam/linked") }?.let { uri ->
+            steamLinkState.value = uri.substringAfter("steamid=")
+        }
+    }
     private val googleViewModel: GoogleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +88,7 @@ class MainActivity : ComponentActivity() {
             val libraryViewModel: LibraryViewModel = viewModel()
             val socialViewModel: SocialViewModel = viewModel()
             val searchViewModel: SearchViewModel = viewModel()
+            val steamViewModel: SteamViewModel = viewModel()
 
             MainScreen(
                 window = window,
@@ -87,7 +101,10 @@ class MainActivity : ComponentActivity() {
                 },
                 libraryViewModel = libraryViewModel,
                 socialViewModel = socialViewModel,
-                searchViewModel = searchViewModel // Si NewsScreen u otras pantallas lo requieren
+                searchViewModel = searchViewModel, // Si NewsScreen u otras pantallas lo requieren
+                steamViewModel = steamViewModel,
+                steamLink = steamLinkState.value,
+                onSteamLinkConsumido = { steamLinkState.value = null }
             )
         }
     }
@@ -103,7 +120,10 @@ fun MainScreen(
     onGoogleSignInClick: () -> Unit,
     libraryViewModel: LibraryViewModel,
     socialViewModel: SocialViewModel,
-    searchViewModel: SearchViewModel
+    searchViewModel: SearchViewModel,
+    steamViewModel: SteamViewModel,
+    steamLink: String?,
+    onSteamLinkConsumido: () -> Unit
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
     val navController = rememberNavController()
@@ -142,7 +162,10 @@ fun MainScreen(
                         libraryViewModel = libraryViewModel,
                         socialViewModel = socialViewModel,
                         isGuest = isGuest,
-                        searchViewModel = searchViewModel
+                        searchViewModel = searchViewModel,
+                        steamViewModel = steamViewModel,
+                        steamLink = steamLink,
+                        onSteamLinkConsumido = onSteamLinkConsumido
                     )
                 }
 

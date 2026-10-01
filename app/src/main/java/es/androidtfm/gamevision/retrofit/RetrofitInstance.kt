@@ -1,5 +1,6 @@
 package es.androidtfm.gamevision.retrofit
 
+import es.androidtfm.gamevision.data.steam.SteamProxyService
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
@@ -31,6 +32,17 @@ object RetrofitInstance {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(CheapSharkService::class.java)
+    }
+
+    /** Proxy de Steam (bloque 5): la URL la pone el propietario en local.properties. */
+    val steamProxy: SteamProxyService by lazy {
+        val baseUrl = es.androidtfm.gamevision.BuildConfig.STEAM_PROXY_URL
+        require(baseUrl.isNotBlank()) { "Falta steamProxyUrl en local.properties" }
+        Retrofit.Builder()
+            .baseUrl(if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/")
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(SteamProxyService::class.java)
     }
 
     val gamesApi: GameApiService by lazy {

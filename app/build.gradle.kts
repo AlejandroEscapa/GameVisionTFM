@@ -96,6 +96,8 @@ android {
     buildTypes.all {
         buildConfigField("String", "NEWS_API_KEY", "\"${localProps.getProperty("newsApiKey", "")}\"")
         buildConfigField("String", "RAWG_API_KEY", "\"${localProps.getProperty("rawgApiKey", "")}\"")
+        // Proxy de Steam (Cloudflare Worker, steam-worker/). URL sin barra final.
+        buildConfigField("String", "STEAM_PROXY_URL", "\"${localProps.getProperty("steamProxyUrl", "")}\"")
     }
 
     packaging.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -133,6 +135,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.adaptive.navigation.suite)
     implementation(libs.lucide.icons)
+    implementation(libs.androidx.browser)
     implementation(libs.compose.runtime)
     implementation(libs.compose.activity)
     implementation(libs.androidx.ui.graphics)

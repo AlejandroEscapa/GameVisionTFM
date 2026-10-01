@@ -23,6 +23,7 @@ import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.ui.views.composables.EditProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.DiaryScreen
 import es.androidtfm.gamevision.ui.views.composables.SettingsScreen
+import es.androidtfm.gamevision.ui.views.composables.SteamScreen
 import es.androidtfm.gamevision.ui.views.composables.FriendsList
 import es.androidtfm.gamevision.ui.views.composables.GameDetails
 import es.androidtfm.gamevision.ui.views.composables.GameListScreen
@@ -44,6 +45,7 @@ import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
 import es.androidtfm.gamevision.viewmodel.NewsViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
+import es.androidtfm.gamevision.viewmodel.SteamViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 
 /*
@@ -64,7 +66,11 @@ fun NavHost(
     libraryViewModel: LibraryViewModel,
     socialViewModel: SocialViewModel,
     isGuest: Boolean,
-    searchViewModel: SearchViewModel
+    searchViewModel: SearchViewModel,
+    steamViewModel: SteamViewModel,
+    /** steamid que llega del retorno OpenID (deep link); null si no hay. */
+    steamLink: String?,
+    onSteamLinkConsumido: () -> Unit = {}
 ) {
     val isDarkTheme by themeDataStore.isDarkTheme.collectAsStateWithLifecycle(initialValue = false)
     // Scope para el alta de invitado (suspend) desde un callback no composable
@@ -255,11 +261,23 @@ fun NavHost(
 
         // Pantalla de edición del perfil
         // Ajustes (iteración 02/10): modo noche real + esqueleto de secciones
+        // Steam (bloque 5): consentimiento, vinculación y sync de horas.
+        composable("steam") {
+            SteamScreen(
+                viewModel = steamViewModel,
+                uid = userViewModel.currentUid.collectAsStateWithLifecycle().value,
+                steamLink = steamLink,
+                onSteamLinkConsumido = onSteamLinkConsumido,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable("ajustes") {
             SettingsScreen(
                 isDarkTheme = isDarkTheme,
                 onThemeChange = onThemeChange,
                 userViewModel = userViewModel,
+                onNavigateSteam = { navController.navigate("steam") },
                 onBack = { navController.popBackStack() }
             )
         }

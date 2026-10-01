@@ -31,7 +31,11 @@ data class UserProfile(
      * para que no se repita en otro dispositivo y para poder sembrarla en las
      * cuentas anteriores por admin.
      */
-    val onboardingDone: Boolean = false
+    val onboardingDone: Boolean = false,
+    /** Steam vinculado (bloque 5): SteamID64 de 17 dígitos. Vacío = sin vincular. */
+    val steamId: String = "",
+    /** Última sincronización de horas de Steam (epoch ms; 0 = nunca). */
+    val steamSyncAt: Long = 0
 ) {
     companion object {
         /**
@@ -52,7 +56,9 @@ data class UserProfile(
                 isPrivate = data["isPrivate"] as? Boolean ?: false,
                 topGameIds = (data["topGameIds"] as? List<*>)?.map { it.toString() } ?: emptyList(),
                 favoriteGenres = (data["favoriteGenres"] as? List<*>)?.map { it.toString() } ?: emptyList(),
-                onboardingDone = data["onboardingDone"] as? Boolean ?: false
+                onboardingDone = data["onboardingDone"] as? Boolean ?: false,
+                steamId = value("steamId"),
+                steamSyncAt = (data["steamSyncAt"] as? Number)?.toLong() ?: 0L
             )
         }
     }
@@ -69,6 +75,8 @@ data class UserProfile(
         "isPrivate" to isPrivate,
         "topGameIds" to topGameIds,
         "favoriteGenres" to favoriteGenres,
-        "onboardingDone" to onboardingDone
+        "onboardingDone" to onboardingDone,
+        "steamId" to steamId,
+        "steamSyncAt" to steamSyncAt
     )
 }

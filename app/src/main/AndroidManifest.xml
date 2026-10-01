@@ -28,11 +28,19 @@
             android:value="@string/default_web_client_id" />
 
         <activity
-            android:launchMode="singleTask"
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Gamevision"
             android:windowSoftInputMode="adjustResize">
+            <!-- Retorno del OpenID de Steam vía proxy (bloque 5): esquema propio.
+                 No necesita assetlinks porque no es un App Link verificado. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="gamevision" android:host="steam" android:path="/linked" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

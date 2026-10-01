@@ -41,6 +41,7 @@ import com.composables.icons.lucide.Info
 import com.composables.icons.lucide.Moon
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.ArrowRight
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -55,6 +56,7 @@ fun SettingsScreen(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     userViewModel: UserViewModel,
+    onNavigateSteam: () -> Unit,
     onBack: () -> Unit
 ) {
     val profile by userViewModel.profile.collectAsStateWithLifecycle()
@@ -112,7 +114,39 @@ fun SettingsScreen(
         PlaceholderAjuste(Lucide.Download, "Ofertas de tu wishlist")
 
         Seccion("Integraciones")
-        PlaceholderAjuste(Lucide.Gamepad2, "Vincular Steam")
+        // Steam REAL (bloque 5): fila clicable hacia la pantalla de vinculación.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = GVSpacing.screenPadding, vertical = 4.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .clickable(onClick = onNavigateSteam)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Lucide.Gamepad2, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Steam", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = when {
+                        profile?.steamId?.isNotBlank() == true -> "Vinculada · " +
+                            (profile?.steamSyncAt?.takeIf { it > 0 }?.let {
+                                "sync " + android.text.format.DateFormat.format("dd-MM HH:mm", it)
+                            } ?: "pendiente de sincronizar")
+                        else -> "Conecta tu cuenta y trae tus horas reales"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                Lucide.ArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         Seccion("Datos")
         PlaceholderAjuste(Lucide.Download, "Exportar mi biblioteca")

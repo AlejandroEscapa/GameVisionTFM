@@ -254,6 +254,23 @@ class LibraryRepository @Inject constructor(
      * Fija (o borra con `minutes = null`) la duración manual de una ficha (F1/T1.11).
      * El valor manual del usuario siempre gana sobre el de HowLongToBeat.
      */
+    /**
+     * Horas REALES de Steam (bloque 5): fija `minutesTotal` al máximo entre lo
+     * local y lo informado por Steam (nunca se duplican horas de por vida).
+     * La decisión de máximo la toma el llamador (SteamRepository).
+     */
+    suspend fun setSteamPlaytime(uid: String, gameId: String, minutesTotal: Int): Result<Unit> =
+        runCatching {
+            require(uid.isNotEmpty()) { "Usuario no autenticado" }
+            libraryCol(uid).document(gameId).set(
+                mapOf(
+                    "minutesTotal" to minutesTotal,
+                    "updatedAt" to FieldValue.serverTimestamp()
+                ),
+                SetOptions.merge()
+            )
+        }
+
     suspend fun updateManualPlaytime(uid: String, gameId: String, minutes: Int?): Result<Unit> =
         runCatching {
             require(uid.isNotEmpty()) { "Usuario no autenticado" }

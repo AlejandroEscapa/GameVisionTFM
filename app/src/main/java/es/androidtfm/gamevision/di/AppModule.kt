@@ -24,6 +24,7 @@ import es.androidtfm.gamevision.data.catalog.local.GameDao
 import es.androidtfm.gamevision.data.catalog.rawg.RawgGameCatalog
 import es.androidtfm.gamevision.datastore.SessionPreferences
 import es.androidtfm.gamevision.datastore.ThemeDataStore
+import es.androidtfm.gamevision.data.steam.SteamProxyService
 import es.androidtfm.gamevision.retrofit.GameApiService
 import es.androidtfm.gamevision.retrofit.NewsApiService
 import es.androidtfm.gamevision.retrofit.RetrofitInstance
@@ -66,6 +67,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGamesApi(): GameApiService = RetrofitInstance.gamesApi
+
+    @Provides
+    @Singleton
+    fun provideSteamProxy(): SteamProxyService = RetrofitInstance.steamProxy
 
     /**
      * Base de datos Room de la caché de catálogo (F0/T0.4). Alcance acotado:

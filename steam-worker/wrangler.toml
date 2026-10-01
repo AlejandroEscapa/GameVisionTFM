@@ -1,0 +1,8 @@
+name = "gv-steam"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Secreto: STEAM_API_KEY
+#   npx wrangler secret put STEAM_API_KEY
+# Despliegue:
+#   npx wrangler deploy
