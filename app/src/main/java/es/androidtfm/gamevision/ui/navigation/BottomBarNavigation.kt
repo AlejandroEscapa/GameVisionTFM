@@ -148,8 +148,11 @@ private fun GVDock(navController: NavController, items: List<BottomNavItem>) {
             items.forEach { item ->
                 val selected = navController.currentDestination?.route == item.route
                 val tint by animateColorAsState(
+                    // `onSurfaceVariant` y no `onSurface` al 55%: aquello componía
+                    // ~2,9:1 en claro y no llegaba al 3:1 que necesita un icono de
+                    // navegación. Además el rol es el correcto para "no activo".
                     targetValue = if (selected) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
                     animationSpec = GVMotion.springStandard(),
                     label = "dock-tint"
                 )
@@ -169,7 +172,9 @@ private fun GVDock(navController: NavController, items: List<BottomNavItem>) {
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { navController.navigate(item.route) }
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                        // 24 de icono + 12 arriba y abajo = 48 dp de zona pulsable,
+                        // el mínimo de accesibilidad (antes eran 44).
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

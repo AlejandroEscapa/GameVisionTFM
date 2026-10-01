@@ -141,7 +141,9 @@ fun StatsScreen(
                         .filter { it.second > 0 }
                         .reversed()
                         .forEach { (nota, count) ->
-                            CountRow(formatRating(nota) + " ★", count, insights.ratedCount)
+                            // Sin "★" en texto: el dato es la nota, no un glifo de
+                            // otra fuente mezclado en el renglón.
+                            CountRow("${formatRating(nota)} de 5", count, insights.ratedCount)
                         }
                     Spacer(Modifier.height(20.dp))
                 }

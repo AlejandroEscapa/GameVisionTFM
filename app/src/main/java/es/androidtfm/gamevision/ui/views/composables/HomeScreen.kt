@@ -129,7 +129,8 @@ fun HomeScreen(
             Spacer(Modifier.height(GVSpacing.md))
 
             // El invitado es la salida secundaria: existe, se lee, pero no compite
-            // con la conversión. Antes era un segundo botón relleno idéntico.
+            // con la conversión. Antes era un segundo botón relleno idéntico; ahora
+            // ni siquiera lleva el acento, que es de la acción principal.
             TextButton(
                 onClick = {
                     onGuestStatusChange(true)
@@ -139,7 +140,8 @@ fun HomeScreen(
             ) {
                 Text(
                     text = "Explorar sin cuenta",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 

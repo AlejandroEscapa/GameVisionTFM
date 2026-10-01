@@ -69,9 +69,11 @@ import es.androidtfm.gamevision.data.model.MilestoneTypes
 import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.data.social.FeedEntryPair
+import es.androidtfm.gamevision.ui.designsystem.GVShapeFull
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
+import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.ui.designsystem.components.GVSearchField
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
-import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.ui.designsystem.components.OfflineBanner
 import es.androidtfm.gamevision.ui.designsystem.components.rememberIsOnline
@@ -167,6 +169,10 @@ fun SocialScreen(
                     myUid = uid.orEmpty(),
                     postText = postText,
                     onPostTextChange = { if (it.length <= postMaxLength) postText = it },
+                    // El reintento del estado de error llama a ESTO: antes había un
+                    // botón inerte cuya etiqueta mandaba al usuario a buscar el
+                    // icono de refresco de la cabecera.
+                    onRefresh = { socialViewModel.refreshFeed() },
                     onPublish = {
                         val userUid = uid
                         if (userUid != null && postText.isNotBlank()) {
@@ -229,12 +235,13 @@ private fun FeedTab(
     onPostTextChange: (String) -> Unit,
     onPublish: () -> Unit,
     onToggleLike: (FeedEntry) -> Unit,
-    onOpenProfile: (String) -> Unit
+    onOpenProfile: (String) -> Unit,
+    onRefresh: () -> Unit
 ) {
     if (!isOnline) {
         OfflineBanner(
             text = "Sin conexión · mostrando datos guardados",
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = GVSpacing.sm, vertical = GVSpacing.xs)
         )
     }
     when {
@@ -242,18 +249,23 @@ private fun FeedTab(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(GVSpacing.md)) {
                 repeat(4) { GameRowSkeleton() }
             }
         }
         feedState.isFailure -> Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(GVSpacing.xl),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(if (!isOnline) "Sin conexión" else "No se pudo cargar el feed")
-            Spacer(Modifier.height(8.dp))
-            TextButton(onClick = { /* el refresco llega desde el header */ }) { Text("Reintentar desde el icono de refresco") }
+            Spacer(Modifier.height(GVSpacing.sm))
+            // Reintento REAL: recarga el feed.
+            GVButton(
+                text = "Reintentar",
+                onClick = onRefresh,
+                secondary = true
+            )
         }
         else -> {
             val entries = feedState.getOrDefault(emptyList())
@@ -366,7 +378,7 @@ private fun FeedCard(
             Spacer(Modifier.height(8.dp))
             val milestoneLine = when (entry.milestoneType) {
                 MilestoneTypes.COMPLETED ->
-                    "se ha completado ${entry.gameName.ifBlank { "un juego" }} 🎉"
+                    "se ha completado ${entry.gameName.ifBlank { "un juego" }}"
                 MilestoneTypes.REVIEW ->
                     "ha reseñado ${entry.gameName.ifBlank { "un juego" }}"
                 else -> entry.text
@@ -382,17 +394,23 @@ private fun FeedCard(
             }
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // El "me gusta" TIENE estado visible (iteración 02/10, segunda
+                // vuelta): antes el icono era el mismo en las dos ramas —corazón
+                // relleno siempre— y el color que se calculaba se tiraba sin
+                // usarse, así que un like no se veía en ninguna pantalla.
                 InteractionButton(
                     icon = if (entry.likedByMe) Lucide.Heart else Lucide.Heart,
                     text = "${entry.likesCount}",
                     onClick = onToggleLike,
-                    isDarkMode = false
+                    activo = entry.likedByMe
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = if (isMine) "tuyo" else "",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    // `onSurfaceVariant`, no `onSurface` al 40%: aquello componía
+                    // ~1,9:1 en claro y fallaba AA.
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -588,8 +606,7 @@ fun SocialCard(
                 InteractionButton(
                     icon = Lucide.Heart,
                     text = "Me gusta",
-                    onClick = { /* Acción para 'Me gusta' */ },
-                    isDarkMode = isDarkMode
+                    onClick = { /* Acción para 'Me gusta' */ }
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 if (userUid == ownerUid) {
@@ -601,8 +618,7 @@ fun SocialCard(
                                 socialViewModel.deleteMessage(ownerUid, messageID)
                                     .onSuccess { onMessageDeleted() }
                             }
-                        },
-                        isDarkMode = isDarkMode
+                        }
                     )
                 }
             }
@@ -617,18 +633,21 @@ private fun InteractionButton(
     icon: ImageVector,
     text: String,
     onClick: () -> Unit,
-    isDarkMode: Boolean
+    /** true cuando la interacción está ACTIVA (p. ej. ya diste me gusta). */
+    activo: Boolean = false
 ) {
-    // Selección de color del botón basado en el tema actual
-    val buttonColor = if (isDarkMode)
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
-    else
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-    // Botón de texto estilizado para acciones de interacción
+    // Estado visible de la interacción: el acento cuando está activa, tinta suave
+    // cuando no. Antes esta cuenta se hacía y se tiraba a la basura.
     TextButton(
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+        shape = GVShapeFull,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = if (activo) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -636,7 +655,7 @@ private fun InteractionButton(
                 contentDescription = text,
                 modifier = Modifier.size(18.dp)
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(Modifier.width(GVSpacing.xs))
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelMedium

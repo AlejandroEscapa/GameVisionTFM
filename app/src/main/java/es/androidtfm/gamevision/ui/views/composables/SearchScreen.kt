@@ -275,10 +275,16 @@ fun SearchScreen(
 
                 // Muestra un mensaje de error en caso de producirse alguno
                 error?.let {
+                    // El mensaje ya viene traducido por el ViewModel
+                    // ("Sin conexión. Comprueba tu red…"): el prefijo "Error:" era
+                    // jerga de motor en pantalla.
                     Text(
-                        text = "Error: $it",
+                        text = it,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(horizontal = GVSpacing.screenPadding)
                     )
                 }
 

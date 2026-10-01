@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,11 +26,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.Eye
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.RefreshCw
+import com.composables.icons.lucide.ShieldCheck
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
@@ -103,9 +109,18 @@ fun SteamScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(GVSpacing.md))
-                TarjetaConsentimiento("✅  Leeremos tu biblioteca, tus horas jugadas y tu perfil público")
-                TarjetaConsentimiento("🚫  Nunca vemos tu contraseña: el login ocurre en steamcommunity.com")
-                TarjetaConsentimiento("🔁  Es una conexión de SOLO LECTURA: no compramos ni modificamos nada")
+                TarjetaConsentimiento(
+                    icono = Lucide.Eye,
+                    texto = "Leeremos tu biblioteca, tus horas jugadas y tu perfil público"
+                )
+                TarjetaConsentimiento(
+                    icono = Lucide.ShieldCheck,
+                    texto = "Nunca vemos tu contraseña: el login ocurre en steamcommunity.com"
+                )
+                TarjetaConsentimiento(
+                    icono = Lucide.RefreshCw,
+                    texto = "Es una conexión de SOLO LECTURA: no compramos ni modificamos nada"
+                )
                 Spacer(Modifier.height(GVSpacing.lg))
                 GVButton(
                     text = "Conectar Steam",
@@ -140,17 +155,28 @@ fun SteamScreen(
                 }
                 estado.resultado?.let { res ->
                     Spacer(Modifier.height(GVSpacing.md))
-                    Text(
-                        text = buildString {
-                            append("✓ ${res.actualizados} juegos actualizados")
-                            if (res.importados > 0) append(" · ${res.importados} importados")
-                            if (res.sinEmparejar.isNotEmpty()) {
-                                append(" · ${res.sinEmparejar.size} sin emparejar (no estaban en el catálogo)")
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Lucide.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(GVSpacing.sm))
+                        Text(
+                            text = buildString {
+                                append("${res.actualizados} juegos actualizados")
+                                if (res.importados > 0) append(" · ${res.importados} importados")
+                                if (res.sinEmparejar.isNotEmpty()) {
+                                    append(" · ${res.sinEmparejar.size} sin emparejar (no estaban en el catálogo)")
+                                }
+                            },
+                            // Tinta normal, no el azul de ACCIÓN: un resumen no es
+                            // un botón ni debe parecerlo.
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
                 Spacer(Modifier.height(GVSpacing.lg))
                 Text(
@@ -166,15 +192,25 @@ fun SteamScreen(
 }
 
 @Composable
-private fun TarjetaConsentimiento(texto: String) {
+private fun TarjetaConsentimiento(icono: ImageVector, texto: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .padding(vertical = GVSpacing.xs)
+            .clip(GVShapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(16.dp)
+            .padding(GVSpacing.lg),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        // Icono del sistema (Lucide), no emoji: un emoji trae su propia fuente,
+        // rompe la línea tipográfica y su contraste no lo controla el tema.
+        Icon(
+            imageVector = icono,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(GVSpacing.md))
         Text(texto, style = MaterialTheme.typography.bodyMedium)
     }
 }

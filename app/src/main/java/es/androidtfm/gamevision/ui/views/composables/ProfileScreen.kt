@@ -463,12 +463,12 @@ private fun ProfileDetailsCard(description: String, country: String, email: Stri
             Spacer(modifier = Modifier.height(16.dp))
             ProfileDetailItem(
                 icon = Lucide.MapPin,
-                title = "Location",
-                value = if (country.isEmpty()) "Not specified" else country
+                title = "Ubicación",
+                value = if (country.isEmpty()) "Sin especificar" else country
             )
             ProfileDetailItem(
                 icon = Lucide.Mail,
-                title = "Contact",
+                title = "Contacto",
                 value = email
             )
         }

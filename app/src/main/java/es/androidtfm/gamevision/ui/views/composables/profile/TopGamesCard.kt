@@ -255,39 +255,49 @@ private fun SlotTop(
                         .aspectRatio(0.72f)
                 )
                 if (editable) {
+                    // Caja táctil de 48 dp con el círculo visible de 24: el mínimo
+                    // de accesibilidad no se negocia por estética (antes eran 24 dp
+                    // de zona pulsable, media recomendación).
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(4.dp)
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f))
+                            .size(48.dp)
                             .clickable(onClick = onQuitar),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.TopEnd
                     ) {
-                        Icon(
-                            imageVector = Lucide.X,
-                            contentDescription = "Quitar ${juego.name} del Top",
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(top = GVSpacing.xs, end = GVSpacing.xs)
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Lucide.X,
+                                contentDescription = "Quitar ${juego.name} del Top",
+                                // `inverseOnSurface` es el rol de tinta sobre scrim
+                                // en ambos temas; nada de blanco fijo.
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     }
                 }
                 // Número de posición: el orden del Top es información, no decoración.
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(4.dp)
+                        .padding(GVSpacing.xs)
                         .size(20.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f)),
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "$posicion",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
-                        fontSize = 11.sp
+                        color = MaterialTheme.colorScheme.inverseOnSurface
                     )
                 }
             } else {
@@ -409,17 +419,16 @@ fun TopGamesRow(
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .padding(4.dp)
+                            .padding(GVSpacing.xs)
                             .size(18.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.55f)),
+                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "${indice + 1}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            fontSize = 10.sp
+                            color = MaterialTheme.colorScheme.inverseOnSurface
                         )
                     }
                 }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -452,27 +453,28 @@ fun GameContent(game: CatalogGame?) {
                 game?.let { g ->
                     MetaDataRow(
                         icon = Lucide.Star,
-                        label = "Veces recomendado",
-                        value = g.suggestionsCount.toString()
+                        label = "Recomendado por",
+                        value = "${g.suggestionsCount} jugadores"
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
                         icon = Lucide.Star,
-                        label = "Metacritic Score",
-                        value = g.metacritic?.toString() ?: "N/A"
+                        label = "Nota Metacritic",
+                        value = g.metacritic?.toString() ?: "Sin nota"
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
                         icon = Lucide.Star,
-                        label = "RAWG Rating",
+                        // "RAWG Rating" filtraba el proveedor al usuario: a nadie
+                        // que abre una ficha le importa de dónde sale el dato.
+                        label = "Nota media",
                         value = g.rating.toString()
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
                         icon = Lucide.Calendar,
                         label = "Lanzamiento",
-                        value = fechaEspanol(g.released),
-                        extraPadding = true // Nuevo parámetro para padding adicional
+                        value = fechaEspanol(g.released)
                     )
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     MetaDataRow(
@@ -487,26 +489,27 @@ fun GameContent(game: CatalogGame?) {
 }
 
 @Composable
-fun MetaDataRow(icon: ImageVector, label: String, value: String, extraPadding: Boolean = false) {
+fun MetaDataRow(icon: ImageVector, label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = if (extraPadding) 12.dp else 0.dp), // Padding adicional vertical
+            .padding(vertical = GVSpacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = label,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            // Decorativo: la etiqueta de al lado ya dice lo mismo, así que leerlo
+            // dos veces solo alarga el discurso de TalkBack.
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
         )
-        Spacer(Modifier.width(16.dp)) // Espacio aumentado entre icono y texto
+        Spacer(Modifier.width(GVSpacing.md))
         Column {
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 4.dp) // Espacio adicional bajo la etiqueta
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = value,
@@ -645,12 +648,31 @@ private fun LibraryPanel(
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onToggleFavorite) {
+                        // El icono DISTINGUE el estado (iteración 02/10, segunda
+                        // vuelta): antes era el mismo corazón con y sin favorito,
+                        // así que el favorito no se veía. Lucide trae una sola
+                        // variante de corazón, así que el estado lo llevan el
+                        // relleno del contenedor y el color.
                         Icon(
-                            imageVector = if (entry.favorite) Lucide.Heart
-                            else Lucide.Heart,
+                            imageVector = Lucide.Heart,
                             contentDescription = if (entry.favorite) "Quitar de favoritos"
                             else "Marcar como favorito",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = if (entry.favorite) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (entry.favorite) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        Color.Transparent
+                                    }
+                                )
+                                .padding(GVSpacing.xs)
                         )
                     }
                     IconButton(onClick = onRemove) {
