@@ -47,7 +47,7 @@ compartible como imagen** listo para enseñar y publicar.
   (*evidencia:* 132 unitarios en verde; regla CA3.1 con el matiz anti-caja-vacía)
 - [x] T3.2 Pantalla "¿Qué juego ahora?" con el tiempo disponible como entrada rápida (30 min / 2 h / una tarde) — **hecha dentro de la Home «Para ti»** (bloque F de la iteración): chips de tiempo + ánimo en `ParaTiScreen`
 - [x] T3.3 Explicación de cada recomendación en lenguaje natural — el motor ya la devuelve (D3.2) y la Home la pinta en cada tarjeta
-- [ ] T3.4 Acciones directas desde la recomendación (empezar, marcar como jugando, descartar)
+- [ ] T3.4 Acciones directas desde la recomendación (empezar, marcar como jugando, descartar) — *parcial:* la tarjeta abre la ficha (donde ya se cambia de estado); faltan las acciones en línea
 - [ ] T3.5 Aprendizaje ligero: registrar si el usuario aceptó o descartó para mejorar el orden
 
 ### B. Celebrar: GameVision Rewind

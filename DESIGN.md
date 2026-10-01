@@ -1,126 +1,126 @@
 # DESIGN.md — GameVision Design System
 
-> ⚠️ **PROVISIONAL (29/09/2026).** El propietario ha confirmado que GameVision usará un **nuevo
-> design system** (documento Markdown entrante). Cuando llegue, **sustituirá a este documento como
-> fuente única de verdad visual**. El re-anclaje (tokens, tipografía, componentes y motion) se
-> ejecuta en **F4.5** — ver [ADR-0009](docs/metodologia/adr/0009-reanclaje-design-system.md) y la
-> decisión **DX.8** en `docs/roadmap/fase-4-5-diseno-animaciones.md`. Hasta entonces, este documento
-> sigue siendo la referencia vigente.
-
-> **Fuente única de verdad** del lenguaje visual de GameVision.
-> Decisión registrada en `docs/ui-redesign-2026-proposals.md` (27/09/2026).
-> Dirección: *design-system-first cinematográfico con identidad editorial* —
-> monocromo cálido + spot verde ácido, tipografía grotesca variable, contenido
-> (portadas) como protagonista. Cualquier cambio visual pasa por aquí primero.
+> **Fuente única de verdad** del lenguaje visual de GameVision (v2, 01/10/2026).
+> Dirección: **galería limpia estilo Apple** — superficies blanco/pergamino/tile casi-negro,
+> **un único azul interactivo**, tipografía Inter apretada, contenido (carátulas) como protagonista.
+> Re-anclaje ejecutado según [ADR-0010](docs/metodologia/adr/0010-reanclaje-adelantado-fuente-recibida.md);
+> documento fuente del sistema: [design-system-fuente-apple.md](docs/plan/design-system-fuente-apple.md).
+> El look anterior (monocromo cálido + verde ácido) queda conservado en el
+> [snapshot del diseño provisional](docs/plan/snapshot-design-provisional-2026-09.md) (tag
+> `diseno-provisional-2026-09`). Cualquier cambio visual pasa por aquí primero.
 
 ## 1. Atmósfera
 
-Gaming premium de alto contraste, editorial y contenido-first: la interfaz es un
-escenario neutro monocromo que desaparece para que **la portada del juego sea el
-color**. El verde ácido es una microdosis con propósito: acción principal,
-rating, foco. Nada de gradientes decorativos, sombras pesadas ni filas de
-tarjetas idénticas. Todo se mueve con física de muelles, nunca con tweens
-lineales.
+El chrome desaparece para que **la carátula del juego sea el color**. Interfaz de galería:
+superficies planas alternando claro/oscuro — el cambio de superficie hace de divisor, sin bordes
+decorativos, sin gradientes, sin sombras (la única sombra del sistema es para imágenes de producto
+apoyadas en una superficie). Un solo acento interactivo: **Action Blue**. Si dudas sobre énfasis,
+alterna superficie antes de añadir chrome.
 
 ## 2. Color
 
-### Dark (tema por defecto, identidad principal)
+### Claro
 
-| Rol | Hex | Uso |
+| Rol | Token | Uso |
 |---|---|---|
-| `background` | `#0D0D0D` | Fondo global (carbón cálido) |
-| `surface` / `surfaceContainer` | `#1A1A1A` / `#242424` | Tarjetas, barras |
-| `onBackground` / `onSurface` | `#F2F2F2` | Texto principal |
-| `onSurfaceVariant` | `#8C8C8C` | Texto secundario, metadatos |
-| `outline` | `#2E2E2E` | Bordes divisores |
-| `primary` | `#C8F135` | **Verde ácido**: CTA, rating, foco, badges |
-| `onPrimary` | `#0D0D0D` | Texto sobre verde |
-| `primaryContainer` | `#2E3A0A` | Verde apagado para contenedores |
-| `onPrimaryContainer` | `#E4FF87` | Texto sobre contenedor verde |
-| `error` | `#FF5449` | Errores |
+| Canvas / superficie | `#FFFFFF` | fondo dominante y tarjetas planas |
+| Pergamino | `#F5F5F7` | tarjetas de utilidad, bloques alternos |
+| Perla | `#FAFAFC` | botones "fantasma" secundarios |
+| **Acento interactivo** | **`#0066CC` (Action Blue)** | TODO lo clicable: CTAs, enlaces, foco, chips seleccionados |
+| Tinta | `#1D1D1F` | titulares, cuerpo, botón utilitario oscuro |
+| Secundario | `#6E6E73` | copy secundario |
+| Hairline | `#E0E0E0` · Divider `#F0F0F0` | bordes de tarjeta, separadores |
+| Error | `#B3261E` | |
 
-### Light (monocromo espejo)
+### Oscuro (derivado de los tiles, NUNCA invertido)
 
-| Rol | Hex |
-|---|---|
-| `background` | `#F2F2F2` |
-| `surface` | `#FAFAFA` |
-| `onBackground` | `#0D0D0D` |
-| `onSurfaceVariant` | `#5A5A5A` |
-| `primary` | `#4A6B00` (verde ácido oscurecido para contraste AA sobre claro) |
-| `onPrimary` | `#F2F2F2` |
-
-### Reglas de color
-
-1. El color de imagen (portadas) no se compite: superficies neutras siempre.
-2. El verde ácido aparece como **spot**: máx. 1-2 elementos en pantalla.
-3. Color dinámico Material You: **opt-in del usuario** en ajustes; la identidad
-   verde/monocromo es el fallback y el default.
-
-## 3. Tipografía — Space Grotesk (variable, única familia)
-
-Descargada vía Google Fonts provider (`ui-text-google-fonts`); jerarquía por
-**tamaño y peso**, tracking apretado en display.
-
-| Token | Size/Line | Weight | Tracking | Uso |
-|---|---|---|---|---|
-| `displayLarge` | 32/1.1 | 700 | -0.02em | Título de detalle de juego |
-| `headlineMedium` | 24/1.15 | 700 | -0.02em | Títulos de sección |
-| `titleLarge` | 18/1.2 | 600 | -0.01em | Título de juego en tarjeta |
-| `titleMedium` | 16/1.25 | 600 | 0 | Títulos de fila |
-| `bodyLarge` | 15/1.45 | 400 | 0 | Descripciones |
-| `bodyMedium` | 14/1.45 | 400 | 0 | Texto general |
-| `labelLarge` | 13/1.2 | 600 | +0.02em | Botones, CTA |
-| `labelSmall` | 11/1.2 | 600 | +0.05em | Badges, metadatos, mayúsculas |
-
-Regla: **nunca más de 2 tamaños por pantalla visible** fuera de la ficha de detalle.
-
-## 4. Forma
-
-| Token | Radio | Uso |
+| Rol | Token | Uso |
 |---|---|---|
-| `shape.small` | 8 dp | Chips, badges, inputs |
-| `shape.medium` | 16 dp | Tarjetas, cards |
-| `shape.large` | 24 dp | Sheets, diálogos, hero cards |
-| `shape.full` | 999 dp | Avatares, pills, botones redondos |
+| Fondo | `#0E0E10` | negro apagado, nunca puro |
+| Superficies (escalera) | `#161619` → `#272729` (tile-1) → `#2A2A2C` (tile-2) | tarjetas y bloques |
+| Texto | `#F5F5F7` · secundario `#CCCCCC` | pergamino sobre oscuro |
+| **Acento** | **`#2997FF` (Sky Blue)** | interacción sobre oscuro (Action Blue desaparece) |
+| Texto sobre acento | `#062033` | derivado, contraste AA |
 
-Portadas de juego: `medium` (16 dp) — la imagen manda, borde 0, sin elevación.
-Elevación por superficie (tono #1A1A1A sobre #0D0D0D), nunca por sombra.
+Regla dura: **un solo acento por tema, en todo el tema**. Prohibido introducir un segundo color de
+marca, glow, o sombras en tarjetas/botones/texto.
 
-## 5. Motion (GVMotion)
+## 3. Tipografía
+
+**Inter** (Google Fonts descargable) como sustituta de SF Pro — pesos **400 / 600 / 700**.
+El peso **500 no existe** en el sistema.
+
+| Estilo | Especificación | Uso |
+|---|---|---|
+| display | 40/600, línea 44, tracking 0 | héroe de pantalla |
+| headline | 34/600 o 28/600, tracking −1,1 % | secciones |
+| title | 21/600 (+1,1 % — el único tracking positivo) / 17/600 (−2,2 %) | tarjetas, encabezados de bloque |
+| **body** | **17/400, línea 1.47, −2,2 %** | párrafos — el ritmo de lectura de la marca, nunca 16 |
+| caption | 14/400 y 14/600 | secundarios, botones utilitarios |
+| fine | 12/400 | legal, micro |
+
+Reglas: titulares siempre peso 600 con tracking apretado ("Apple tight"); cuerpo nunca por debajo
+de 17 sp en lectura; sin serifa, sin mezcla de familias; el énfasis dentro de un titular es
+*cursiva o negrita de la misma familia*, nunca otra fuente.
+
+## 4. Formas
+
+Escala cerrada: **8** (utilidad compacta: badges, inputs pequeños) · **11** (perla, imágenes
+inline) · **18** (tarjetas de utilidad, sheets) · **píldora** (CTA, chips de opción, búsqueda —
+reservada a la ACCIÓN). Los bloques full-bleed son rectangulares: el cambio de color es el divisor.
+No mezclar gramáticas de radio sin regla documentada.
+
+## 5. Motion
+
+Física de muelles (nunca tweens lineales) + la micro-interacción universal del sistema:
+**escala 0.95 en estado pulsado** en todo botón. Entrada fade+slide 16 dp con emphasized
+decelerate; máximo 3 elementos animando a la vez; respeta reducir-movimiento. Skeletons, cero
+spinners.
+
+## 6. Componentes (`ui/designsystem/`)
+
+- **GVButton** — primario: píldora Action Blue texto blanco (oscuro: Sky Blue texto `#062033`);
+  secundario: píldora outline.
+- **GVChip** — píldora outline; seleccionada rellena del acento.
+- **Tarjetas** — superficie de contenedor (pergamino claro / tile-1 oscuro), radio 18, SIN sombra:
+  la separación la da el tono.
+- **GameCover/GameCard** — la carátula manda: radio, sin borde, sin elevación.
+- **GVSkeleton / EmptyState / OfflineBanner / RatingBadge / NewsCard / FriendAvatar** — mismos
+  roles de tema; nada hardcodeado.
+- Regla de convivencia (ADR-0009, vigente): nada visual fuera de `ui/designsystem/`.
+
+## 7. Espaciado y pantallas (`GVSpacing`)
+
+Primera escala de espaciado del sistema (iteración 02/10/2026): **antes no existía** y convivían
+4/8/10/12/16/18/20/24 dp como margen de pantalla, mezclados dentro de la misma pantalla.
 
 | Token | Valor | Uso |
 |---|---|---|
-| `durationFast` | 150 ms | Cambios de estado (pressed, selection) |
-| `durationNormal` | 300 ms | Entradas de elementos, fades |
-| `durationSlow` | 500 ms | Transiciones de pantalla, shared elements |
-| `springStandard` | stiffness 380, damping 0.9 | Movimiento por defecto (posicional) |
-| `springBouncy` | stiffness 600, damping 0.6 | Micro-interacciones juguetonas (badges, morph) |
-| `staggerIncrement` | 40 ms | Retardo entre items de lista en entrada |
+| `screenPadding` | 16 dp | margen horizontal de TODA pantalla: título y contenido comparten línea |
+| `headerGap` | 20 dp | aire entre el título de la cabecera y el primer elemento |
+| `xs` / `sm` | 4 / 8 dp | separación dentro de un componente (icono↔texto, chips) |
+| `md` | 12 dp | entre elementos de contenido (tarjetas, filas) |
+| `xl` / `xxl` | 24 / 32 dp | separación entre secciones |
 
-Reglas: entra con fade+slide 16 dp, nunca más de 3 elementos animando a la vez;
-`LocalContentColor` del contenido nunca anima; respetar "reducir movimiento"
-del sistema.
+**Cabeceras (`GVScreenHeader`).** Una sola forma para toda la app:
 
-## 6. Componentes del sistema (`ui/designsystem/`)
+- El título es **texto simple** — sin tarjetas, sin fondos, sin estilos propios copiados.
+- Tipografía `headlineLarge`, tinta sobre superficie. Nada de variantes sueltas.
+- **Cabecera FIJA**: vive FUERA del contenedor con scroll; solo se desplaza el contenido.
+- `leading` (opcional) para acciones a la **izquierda** — ahí vive la vuelta ("Volver"), no en la
+  zona de la derecha.
+- `actions` (opcional) a la derecha (iconos de refresco, menús).
 
-| Componente | Spec |
-|---|---|
-| `GameCard` | Portada (16 dp), título `titleLarge`, rating badge superpuesto; ancho fijo en carrusel, fill en grid |
-| `GameCover` | AsyncImage + crossfade + placeholder monocromo con iniciales |
-| `RatingBadge` | Pill `shape.full`, fondo verde ácido, texto `labelSmall` oscuro |
-| `NewsCard` | Imagen 16:9 recortada + titular `titleMedium` + fuente/fecha `labelSmall` gris |
-| `FriendAvatar` | Círculo con iniciales; anillo verde si conectado |
-| `GVSkeleton` | Bloque #242424 con shimmer; replica la forma del contenido (nada de spinners) |
-| `EmptyState` | Icono outline + título `titleMedium` + hint `bodyMedium` gris, centrado |
-| `GVButton` | Primary: relleno verde, texto `labelLarge` oscuro, radius `full`; Secondary: outline `#2E2E2E` |
-| `GVChip` | Filtro: outline; seleccionado: relleno verde, texto oscuro |
+**Portadas.** El placeholder de `GameCover` (sin imagen) dibuja las iniciales **centradas y
+escaladas al tamaño de la portada**; los títulos de juego usan `maxLines` **con `Ellipsis`** —
+sin `overflow` Compose corta los glifos a media letra.
 
-## 7. Layout y pantallas
+## 8. Do / Don't
 
-- Márgenes de pantalla: 16 dp; gutter de grid: 12 dp.
-- Listas verticales con contentPadding que respete insets (nada de padding doble).
-- Pantalla detalle de juego: hero full-bleed (portada 2:3) + scrim gradiente +
-  contenido en sheet `shape.large` que se solapa.
-- Nada de filas de 3 tarjetas idénticas: grids asimétricos o carruseles
-  horizontales de anchos variables.
+**Do:** un acento; superficies planas alternando tono; cuerpo 17; peso 600 + tracking apretado en
+titulares; píldora solo para acciones; hairline para bordes de tarjeta; contraste AA verificado en
+ambos temas.
+
+**Don't:** nada de verde ácido (histórico); nada de gradientes decorativos; nada de sombras en
+UI (solo sobre imágenes apoyadas); nada de peso 500; nada de negros/blancos puros en fondo de
+pantalla; nada de un segundo acento; nada de estilos fuera de `ui/designsystem/`.

@@ -111,6 +111,20 @@ todo lo demás existe (biblioteca, HLTB, motor T3.1, NewsAPI, feed, RAWG).
   *Nota:* la sección «Te está esperando» muestra la lista de deseos y enlaza a la ficha (la
   integración de precios de CheapShark queda como siguiente paso; el servicio ya está cableado).
 
+## Ampliación de la sesión (01/10, tarde-noche)
+
+Tras cerrar los bloques de producto, la misma jornada añadió el **sistema visual** y **Steam**:
+
+- [x] **Escala de espaciado `GVSpacing`** y cabeceras unificadas y fijas (20 pantallas).
+- [x] **Cortes corregidos**: placeholder de portada centrado/escalado y `Ellipsis` en títulos.
+- [x] **Timeline**: el feed arranca arriba (re-anclaje de la lista).
+- [x] **Ficha**: «Tu tiempo» primero, HLTB de referencia, memo en memoria.
+- [x] **Steam fase 1**: worker desplegado, vinculación OpenID e import de horas
+  ([ADR-0011](../metodologia/adr/0011-proxy-steam-cloudflare-workers.md)).
+- [x] **Acceso a Steam desde Home** («Tu tiempo real») además del de Ajustes.
+
+Detalle completo en el [acta de la sesión](sesion-diseno-2026-10-01.md).
+
 ## Orden de ejecución (02/10)
 
 **A → D → C → B → F** (de lo rápido a lo grande; F necesita decisiones cerradas por la mañana).
