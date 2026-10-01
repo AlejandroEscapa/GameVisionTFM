@@ -227,7 +227,7 @@ fun ProfileField(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     )

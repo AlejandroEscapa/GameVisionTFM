@@ -50,6 +50,8 @@ import es.androidtfm.gamevision.data.library.DiaryUtils
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.PlaySession
 import es.androidtfm.gamevision.data.library.Platforms
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
+import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
@@ -222,20 +224,21 @@ fun DiaryScreen(
 private fun DiarySummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = GVShapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(GVSpacing.lg)) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(GVSpacing.xs))
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary
+                // Dato, no acción: jerarquía por tamaño y tinta normal.
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

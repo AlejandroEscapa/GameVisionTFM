@@ -113,7 +113,7 @@ fun TopGamesCard(
                     Text(
                         text = "Tu Top 4",
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(

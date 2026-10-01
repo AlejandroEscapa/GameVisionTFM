@@ -230,7 +230,7 @@ private fun RegistrationForm(
                                 Icon(
                                     imageVector = Lucide.Eye,
                                     contentDescription = "Mostrar contraseña",
-                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }

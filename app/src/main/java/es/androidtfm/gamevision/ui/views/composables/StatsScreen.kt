@@ -34,6 +34,7 @@ import es.androidtfm.gamevision.data.library.LibraryInsights
 import es.androidtfm.gamevision.data.library.StatisticsUtils
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
@@ -193,20 +194,23 @@ private fun StatKpi(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = GVShapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(GVSpacing.lg)) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(GVSpacing.xs))
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary
+                // La jerarquía la da el TAMAÑO, no el color (decisión de sistema
+                // del 02/10: el acento es para lo que se toca). `headlineLarge`
+                // estaba definido y sin usar en toda la app.
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
             subtitle?.let {
                 Text(

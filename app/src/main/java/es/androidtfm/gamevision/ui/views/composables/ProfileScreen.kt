@@ -449,8 +449,8 @@ private fun ProfileDetailsCard(description: String, country: String, email: Stri
             Text(
                 text = "Biografía",
                 style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = GVSpacing.sm)
             )
             Text(
                 text = if (description.isEmpty()) "Aún no has escrito tu biografía." else description,
@@ -485,11 +485,12 @@ private fun ProfileDetailItem(icon: ImageVector, title: String, value: String) {
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = title,
-            tint = MaterialTheme.colorScheme.primary,
+            // Decorativo: la etiqueta de al lado ya nombra el dato.
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(GVSpacing.lg))
         Column {
             Text(
                 text = title,
@@ -500,7 +501,7 @@ private fun ProfileDetailItem(icon: ImageVector, title: String, value: String) {
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = GVSpacing.xs)
             )
         }
     }

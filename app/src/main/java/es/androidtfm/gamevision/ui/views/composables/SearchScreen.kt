@@ -407,7 +407,9 @@ fun GameCard(
                 Icon(
                     imageVector = Lucide.Star,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    // Dato, no acción: tinta suave. El acento queda para lo que
+                    // se toca (decisión de sistema del 02/10).
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(Modifier.width(GVSpacing.xs))

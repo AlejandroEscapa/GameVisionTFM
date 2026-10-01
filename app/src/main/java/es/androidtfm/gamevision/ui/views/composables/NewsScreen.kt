@@ -176,12 +176,13 @@ fun ArticleCard(
                     Text(
                         text = article.source.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        // La fuente de la noticia es un dato, no una acción.
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = viewModel.formatPublishedAt(article.publishedAt),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

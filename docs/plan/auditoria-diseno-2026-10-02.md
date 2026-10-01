@@ -63,8 +63,7 @@ documenta el "verde ácido" retirado y usa icono en vez del carácter "★".
 
 ## 2. Lo que queda (el plan, por impacto)
 
-### Primera pasada (pendiente)
-1. **Margen de pantalla único**: Login/Pass/Register/Onboarding a 24 y el perfil a 20 → todo a
+### Primera pasada (pendiente)1. **Margen de pantalla único**: Login/Pass/Register/Onboarding a 24 y el perfil a 20 → todo a
    `GVSpacing.screenPadding`. Dentro de `EditProfileScreen`, el título va a 16 y sus tarjetas a 24:
    **no comparten línea**, que es la primera regla del sistema.
 2. **Formas**: 68 `RoundedCornerShape(n.dp)` a mano (5/12/16/20/24/32) frente a 3 tokens. Quedan las
@@ -86,11 +85,15 @@ documenta el "verde ácido" retirado y usa icono en vez del carácter "★".
    portada—).
 9. **Movimiento**: `GVMotion` solo se usa en el dock y en las transiciones del NavHost. Entrada por
    sección, stagger y muelle en los toggles es la capa que más "premium" se percibe por línea.
-10. **Decisión de sistema (no de pantalla): qué significa Action Blue.** Hoy es acción (CTAs,
-    chips) *y* dato informativo (números de Estadísticas, totales del Diario, fuente de Noticias,
-    éxito de Steam). Ninguno de esos cinco elementos es interactivo, y azul + dato diluye justo lo
-    que el ADR-0010 quería proteger. Recomendación: **acento solo para acción e interacción**; el
-    dato editorial se jerarquiza por tamaño y peso (`displayLarge` está definido y sin usar).
+10. ~~**Decisión de sistema: qué significa Action Blue.**~~ **DECIDIDA Y EJECUTADA (02/10)** — el
+    propietario eligió **acento solo para acción e interacción**. El azul pintaba además datos
+    informativos (números de Estadísticas, totales del Diario, fuente de Noticias, éxito de Steam,
+    antetítulos de tarjeta, iconos de metadatos) y ninguno de esos elementos es interactivo. Ahora
+    esos datos van a tinta (`onSurface` / `onSurfaceVariant`) y **la jerarquía la da el tamaño**: las
+    cifras de Estadísticas y Diario suben a `headlineLarge` (un estilo que estaba definido y sin
+    usar en toda la app). Se queda con acento lo que se toca: CTAs, chips de opción, enlaces,
+    buscador, el icono de Ajustes, el cuadro de acción del perfil, indicadores de selección y las
+    barras de progreso.
 
 ### Pulido
 11. `NewsScreen` mete "Cargando noticias..." junto a los skeletons (el skeleton ya lo dice).
