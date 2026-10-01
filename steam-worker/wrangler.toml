@@ -6,3 +6,4 @@ compatibility_date = "2026-09-01"
 #   npx wrangler secret put STEAM_API_KEY
 # Despliegue:
 #   npx wrangler deploy
+workers_dev = true
