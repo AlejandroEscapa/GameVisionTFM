@@ -19,7 +19,19 @@ data class UserProfile(
     /** D2.2: cuenta privada; default false (perfiles antiguos sin el campo = públicos). */
     val isPrivate: Boolean = false,
     /** T2.5: Top 4 del perfil (identidad), como gameIds en orden. */
-    val topGameIds: List<String> = emptyList()
+    val topGameIds: List<String> = emptyList(),
+    /**
+     * Géneros favoritos elegidos en el onboarding (iteración 02/10). Array en
+     * `users/{uid}` para poder consultar por género con `array-contains` sin
+     * subcolecciones. Alimenta el motor de recomendación y el descubrimiento.
+     */
+    val favoriteGenres: List<String> = emptyList(),
+    /**
+     * Marca de onboarding completado o saltado. Vive en el perfil (no en local)
+     * para que no se repita en otro dispositivo y para poder sembrarla en las
+     * cuentas anteriores por admin.
+     */
+    val onboardingDone: Boolean = false
 ) {
     companion object {
         /**
@@ -38,7 +50,9 @@ data class UserProfile(
                 country = value("country"),
                 imageUri = value("imageUri"),
                 isPrivate = data["isPrivate"] as? Boolean ?: false,
-                topGameIds = (data["topGameIds"] as? List<*>)?.map { it.toString() } ?: emptyList()
+                topGameIds = (data["topGameIds"] as? List<*>)?.map { it.toString() } ?: emptyList(),
+                favoriteGenres = (data["favoriteGenres"] as? List<*>)?.map { it.toString() } ?: emptyList(),
+                onboardingDone = data["onboardingDone"] as? Boolean ?: false
             )
         }
     }
@@ -53,6 +67,8 @@ data class UserProfile(
         "country" to country,
         "imageUri" to imageUri,
         "isPrivate" to isPrivate,
-        "topGameIds" to topGameIds
+        "topGameIds" to topGameIds,
+        "favoriteGenres" to favoriteGenres,
+        "onboardingDone" to onboardingDone
     )
 }

@@ -156,11 +156,20 @@ fun MainScreen(
     }
 
     // Navegación automática guiada por el SSOT de sesión: al iniciar sesión (o al
-    // reabrir la app con sesión activa) se entra en la pantalla principal.
+    // reabrir la app con sesión activa) se entra en la pantalla principal — o en
+    // el onboarding, si el perfil aún no lo tiene marcado (bloque C). Este es el
+    // ÚNICO punto de navegación post-login: si hubiera otro, se pisarían.
     val session by userViewModel.session.collectAsStateWithLifecycle()
-    LaunchedEffect(isNavHostInitialized, session) {
-        if (isNavHostInitialized && session is SessionState.LoggedIn) {
-            navController.navigate("news") {
+    val perfilSesion by userViewModel.profile.collectAsStateWithLifecycle()
+    // Se resuelve una sola vez por sesión: si el perfil cambia después (editar
+    // perfil, terminar el onboarding), no queremos arrastrar al usuario de vuelta.
+    var arranqueResuelto by remember { mutableStateOf(false) }
+    val perfilCargado = perfilSesion.email.isNotBlank() // el documento real siempre trae email
+    LaunchedEffect(isNavHostInitialized, session, perfilCargado) {
+        if (isNavHostInitialized && session is SessionState.LoggedIn && perfilCargado && !arranqueResuelto) {
+            arranqueResuelto = true
+            val destino = if (perfilSesion.onboardingDone) "news" else "onboarding"
+            navController.navigate(destino) {
                 popUpTo("main") { inclusive = true }
             }
         }

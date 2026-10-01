@@ -33,6 +33,7 @@ import es.androidtfm.gamevision.ui.views.composables.NewsScreen
 import es.androidtfm.gamevision.ui.views.composables.PassScreen
 import es.androidtfm.gamevision.ui.views.composables.ProfileScreen
 import es.androidtfm.gamevision.ui.views.composables.PublicProfileScreen
+import es.androidtfm.gamevision.ui.views.composables.OnboardingScreen
 import es.androidtfm.gamevision.ui.views.composables.RegisterScreen
 import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
@@ -67,6 +68,7 @@ fun NavHost(
     val isDarkTheme by themeDataStore.isDarkTheme.collectAsStateWithLifecycle(initialValue = false)
     // Scope para el alta de invitado (suspend) desde un callback no composable
     val guestScope = rememberCoroutineScope()
+
 
     NavHost(
         navController = navController,
@@ -186,6 +188,29 @@ fun NavHost(
                 )
                 }
             }
+        }
+
+        // Onboarding post-registro (bloque C): bio, localización y géneros.
+        // Fuera del AppScaffold: es un flujo a pantalla completa, saltable.
+        composable("onboarding") {
+            OnboardingScreen(
+                onFinish = { bio, pais, generos ->
+                    userViewModel.updateProfile(
+                        mapOf(
+                            "description" to bio,
+                            "country" to pais,
+                            "favoriteGenres" to generos,
+                            "onboardingDone" to true
+                        )
+                    ) {
+                        // Al terminar, a la pantalla principal (el onboarding no
+                        // debe quedar en el historial: ya está marcado).
+                        navController.navigate("news") {
+                            popUpTo("onboarding") { inclusive = true }
+                        }
+                    }
+                }
+            )
         }
 
         // Pantalla de registro
