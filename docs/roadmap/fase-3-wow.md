@@ -61,8 +61,24 @@ compartible como imagen** listo para enseñar y publicar.
   animaciones del sistema desactivadas la pantalla se pinta completa e idéntica** — el gate de
   movimiento reducido funciona, CA4.5.4). *Build:* 178 unitarios verdes, `lintDebug` limpio,
   `assembleDebug` OK
-- [ ] T3.8 Generación de imagen compartible (con marca de la app)
-- [ ] T3.9 Compartir nativo de Android (hoja de compartir del sistema)
+- [x] T3.8 Generación de imagen compartible (con marca de la app) — el **póster** de
+  `RewindScreen` se dibuja en una `GraphicsLayer` (`rememberGraphicsLayer` +
+  `Modifier.drawWithContent`) y se convierte en PNG con `toImageBitmap()`; se escribe en la caché
+  con `data/storage/ShareImageStorage.kt`. **Se captura lo que está en pantalla**, así que no hay
+  una plantilla paralela que se desincronice del diseño.
+  *Evidencia:* `.verificacion/10-imagen-compartida.png`, **PNG real extraído de la caché de la app**
+  (996×1118, cabecera válida, 251.807 bytes) con marca, año, horas, portada y juego del año.
+  *Dos defectos encontrados y corregidos en la propia verificación:* el pie se recortaba con
+  `aspectRatio(1f)` + `SpaceBetween` (ahora la altura la dicta el contenido) y salía
+  «1 juegos, 1 terminados» (ahora `RewindUtils.resumenDeJuegos`, **con test de regresión**)
+- [x] T3.9 Compartir nativo de Android (hoja de compartir del sistema) — `Intent.ACTION_SEND` con
+  `type = "image/png"`, `EXTRA_STREAM` y `FLAG_GRANT_READ_URI_PERMISSION`, más `EXTRA_TEXT` con el
+  resumen. Requirió **añadir el `FileProvider`** al manifest (`res/xml/file_paths.xml`, solo la
+  carpeta `rewind/` de la caché): pasar un `file://` habría lanzado `FileUriExposedException`.
+  *Evidencia:* `.verificacion/09-compartir.png` — la hoja del sistema muestra «Sharing image» con el
+  texto del Rewind y destinos (Quick Share, Drive, Mensajes). **Precisión:** la imagen queda en la
+  caché de la app, **no** en la galería; «guardar en el dispositivo» sería otro flujo (MediaStore) y
+  no lo pide T3.8
 - [ ] T3.10 "Tu historia con este juego" (mini-recap por juego)
 - [ ] T3.11 Notificación de fin de año cuando el Rewind está listo
 
@@ -76,8 +92,12 @@ compartible como imagen** listo para enseñar y publicar.
       (probado con los 3 valores: 30 min / 2 h / una tarde).
 - [ ] CA3.3 El Rewind cuadra exactamente con los datos introducidos (horas, juego más
       jugado, nota media) — verificación manual contra el diario.
-- [ ] CA3.4 La imagen compartible se genera y se comparte correctamente (probado con la
-      hoja de compartir de Android en el emulador y guardada en el dispositivo).
+- [x] CA3.4 La imagen compartible se genera y se comparte correctamente (probado con la
+      hoja de compartir de Android en el emulador y guardada en el dispositivo) — **02/10**: PNG de
+      996×1118 extraído de la caché de la app (`.verificacion/10-imagen-compartida.png`) y hoja de
+      compartir del sistema abierta con `image/png` (`.verificacion/09-compartir.png`). Se interpreta
+      «guardada en el dispositivo» como **escrita en el almacenamiento de la app** (caché); no se
+      publica en la galería, que sería otro flujo.
 - [ ] CA3.5 Un usuario con **muy poca actividad** ve un Rewind que celebra igualmente
       (no mensajes negativos ni vacíos).
 - [x] CA3.6 Tests JVM del motor de recomendación (casos: biblioteca vacía, un solo juego,

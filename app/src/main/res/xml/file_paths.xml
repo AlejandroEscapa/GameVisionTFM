@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Rutas que el FileProvider puede exponer (F3/T3.9).
+
+  Solo la caché, y solo la carpeta del Rewind: la imagen compartible se genera
+  ahí y se borra con el resto de la caché. No se expone nada del almacenamiento
+  interno del usuario.
+-->
+<paths>
+    <cache-path
+        name="rewind"
+        path="rewind/" />
+</paths>

@@ -32,8 +32,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Gamevision"
-            android:windowSoftInputMode="adjustResize">
-            <!-- Retorno del OpenID de Steam vía proxy (bloque 5): esquema propio.
+            android:windowSoftInputMode="adjustResize">            <!-- Retorno del OpenID de Steam vía proxy (bloque 5): esquema propio.
                  No necesita assetlinks porque no es un App Link verificado. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -46,5 +45,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- FileProvider para compartir la imagen del Rewind (F3/T3.9).
+             La imagen se escribe en la caché y se expone con un content:// URI: pasar
+             un file:// a otra app lanza FileUriExposedException desde Android 7, y aquí
+             el receptor es la app que el usuario elija en la hoja de compartir. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

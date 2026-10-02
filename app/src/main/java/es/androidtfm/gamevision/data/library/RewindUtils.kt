@@ -140,6 +140,19 @@ object RewindUtils {
     }
 
     /**
+     * Resumen de juegos en una línea: «1 juego, 1 terminado», «12 juegos, 3 terminados».
+     *
+     * Vive aquí y no en la pantalla porque el singular/plural es una regla de texto, no
+     * de pintado: escrito a mano en la UI salió «1 juegos, 1 terminados» (visto en el
+     * emulador el 02/10/2026) y el copy en español es parte del contrato (§8).
+     */
+    fun resumenDeJuegos(gamesPlayed: Int, gamesCompleted: Int): String {
+        val juegos = if (gamesPlayed == 1) "1 juego" else "$gamesPlayed juegos"
+        val terminados = if (gamesCompleted == 1) "1 terminado" else "$gamesCompleted terminados"
+        return "$juegos, $terminados"
+    }
+
+    /**
      * Calcula el recap de [year]. Puro: mismos `entries` + `sessions` + `year` →
      * mismo resultado (salvo el orden de los empates, que se rompe por nombre).
      *

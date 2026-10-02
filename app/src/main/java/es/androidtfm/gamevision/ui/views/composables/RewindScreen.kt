@@ -1,10 +1,13 @@
 package es.androidtfm.gamevision.ui.views.composables
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,22 +31,32 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Share2
+import es.androidtfm.gamevision.R
 import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.library.PlaySession
 import es.androidtfm.gamevision.data.library.RewindData
 import es.androidtfm.gamevision.data.library.RewindGame
 import es.androidtfm.gamevision.data.library.RewindUtils
+import es.androidtfm.gamevision.data.storage.ShareImageStorage
 import es.androidtfm.gamevision.ui.designsystem.GVMotion
 import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
@@ -56,6 +69,7 @@ import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import java.util.Locale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /*
  * Pantalla del GameVision Rewind (F3 — Bloque B, T3.7).
@@ -109,6 +123,37 @@ fun RewindScreen(
 
     val reduceMotion = LocalReduceMotion.current
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // Capa gráfica donde se dibuja el póster: es lo que se convierte en imagen (T3.8).
+    // Se captura lo que está en pantalla, así que la imagen compartida es exactamente
+    // lo que el usuario ve. Sin plantillas paralelas que se desincronicen del diseño.
+    val posterLayer = rememberGraphicsLayer()
+
+    fun compartirRewind() {
+        val datos = rewind ?: return
+        scope.launch {
+            val bitmap = posterLayer.toImageBitmap().asAndroidBitmap()
+            val uri = ShareImageStorage.writeToCache(
+                context = context,
+                bitmap = bitmap,
+                fileName = "gamevision-rewind-${datos.year}.png"
+            )
+            val enviar = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Mi Rewind ${datos.year} en GameVision: " +
+                        "${RewindUtils.formatHoursTotal(datos.minutesTotal)} jugadas"
+                )
+                // Sin este permiso el receptor no puede leer el content:// URI.
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(enviar, "Compartir tu Rewind"))
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -121,6 +166,20 @@ fun RewindScreen(
             leading = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Lucide.ArrowLeft, contentDescription = "Volver")
+                }
+            },
+            actions = {
+                // Icono INTERACTIVO: sí lleva acento (ADR-0012). Se deshabilita
+                // cuando no hay actividad, porque no habría póster que capturar.
+                IconButton(
+                    onClick = { compartirRewind() },
+                    enabled = rewind?.hasActivity == true
+                ) {
+                    Icon(
+                        Lucide.Share2,
+                        contentDescription = "Compartir tu Rewind",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         )
@@ -148,7 +207,14 @@ fun RewindScreen(
                 if (rewind.hasActivity) {
                     Spacer(Modifier.height(GVSpacing.md))
                     RevealItem(index = 1, reduceMotion = reduceMotion) {
-                        TarjetaDeHoras(rewind)
+                        Box(
+                            modifier = Modifier.drawWithContent {
+                                posterLayer.record { this@drawWithContent.drawContent() }
+                                drawLayer(posterLayer)
+                            }
+                        ) {
+                            PosterDelRewind(rewind)
+                        }
                     }
                     Spacer(Modifier.height(GVSpacing.md))
                     RevealItem(index = 2, reduceMotion = reduceMotion) {
@@ -259,32 +325,97 @@ private fun TitularDelAno(rewind: RewindData) {
     }
 }
 
+/**
+ * El póster del Rewind: lo que se comparte (T3.8).
+ *
+ * **Sin altura forzada, a propósito.** La primera versión era un cuadrado con
+ * `aspectRatio(1f)` y `SpaceBetween`; al agrandar la portada el contenido desbordó y
+ * el pie quedó **recortado en la imagen compartida** (visto en el emulador el
+ * 02/10/2026). Como la imagen se captura tal cual se ve, un póster recortado es un
+ * póster roto: la altura la dicta el contenido y así no hay ancho de pantalla que
+ * lo corte. Sin acento y sin sombra: el póster no tiene nada que se toque (ADR-0012),
+ * así que se sostiene con superficie, tinta y escala tipográfica.
+ */
 @Composable
-private fun TarjetaDeHoras(rewind: RewindData) {
-    TarjetaDelSistema {
-        Column(Modifier.padding(GVSpacing.xl)) {
-            // Dato editorial: jerarquía por tamaño y peso, sin acento (ADR-0012).
-            Text(
-                text = RewindUtils.formatHoursTotal(rewind.minutesTotal),
-                style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "jugadas en ${rewind.year}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(Modifier.height(GVSpacing.xl))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(GVSpacing.xl)
-            ) {
-                DatoBreve("Juegos", rewind.gamesPlayed.toString(), Modifier.weight(1f))
-                DatoBreve("Terminados", rewind.gamesCompleted.toString(), Modifier.weight(1f))
-                DatoBreve(
-                    label = "Nota media",
-                    value = rewind.ratingAverage?.let { formatNota(it) } ?: "Sin notas",
-                    modifier = Modifier.weight(1f)
+private fun PosterDelRewind(rewind: RewindData) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = GVShapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(GVSpacing.xl),
+            verticalArrangement = Arrangement.spacedBy(GVSpacing.xl)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.gamevisionnoletters),
+                    contentDescription = null,
+                    modifier = Modifier.height(24.dp)
+                )
+                Spacer(Modifier.width(GVSpacing.sm))
+                Text(
+                    text = "GameVision",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Column {
+                Text(
+                    text = "Rewind ${rewind.year}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = RewindUtils.formatHoursTotal(rewind.minutesTotal),
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "jugadas",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (rewind.topGames.isNotEmpty()) {
+                // Altura fija de portada: así el póster mide lo mismo con 1 juego que con
+                // 3 y la imagen compartida no baila de tamaño entre usuarios.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        space = GVSpacing.sm,
+                        alignment = Alignment.CenterHorizontally
+                    )
+                ) {
+                    rewind.topGames.take(3).forEach { juego ->
+                        GameCover(
+                            imageUrl = juego.coverUrl,
+                            title = juego.name,
+                            modifier = Modifier
+                                .height(140.dp)
+                                .aspectRatio(0.66f),
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+
+            Column {
+                rewind.topGame?.let { juego ->
+                    Text(
+                        text = "Tu juego del año: ${juego.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Text(
+                    text = RewindUtils.resumenDeJuegos(rewind.gamesPlayed, rewind.gamesCompleted),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -295,9 +426,6 @@ private fun TarjetaDeHoras(rewind: RewindData) {
 private fun TarjetaDeMomentos(rewind: RewindData) {
     TarjetaDelSistema {
         Column(Modifier.padding(GVSpacing.xl), verticalArrangement = Arrangement.spacedBy(GVSpacing.sm)) {
-            rewind.topGame?.let { juego ->
-                DatoLineal("Tu juego del año", "${juego.name}, ${RewindUtils.formatHoursTotal(juego.minutes)}")
-            }
             rewind.topGenres.firstOrNull()?.let { (genero, veces) ->
                 DatoLineal("Género dominante", "$genero ($veces)")
             }
@@ -309,6 +437,9 @@ private fun TarjetaDeMomentos(rewind: RewindData) {
             }
             rewind.mainPlatform?.let { plataforma ->
                 DatoLineal("Plataforma principal", plataforma)
+            }
+            rewind.ratingAverage?.let { nota ->
+                DatoLineal("Nota media", formatNota(nota))
             }
         }
     }
@@ -389,22 +520,6 @@ private fun TarjetaDelSistema(content: @Composable () -> Unit) {
         shape = GVShapes.large,
         color = MaterialTheme.colorScheme.surfaceContainer
     ) { content() }
-}
-
-@Composable
-private fun DatoBreve(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
 }
 
 @Composable

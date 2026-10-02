@@ -367,6 +367,15 @@ class RewindUtilsTest {
     }
 
     @Test
+    fun el_resumen_de_juegos_respeta_el_singular() {
+        // Regresión: en el póster salió «1 juegos, 1 terminados» (emulador, 02/10/2026).
+        assertEquals("1 juego, 1 terminado", RewindUtils.resumenDeJuegos(1, 1))
+        assertEquals("1 juego, 0 terminados", RewindUtils.resumenDeJuegos(1, 0))
+        assertEquals("0 juegos, 1 terminado", RewindUtils.resumenDeJuegos(0, 1))
+        assertEquals("12 juegos, 3 terminados", RewindUtils.resumenDeJuegos(12, 3))
+    }
+
+    @Test
     fun el_ordinal_de_dia_avanza_de_uno_en_uno() {
         assertEquals(1L, RewindUtils.dayOrdinal(dia(month = 3, dayOfMonth = 2)) -
             RewindUtils.dayOrdinal(dia(month = 3, dayOfMonth = 1)))
