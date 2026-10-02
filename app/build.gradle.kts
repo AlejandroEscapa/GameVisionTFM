@@ -161,6 +161,11 @@ dependencies {
     implementation(libs.firebase.firestore)
     ksp(libs.dagger.hilt.compiler)
 
+    // Trabajo en segundo plano + su integración con Hilt (F3/T3.11, decisión D3.7)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+
     // Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

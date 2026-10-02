@@ -56,17 +56,34 @@ class MainActivity : ComponentActivity() {
     // NavHost lo consume (se anula al leerlo).
     private val steamLinkState = androidx.compose.runtime.mutableStateOf<String?>(null)
 
-    override fun onNewIntent(intent: android.content.Intent) {
-        super.onNewIntent(intent)
-        intent.data?.toString()?.takeIf { it.startsWith("gamevision://steam/linked") }?.let { uri ->
+    // Aviso de fin de año (F3/T3.11): la notificación abre gamevision://rewind y el
+    // NavHost navega al Rewind y consume la marca, igual que hace con Steam.
+    private val abrirRewindState = androidx.compose.runtime.mutableStateOf(false)
+
+    /** Lee la URI del intent (tanto el inicial como los posteriores). */
+    private fun registrarIntentDelAviso(intent: android.content.Intent?) {
+        val uri = intent?.data?.toString() ?: return
+        if (uri.startsWith("gamevision://steam/linked")) {
             steamLinkState.value = uri.substringAfter("steamid=")
         }
+        if (uri.startsWith("gamevision://rewind")) {
+            abrirRewindState.value = true
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        registrarIntentDelAviso(intent)
     }
     private val googleViewModel: GoogleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // La app puede nacer de la notificación del Rewind: hay que leer el intent inicial,
+        // no solo los posteriores (`onNewIntent`).
+        registrarIntentDelAviso(intent)
 
         // Observar el estado del inicio de sesión de Google
         googleViewModel.signInState.observe(this) { state ->
@@ -106,7 +123,9 @@ class MainActivity : ComponentActivity() {
                 searchViewModel = searchViewModel, // Si NewsScreen u otras pantallas lo requieren
                 steamViewModel = steamViewModel,
                 steamLink = steamLinkState.value,
-                onSteamLinkConsumido = { steamLinkState.value = null }
+                onSteamLinkConsumido = { steamLinkState.value = null },
+                abrirRewind = abrirRewindState.value,
+                onRewindConsumido = { abrirRewindState.value = false }
             )
         }
     }
@@ -125,7 +144,9 @@ fun MainScreen(
     searchViewModel: SearchViewModel,
     steamViewModel: SteamViewModel,
     steamLink: String?,
-    onSteamLinkConsumido: () -> Unit
+    onSteamLinkConsumido: () -> Unit,
+    abrirRewind: Boolean = false,
+    onRewindConsumido: () -> Unit = {}
 ) {
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
     val navController = rememberNavController()
@@ -175,7 +196,9 @@ fun MainScreen(
                         searchViewModel = searchViewModel,
                         steamViewModel = steamViewModel,
                         steamLink = steamLink,
-                        onSteamLinkConsumido = onSteamLinkConsumido
+                        onSteamLinkConsumido = onSteamLinkConsumido,
+                        abrirRewind = abrirRewind,
+                        onRewindConsumido = onRewindConsumido
                     )
                 }
 

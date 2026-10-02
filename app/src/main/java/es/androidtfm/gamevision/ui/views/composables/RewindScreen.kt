@@ -1,6 +1,11 @@
 package es.androidtfm.gamevision.ui.views.composables
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -45,6 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.composables.icons.lucide.ArrowLeft
@@ -124,6 +130,23 @@ fun RewindScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Permiso de notificaciones (API 33+) para el aviso de fin de año (T3.11). Se pide
+    // aquí porque es el momento en que el aviso tiene sentido para el usuario: está
+    // mirando su Rewind. Si lo deniega no se insiste ni se bloquea nada.
+    val pedirPermisoNotificaciones = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { /* concedido o no, la pantalla funciona igual */ }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            pedirPermisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     // Capa gráfica donde se dibuja el póster: es lo que se convierte en imagen (T3.8).
     // Se captura lo que está en pantalla, así que la imagen compartida es exactamente
     // lo que el usuario ve. Sin plantillas paralelas que se desincronicen del diseño.

@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutHorizontally
 import es.androidtfm.gamevision.ui.designsystem.GVMotion
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -71,7 +72,10 @@ fun NavHost(
     steamViewModel: SteamViewModel,
     /** steamid que llega del retorno OpenID (deep link); null si no hay. */
     steamLink: String?,
-    onSteamLinkConsumido: () -> Unit = {}
+    onSteamLinkConsumido: () -> Unit = {},
+    /** true cuando la app ha nacido de la notificación del Rewind (F3/T3.11). */
+    abrirRewind: Boolean = false,
+    onRewindConsumido: () -> Unit = {}
 ) {
     val isDarkTheme by themeDataStore.isDarkTheme.collectAsStateWithLifecycle(initialValue = false)
     // Scope para el alta de invitado (suspend) desde un callback no composable
@@ -79,6 +83,15 @@ fun NavHost(
     // Géneros favoritos del perfil (onboarding): siembran el descubrimiento de Buscar
     val perfilGeneros by userViewModel.profile.collectAsStateWithLifecycle()
     val generosPerfil = perfilGeneros.favoriteGenres
+
+    // La notificación del Rewind abre directamente el Rewind. Se consume la marca
+    // para que no vuelva a navegar en cada recomposición (mismo patrón que Steam).
+    LaunchedEffect(abrirRewind) {
+        if (abrirRewind) {
+            navController.navigate("rewind") { launchSingleTop = true }
+            onRewindConsumido()
+        }
+    }
 
 
     NavHost(

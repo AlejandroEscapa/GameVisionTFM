@@ -25,6 +25,10 @@ coil = "3.6.3"
 
 # DI
 hiltVersion = "2.60.1"
+# Integración de Hilt con WorkManager (F3/T3.11, decisión D3.7)
+hiltWorkVersion = "1.4.0"
+# Trabajo en segundo plano para el aviso del Rewind (F3/T3.11, decisión D3.7)
+workVersion = "2.12.0"
 
 # Credential Manager (Jetpack)
 credentials = "1.6.0"
@@ -105,6 +109,9 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 # Dependency Injection
 dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltVersion" }
 dagger-hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltVersion" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workVersion" }
+androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hiltWorkVersion" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltWorkVersion" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
 androidx-credentials-play-services = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }

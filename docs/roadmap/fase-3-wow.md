@@ -1,6 +1,6 @@
 # Fase 3 — El "wow": decidir y celebrar
 
-**Estado:** 🟢 En ejecución — D3.1–D3.6 cerradas y **D3.7 abierta** (bloquea solo T3.11) · T3.1–T3.3 hechas, **T3.6–T3.10 hechas** · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
+**Estado:** 🟢 En ejecución — D3.1–D3.7 cerradas · T3.1–T3.3 hechas, **T3.6–T3.11 hechas** · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
 
 ## Objetivo
 
@@ -36,28 +36,24 @@ compartible como imagen** listo para enseñar y publicar.
 | D3.4 | **Formato de compartir** | (a) Imagen generada (tarjeta) · (b) Texto · (c) Ambos | **(a) imagen**, con las tarjetas del design system: es lo que se comparte de verdad (el formato de Strava/Spotify) | ✅ (a) (01/10) |
 | D3.5 | **Periodicidad del Rewind** | (a) Sólo anual · (b) Anual + mensual + "tu historia con este juego" | **(b) anual como plato fuerte y "por juego" como relleno**: multiplica las ocasiones de compartir con poco trabajo extra | ✅ (b) anual + por juego (01/10) |
 | D3.6 | **Tono del Rewind** | (a) Celebrar siempre (también si jugaste poco) · (b) Mostrar también lo no jugado | **(a) celebrar**: la investigación avisa de que la gamificación puede volverse tóxica; nunca culpabilizar | ✅ (a) (01/10) |
-| D3.7 | **¿Cómo se avisa de que el Rewind está listo?** (T3.11) | (a) **WorkManager** periódico con `HiltWorker` · (b) `AlarmManager` anual + `BroadcastReceiver` contra una caché local · (c) aviso en la app al abrirla, sin notificación | **(a)**, pero **el alcance de T3.11 hay que partirlo**: ver abajo | ⬜ **Abierta (02/10)** |
+| D3.7 | **¿Cómo se avisa de que el Rewind está listo?** (T3.11) | (a) **WorkManager** periódico con `HiltWorker` · (b) `AlarmManager` anual + `BroadcastReceiver` contra una caché local · (c) aviso en la app al abrirla, sin notificación | **(a)**, pero **el alcance de T3.11 hay que partirlo**: ver abajo | ✅ **Cerrada (02/10): (a)** — comprobación **diaria idempotente** (`RewindAvisoWorker`), aviso del **año cerrado** cualquier día desde el 1 de enero, **sin datos no se avisa** (D3.6) y «ya avisado de {año}» persistido en prefs |
 
-> **Por qué T3.11 no se ha implementado todavía (decisión, no dejadez).** La regla 4 de este roadmap
-> dice: *si aparece una decisión nueva durante la ejecución, se añade a la fase **antes** de
-> improvisar*. T3.11 introduce **la primera dependencia nueva de la fase** y tiene tres preguntas sin
-> cerrar:
+> **Cómo se cerró T3.11/D3.7 (02/10).** La regla 4 de este roadmap obligó a debatir
+> antes de tocar código; estas fueron las respuestas que fijaron la implementación:
 >
-> 1. **¿Cuándo es «fin de año»?** El Rewind del año que cierra solo tiene sentido **en enero**; lanzarlo
->    en diciembre cuenta un año a medias. Hay que fijar el día y la hora.
-> 2. **¿Cómo se llega al usuario?** `WorkManager` es lo estándar, pero exige `androidx.work` **más
->    `androidx.hilt:hilt-work`**, un `HiltWorkerFactory`, que `GameVisionApplication` implemente
->    `Configuration.Provider` y quitar el inicializador por defecto del manifest. La alternativa
->    (`AlarmManager` + receptor) evita dependencias pero obliga a mantener una caché local del año, y
->    el receptor no puede leer Firestore sin sesión. **La opción (a) es la recomendada**, y es trabajo
->    real: no se improvisa en una ronda.
-> 3. **¿Y si no hay actividad?** D3.6 prohíbe culpabilizar: **sin datos no se notifica**. Un aviso de
->    «tu Rewind está listo» a quien no jugó es exactamente el mensaje tóxico que la investigación
->    desaconseja. Hay que persistir «ya avisado de {año}» para no repetir.
+> 1. **¿Cuándo es «fin de año»?** No hay un día y una hora: el trabajo es **diario** y el
+>    Rewind del año que cierra se avisa **cualquier día desde el 1 de enero** (si el móvil
+>    estuvo apagado, sale el día que pueda). Avisar en diciembre contaría un año a medias.
+> 2. **¿Cómo se llega al usuario?** Opción **(a): WorkManager** periódico (1 día, `KEEP`) con
+>    `HiltWorker` (`androidx.work:work-runtime-ktx` 2.12.0 + `androidx.hilt:hilt-work` 1.4.0,
+>    mismas generaciones que el stack). `AlarmManager` se descartó: no sobrevive al reinicio
+>    sin receptor `BOOT_COMPLETED`, y un `OneTimeWork` con meses de retardo se pierde igual.
+> 3. **¿Y si no hay actividad?** D3.6 prohíbe culpabilizar: **sin datos no se notifica**, y
+>    «ya avisado de {año}» se persiste para no repetir.
 >
-> **Parte que sí es independiente y no bloquea:** el canal de notificación, el permiso
-> `POST_NOTIFICATIONS` (API 33+) y el enlace para que tocar la notificación abra el Rewind. Se pueden
-> hacer cuando se cierre D3.7, junto con el programador.
+> **Parte independiente, hecha junto con el programador:** canal de notificación, permiso
+> `POST_NOTIFICATIONS` (API 33+, pedido al abrir el Rewind, sin insistir) y deep link
+> `gamevision://rewind` que abre el Rewind al tocar la notificación.
 
 ---
 
@@ -107,9 +103,19 @@ compartible como imagen** listo para enseñar y publicar.
   juego (`GameDetails`), visible solo si el juego está en la biblioteca. *Evidencia:* `.verificacion/12-historia-juego.png`
   (la tarjeta en la ficha de Elden Ring, con el caso suelo «Todavía sin partidas apuntadas» porque
   ese juego no tiene diario); el caso con datos lo cubren los tests. 184 unitarios verdes, lint limpio
-- [ ] T3.11 Notificación de fin de año cuando el Rewind está listo — **bloqueada por la decisión
-  D3.7** (cuándo, cómo se llega al usuario y con qué dependencia). No se implementa a medias: ver el
-  bloque de D3.7 para las tres preguntas abiertas y la parte que sí es independiente
+- [x] T3.11 Notificación de fin de año cuando el Rewind está listo — **D3.7 cerrada con la
+  opción (a)**. `data/notifications/`: `RewindAviso` (lógica pura del aviso: año que cierra,
+  `debeAvisar`; **5 tests** en `RewindAvisoTest`), `RewindAvisoWorker` (`@HiltWorker`,
+  comprobación diaria idempotente: sin sesión no hay aviso, sin datos no se notifica),
+  `RewindNotifier` (canal «Tu Rewind», permiso API 33+, deep link `gamevision://rewind`).
+  `GameVisionApplication` implementa `Configuration.Provider` con `HiltWorkerFactory`
+  (inicializador automático quitado del manifest); `MainActivity`/`NavHost` consumen el deep
+  link con el mismo patrón que el de Steam (incluido el intent inicial); `RewindScreen` pide
+  el permiso al abrirse, sin insistir si se deniega. *Evidencia:* **189 unitarios verdes**
+  (18 clases, 0 fallos), `assembleDebug` OK, `lintDebug` limpio, check-docs sin deriva.
+  *En emulador (Pixel_9, API 36):* deep link `gamevision://rewind` entregado a la instancia en
+  marcha abre el Rewind con datos reales (`.verificacion/13-deep-link-rewind.png`); el diálogo
+  del permiso aparece al entrar; el trabajo periódico queda programado en el JobScheduler.
 
 ---
 
@@ -178,6 +184,11 @@ recomendaciones explicadas + imagen compartida.
   regla de convivencia de [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md) — ver el
   debate de arranque en el registro de la sesión.
 - **Estado de la fase:** 🔵 Aprobada — lista para ejecutar.
+- **D3.7 — Cerrada con la opción (a) (02/10/2026).** WorkManager periódico diario e idempotente
+  con `HiltWorker` (`work-runtime-ktx` 2.12.0 + `hilt-work` 1.4.0). Cuándo: cualquier día desde
+  el 1 de enero, del año que acaba de cerrar (si el móvil estuvo apagado, sale el día que
+  pueda). Sin actividad no se avisa (D3.6) y «ya avisado de {año}» se persiste en prefs. La
+  alternativa `AlarmManager` se descartó (no sobrevive al reinicio sin `BOOT_COMPLETED`).
 
 ## Hallazgos abiertos (detectados al verificar T3.7 en emulador)
 
