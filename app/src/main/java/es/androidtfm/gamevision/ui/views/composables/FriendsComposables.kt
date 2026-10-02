@@ -47,6 +47,7 @@ import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.data.model.Friend
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
+import es.androidtfm.gamevision.ui.designsystem.components.FriendRowSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.GVSearchField
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
 import es.androidtfm.gamevision.viewmodel.UserViewModel
@@ -111,7 +112,12 @@ fun FriendsList(
                 .padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)
         ) {
             if (isLoading) {
-                // Puedes agregar un indicador de carga si lo consideras necesario
+                Column(
+                    modifier = Modifier.padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    repeat(4) { FriendRowSkeleton() }
+                }
             } else {
                 LazyColumn(
                     contentPadding = paddingValues,

@@ -67,7 +67,7 @@ import es.androidtfm.gamevision.R
 import es.androidtfm.gamevision.data.library.TopGamesLogic
 import es.androidtfm.gamevision.data.model.TopGame
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
-import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.ProfileHeaderSkeleton
 import es.androidtfm.gamevision.ui.views.composables.profile.CrearListaDialog
 import es.androidtfm.gamevision.ui.views.composables.profile.MisListasSection
 import es.androidtfm.gamevision.ui.views.composables.profile.TopGamesCard
@@ -228,7 +228,7 @@ fun ProfileScreen(
 
             if (isLoading) {
                 // Indicador de carga mientras se obtiene la información del perfil
-                ProfileLoadingIndicator()
+                ProfileHeaderSkeleton()
             } else {
                 Column(
                     modifier = Modifier
@@ -603,22 +603,6 @@ private fun AccionCuadrada(
             modifier = Modifier.size(24.dp)
         )
         Text(label, style = MaterialTheme.typography.titleSmall)
-    }
-}
-
-@Composable
-private fun ProfileLoadingIndicator() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        GVSkeleton(shape = CircleShape, width = 140.dp, height = 140.dp)
-        GVSkeleton(width = 160.dp, height = 18.dp)
-        GVSkeleton(Modifier.fillMaxWidth(), height = 120.dp)
-        GVSkeleton(Modifier.fillMaxWidth(), height = 48.dp)
     }
 }
 

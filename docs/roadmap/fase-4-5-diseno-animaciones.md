@@ -62,6 +62,8 @@ producto, no como un adorno final.
 | DX.6 | **Alcance de la auditoría funcional** | (a) **Todas las pantallas contra `integracion-por-vistas-2026.md`** · (b) Sólo las dudosas | **(a)**: verificar que cada acción está donde el usuario la busca (cruza con las D-V ratificadas) | ✅ **(a) (02/10)** — alcance completo, todas las pantallas |
 | DX.7 | **¿Se retoca el onboarding?** | (a) Sí, si la auditoría lo pide · (b) No | **(a)**: el onboarding es la primera impresión y es donde más se nota el motion bien hecho | ✅ **(a) (02/10)** — y entra aquí el arranque **TTFV < 60 s** («elegir 3 juegos ya jugados»), que estaba decidido en la investigación y **sin fase asignada** |
 | DX.8 | **¿Se conserva el design system actual o se re-ancla al entrante?** | (a) Mantener el actual · (b) **Re-anclar al design system que aportará el propietario** | **(b)**: confirmado un design system nuevo; `DESIGN.md` pasa a provisional y esta fase aplica sus tokens/componentes. Lo agnóstico al sistema (estados, motion, estructura) se conserva | ✅ **Cerrada (01–02/10)**: la fuente llegó y el re-anclaje se adelantó — [ADR-0010](../metodologia/adr/0010-reanclaje-adelantado-fuente-recibida.md). Ejecutado (DX-T23…DX-T28 y CA4.5.7) |
+| DX.9 | **Biblioteca por grupos con carrusel** | (a) Carrusel por grupo (5) + «mostrar más»→cuadrícula · (b) Filas + desplegar · (c) Carrusel + «ver todo» navega | **(a)**: el skill recomienda carrusel para listas de >5; coherente con «Continúa» de Para ti | ✅ **Cerrada (02/10, propietario)**: carrusel de 5 por grupo, «Mostrar más (N)» despliega cuadrícula en el sitio, cabeceras con contador, vacíos ocultos, orden Jugando→…→Historial; con búsqueda/filtros se pasa a lista plana |
+| DX.10 | **Alcance de skeletons** | (a) Solo catálogo/ficha/biblioteca (DX-T8) · (b) **Toda la app** + shimmer quieto | **(b)**: cada carga replica 1:1 su contenido; shimmer fijo con movimiento reducido | ✅ **Cerrada (02/10, propietario)**: barrido completo; el mini-spinner del campo de búsqueda se queda (micro-feedback, no pantalla de carga) |
 
 ---
 
@@ -112,8 +114,20 @@ producto, no como un adorno final.
 
 ---
 
-### G. Re-anclaje del design system entrante (ADR-0009)
-> **Ejecutado el 01–02/10/2026 y adelantado a antes de F3** por
+### H. Biblioteca apilada y skeletons end-to-end (DX.9/DX.10, 02/10)
+- [x] DX-T29 Biblioteca por grupos: carrusel de 5 por grupo + «Mostrar más»→cuadrícula,
+  cabeceras con contador, vacíos ocultos; con búsqueda/filtros se aplana a filas compactas —
+  verificado en Pixel_9 con QA2 (7 deseados): carrusel, «Mostrar más (2)»→cuadrícula de 7,
+  «Mostrar menos»→carrusel, lista plana buscando (capturas 21–23)
+- [x] DX-T30 Barrido de skeletons en toda la app (extiende DX-T8): carrusel, perfil ajeno,
+  amigos, descubrimiento de Para ti; cada carga replica 1:1 su contenido — `CircularProgressIndicator`
+  muerto eliminado de Buscar; el `LinearProgress` de la ficha es barra de progreso determinada,
+  no spinner (se queda)
+- [x] DX-T31 Shimmer quieto con movimiento reducido (avance de DX-T10) — `GVSkeleton` fijo
+  con `LocalReduceMotion`; verificado por código (el frame de carga dura <1 s en dispositivo,
+  no se pudo capturar; la rama es trivial y usa los mismos primitivos)
+
+### G. Re-anclaje del design system entrante (ADR-0009)> **Ejecutado el 01–02/10/2026 y adelantado a antes de F3** por
 > [ADR-0010](../metodologia/adr/0010-reanclaje-adelantado-fuente-recibida.md). Se deja el detalle
 > marcado para que quede el rastro de qué se hizo y dónde.
 - [x] DX-T23 Recibir el documento del nuevo design system y **sustituir `DESIGN.md`** como fuente única de verdad — sistema Apple; fuente versionada en `docs/plan/design-system-fuente-apple.md`
@@ -182,6 +196,12 @@ antes/después por pantalla + capturas o vídeo de las transiciones principales.
   tamaño, sombras y grano global, y monoespaciada para cifras.
   Motivo de cerrarlas ahora: **la fase no empieza hasta que sus decisiones están cerradas** (regla 1
   del roadmap), y F4.5 es la que bloquea a F5 (Publicación).
+- **02/10/2026 — DX.9 y DX.10 cerradas por el propietario + DX-T29…DX-T31 ejecutadas.**
+  Biblioteca apilada (carrusel de 5 + «Mostrar más»→cuadrícula, cabeceras con contador) y
+  skeletons end-to-end (`GameCarouselSkeleton`, `FriendRowSkeleton`, `ProfileHeaderSkeleton`
+  compartido, shimmer quieto con movimiento reducido). De paso: acciones de fila a 48 dp,
+  `Estado` a tinta (ADR-0012) y fuera `GameListCard`/`SelectListButton`/`LoadingIndicator`
+  muertos. QA2 sembrada con 7 deseados para la verificación (cuenta E2E).
 - **02/10/2026 — `LocalReduceMotion` queda conectado (avance de DX-T10).** Estaba **declarado en
   `GVMotion.kt` con valor por defecto fijo `false`** y nadie lo proveía ni lo consumía: el soporte de
   «reducir movimiento» existía escrito y sin enchufar. Ahora `MainActivity` lee la preferencia real

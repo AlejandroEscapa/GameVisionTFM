@@ -28,12 +28,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GameVisionTheme
+import es.androidtfm.gamevision.ui.designsystem.LocalReduceMotion
 
 /*
  * GameVision Design System — GVSkeleton (ver DESIGN.md §6).
  *
  * Bloque con shimmer que replica la forma del contenido que carga.
  * PROHIBIDO el spinner circular genérico: las cargas se muestran con skeletons.
+ *
+ * Con «reducir movimiento» activo el shimmer se queda fijo (DX-T10): un bucle
+ * infinito no aporta información y marear no es cargar.
  */
 
 @Composable
@@ -43,36 +47,41 @@ fun GVSkeleton(
     width: Dp = Dp.Unspecified,
     height: Dp = 16.dp
 ) {
-    val transition = rememberInfiniteTransition(label = "gv-shimmer")
-    val shimmerProgress by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1100, easing = LinearEasing)
-        ),
-        label = "gv-shimmer-progress"
-    )
+    val reduceMotion = LocalReduceMotion.current
     val base = MaterialTheme.colorScheme.surfaceContainer
     val highlight = MaterialTheme.colorScheme.surfaceContainerHigh
+
+    val brush = if (reduceMotion) {
+        Brush.linearGradient(colors = listOf(base, base))
+    } else {
+        val transition = rememberInfiniteTransition(label = "gv-shimmer")
+        val shimmerProgress by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1100, easing = LinearEasing)
+            ),
+            label = "gv-shimmer-progress"
+        )
+        Brush.linearGradient(
+            colors = listOf(base, highlight, base),
+            start = androidx.compose.ui.geometry.Offset(
+                x = shimmerProgress * 800f - 400f,
+                y = 0f
+            ),
+            end = androidx.compose.ui.geometry.Offset(
+                x = shimmerProgress * 800f,
+                y = 40f
+            )
+        )
+    }
 
     Box(
         modifier = modifier
             .width(width)
             .height(height)
             .clip(shape)
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(base, highlight, base),
-                    start = androidx.compose.ui.geometry.Offset(
-                        x = shimmerProgress * 800f - 400f,
-                        y = 0f
-                    ),
-                    end = androidx.compose.ui.geometry.Offset(
-                        x = shimmerProgress * 800f,
-                        y = 40f
-                    )
-                )
-            )
+            .background(brush)
     )
 }
 
@@ -99,9 +108,86 @@ fun GameRowSkeleton(modifier: Modifier = Modifier) {
 }
 
 /**
- * Skeleton de grid de portadas.
+ * Skeleton de carrusel de portadas (biblioteca por grupos, descubrimiento).
+ * Tira horizontal con alturas fijas: el contenido real usa las mismas medidas,
+ * así no hay salto al cargar (guía [19] de ui-ux-pro-max).
  */
 @Composable
+fun GameCarouselSkeleton(
+    modifier: Modifier = Modifier,
+    items: Int = 5,
+    coverWidth: Dp = 120.dp,
+    coverHeight: Dp = 160.dp
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        repeat(items) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                GVSkeleton(
+                    shape = GVShapes.medium,
+                    width = coverWidth,
+                    height = coverHeight
+                )
+                GVSkeleton(width = coverWidth, height = 12.dp)
+            }
+        }
+    }
+}
+
+/**
+ * Skeleton de fila de amigo/usuario: avatar + dos líneas (amigos, resultados).
+ */
+@Composable
+fun FriendRowSkeleton(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        GVSkeleton(
+            shape = androidx.compose.foundation.shape.CircleShape,
+            width = 40.dp,
+            height = 40.dp
+        )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 2.dp)
+        ) {
+            GVSkeleton(Modifier.fillMaxWidth(0.6f), height = 14.dp)
+            GVSkeleton(Modifier.fillMaxWidth(0.4f), height = 12.dp)
+        }
+    }
+}
+
+/**
+ * Skeleton de cabecera de perfil: avatar + nombre + bloque (perfil propio y ajeno).
+ */
+@Composable
+fun ProfileHeaderSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        GVSkeleton(
+            shape = androidx.compose.foundation.shape.CircleShape,
+            width = 140.dp,
+            height = 140.dp
+        )
+        GVSkeleton(width = 160.dp, height = 18.dp)
+        GVSkeleton(Modifier.fillMaxWidth(), height = 120.dp)
+        GVSkeleton(Modifier.fillMaxWidth(), height = 48.dp)
+    }
+}
+@Composable
+/**
+ * Skeleton de grid de portadas.
+ */
 fun GameGridSkeleton(modifier: Modifier = Modifier, items: Int = 6) {
     Column(modifier = modifier.padding(horizontal = 16.dp)) {
         repeat(items / 2) {

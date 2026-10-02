@@ -2,6 +2,7 @@ package es.androidtfm.gamevision.ui.views.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +58,9 @@ import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
+import es.androidtfm.gamevision.ui.designsystem.components.GameCarouselSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.views.composables.profile.CrearListaDialog
 import es.androidtfm.gamevision.ui.views.composables.profile.TarjetaCrearLista
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
@@ -133,6 +136,7 @@ fun ParaTiScreen(
     // Catálogo para las secciones de descubrimiento (populares y novedades).
     val populares by searchViewModel.populares.collectAsStateWithLifecycle()
     val paraTiCatalogo by searchViewModel.paraTi.collectAsStateWithLifecycle()
+    val cargandoDescubrimiento by searchViewModel.cargandoDescubrimiento.collectAsStateWithLifecycle()
     LaunchedEffect(generosFavoritos) {
         searchViewModel.cargarDescubrimiento(generosFavoritos)
     }
@@ -453,7 +457,18 @@ fun ParaTiScreen(
 
         // ---- Novedades en tus géneros -----------------------------------
         val generos = if (generosFavoritos.isEmpty()) populares else paraTiCatalogo
-        if (generos.isNotEmpty()) {
+        if (generos.isEmpty() && cargandoDescubrimiento) {
+            // Carga con la forma del carrusel que viene (DX-T8).
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                GVSkeleton(Modifier.fillMaxWidth(0.5f), height = 20.dp)
+                Spacer(Modifier.height(12.dp))
+                GameCarouselSkeleton(
+                    coverWidth = 132.dp,
+                    coverHeight = 176.dp,
+                    modifier = Modifier.horizontalScroll(rememberScrollState())
+                )
+            }
+        } else if (generos.isNotEmpty()) {
             SeccionCabecera(
                 titulo = if (generosFavoritos.isEmpty()) "Populares ahora"
                 else "Porque te gusta " + generosFavoritos.take(2).joinToString(" y "),

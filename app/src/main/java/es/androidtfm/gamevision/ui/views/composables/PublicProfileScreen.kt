@@ -50,6 +50,7 @@ import es.androidtfm.gamevision.data.library.LibraryEntry
 import es.androidtfm.gamevision.data.model.GameList
 import es.androidtfm.gamevision.data.model.UserProfile
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
+import es.androidtfm.gamevision.ui.designsystem.components.ProfileHeaderSkeleton
 import es.androidtfm.gamevision.ui.views.composables.profile.ListaPublicaCard
 import es.androidtfm.gamevision.ui.views.composables.profile.TopGamesRow
 import es.androidtfm.gamevision.ui.views.composables.profile.resolvedorDesdeBiblioteca
@@ -119,7 +120,7 @@ fun PublicProfileScreen(
             p == null && profileError ->
                 NotAvailableNotice(onBack = { navController.popBackStack() })
             p == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Cargando perfil…", style = MaterialTheme.typography.bodyMedium)
+                ProfileHeaderSkeleton()
             }
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),

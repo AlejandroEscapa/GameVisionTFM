@@ -9,22 +9,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -33,7 +33,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,12 +47,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.data.library.LibraryEntry
@@ -58,16 +58,15 @@ import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.EmptyState
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
+import es.androidtfm.gamevision.ui.designsystem.components.GameCarouselSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
-import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
+import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
-import es.androidtfm.gamevision.ui.designsystem.gvSharedElement
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.EllipsisVertical
 import com.composables.icons.lucide.ListFilter
 import com.composables.icons.lucide.ListPlus
@@ -82,11 +81,12 @@ import com.composables.icons.lucide.X
  *
  * Desde B2 se alimenta de la biblioteca nueva (users/{uid}/library, con instantánea
  * de nombre/portada: sin peticiones por juego) y del historial local del dispositivo.
- * Pestañas: Jugando · Completados · Coleccionados · Deseados · Favoritos · Historial.
+ * Grupos apilados (DX.9): Jugando · En pausa · Deseados · Completados · Coleccionados ·
+ * Favoritos · Retirados · Abandonados · Historial; con búsqueda/filtros se aplana.
  */
 
 /** Elemento de la lista: ficha de biblioteca o reciente local. */
-private data class GameListItem(
+internal data class GameListItem(
     val gameId: String,
     val name: String,
     val coverUrl: String?,
@@ -94,6 +94,51 @@ private data class GameListItem(
     val genres: List<String>,
     val entry: LibraryEntry?
 )
+
+/** Grupo de la biblioteca apilada (DX.9): clave, título y sus juegos. */
+internal data class GrupoBiblioteca(
+    val clave: String,
+    val titulo: String,
+    val items: List<GameListItem>
+)
+
+/** Máximo visible por grupo antes de «Mostrar más» (DX.9). */
+internal const val MAX_POR_GRUPO = 5
+
+/**
+ * Agrupa por estado en orden fijo (Jugando → … → Historial), sin los vacíos.
+ * Pura para poder testearse en JVM. Los favoritos duplican a propósito: es un
+ * conjunto curado, no un estado (igual que el Top 4).
+ */
+internal fun agruparBiblioteca(items: List<GameListItem>): List<GrupoBiblioteca> {
+    if (items.isEmpty()) return emptyList()
+    fun grupo(clave: String, pred: (GameListItem) -> Boolean): GrupoBiblioteca? {
+        val propios = items.filter(pred)
+        return if (propios.isEmpty()) null else GrupoBiblioteca(clave, headerTitle(clave), propios)
+    }
+    return listOfNotNull(
+        grupo("playing") { it.entry?.status == LibraryStatus.PLAYING },
+        grupo("paused") { it.entry?.status == LibraryStatus.PAUSED },
+        grupo("wished") { it.entry?.status == LibraryStatus.WISHED },
+        grupo("completed") { it.entry?.status == LibraryStatus.COMPLETED },
+        grupo("collected") { it.entry?.status == LibraryStatus.COLLECTED },
+        grupo("favorites") { it.entry?.favorite == true },
+        grupo("retired") { it.entry?.status == LibraryStatus.RETIRED },
+        grupo("abandoned") { it.entry?.status == LibraryStatus.ABANDONED },
+        grupo("history") { it.entry == null }
+    )
+}
+
+/** Ordena con el criterio del menú (misma regla para grupos y lista plana). */
+internal fun ordenarBiblioteca(items: List<GameListItem>, sortOption: String): List<GameListItem> =
+    when (sortOption) {
+        "Alfabético" -> items.sortedBy { it.name.lowercase() }
+        "Año (Asc.)" -> items.sortedBy { it.released }
+        "Año (Desc.)" -> items.sortedByDescending { it.released }
+        "Más jugados" -> items.sortedByDescending { it.entry?.minutesTotal ?: 0 }
+        "Mejor nota" -> items.sortedByDescending { it.entry?.rating ?: 0.0 }
+        else -> items
+    }
 
 /**
  * Pantalla con las listas de juegos (biblioteca e historial local).
@@ -110,7 +155,8 @@ fun GameListScreen(
     socialViewModel: SocialViewModel? = null
 ) {
     var sortOption by rememberSaveable { mutableStateOf("Alfabético") }
-    var selectedList by rememberSaveable { mutableStateOf("playing") }
+    // Grupos desplegados con «Mostrar más» (DX.9): sobrevive a la rotación.
+    var expandidos by rememberSaveable { mutableStateOf(setOf<String>()) }
     // Filtros y búsqueda dentro de la biblioteca (F1 — Bloque 4, T1.14/T1.15)
     var query by rememberSaveable { mutableStateOf("") }
     var genreFilter by rememberSaveable { mutableStateOf<String?>(null) }
@@ -127,30 +173,20 @@ fun GameListScreen(
     // Historial local (decisión F0-B: vive en el dispositivo, no en Firestore).
     val recents by libraryViewModel.recentGames.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    // Elementos a mostrar según la pestaña seleccionada.
+    // Elementos: biblioteca + historial local. Los recientes que ya están en la
+    // biblioteca no se duplican en el grupo Historial.
     val items: List<GameListItem>? = when {
-        selectedList == "history" -> recents.map {
-            GameListItem(it.gameId.toString(), it.name, it.coverUrl, "", emptyList(), null)
-        }
         library == null -> null
         else -> {
             val entries = library?.getOrNull().orEmpty()
-            entries
-                .filter { entry ->
-                    when (selectedList) {
-                        "all" -> true
-                        "playing" -> entry.status == LibraryStatus.PLAYING
-                        "completed" -> entry.status == LibraryStatus.COMPLETED
-                        "collected" -> entry.status == LibraryStatus.COLLECTED
-                        "paused" -> entry.status == LibraryStatus.PAUSED
-                        "retired" -> entry.status == LibraryStatus.RETIRED
-                        "abandoned" -> entry.status == LibraryStatus.ABANDONED
-                        "wished" -> entry.status == LibraryStatus.WISHED
-                        "favorites" -> entry.favorite
-                        else -> true
-                    }
+            val enBiblio = entries.map { it.gameId }.toSet()
+            entries.map {
+                GameListItem(it.gameId, it.name, it.coverUrl, it.released, it.genres, it)
+            } + recents
+                .filter { it.gameId.toString() !in enBiblio }
+                .map {
+                    GameListItem(it.gameId.toString(), it.name, it.coverUrl, "", emptyList(), null)
                 }
-                .map { GameListItem(it.gameId, it.name, it.coverUrl, it.released, it.genres, it) }
         }
     }
 
@@ -179,30 +215,23 @@ fun GameListScreen(
             .distinct().sorted()
     }
     val hasActiveFilters = criteria.isActive
+    // Con búsqueda o filtros se aplana (DX.9): buscar entre cabeceras confunde.
+    val buscando = query.isNotBlank() || hasActiveFilters
 
-    val sortedItems: List<GameListItem> = remember(filteredItems, sortOption) {
-        val list = filteredItems.orEmpty()
-        when (sortOption) {
-            "Alfabético" -> list.sortedBy { it.name.lowercase() }
-            "Año (Asc.)" -> list.sortedBy { it.released }
-            "Año (Desc.)" -> list.sortedByDescending { it.released }
-            "Más jugados" -> list.sortedByDescending { it.entry?.minutesTotal ?: 0 }
-            "Mejor nota" -> list.sortedByDescending { it.entry?.rating ?: 0.0 }
-            else -> list
-        }
+    val ordenados: List<GameListItem> = remember(filteredItems, sortOption) {
+        ordenarBiblioteca(filteredItems.orEmpty(), sortOption)
+    }
+    // Grupos apilados (DX.9): ordenados una vez, cada grupo conserva el orden.
+    val grupos: List<GrupoBiblioteca> = remember(ordenados, buscando) {
+        if (buscando) emptyList() else agruparBiblioteca(ordenados)
     }
 
     Scaffold(
         topBar = {
             GVScreenHeader(
-                title = headerTitle(selectedList),
+                title = "Biblioteca",
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                SelectListButton(
-                    onListSelected = { selected ->
-                        selectedList = selected
-                    }
-                )
                 IconButton(onClick = { filtersExpanded = !filtersExpanded }) {
                     Icon(
                         imageVector = Lucide.ListFilter,
@@ -291,8 +320,22 @@ fun GameListScreen(
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     when {
-                        items == null -> LoadingIndicator()
-                        sortedItems.isEmpty() && hasActiveFilters -> EmptyState(
+                        items == null -> Column(
+                            modifier = Modifier.padding(top = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            // Carga con la forma de lo que viene: título + carrusel.
+                            GVSkeleton(
+                                Modifier.padding(horizontal = 16.dp).fillMaxWidth(0.4f),
+                                height = 22.dp
+                            )
+                            GameCarouselSkeleton(
+                                modifier = Modifier
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
+                        buscando && ordenados.isEmpty() -> EmptyState(
                             title = "Sin resultados",
                             hint = "Prueba a cambiar la búsqueda o quitar los filtros",
                             icon = Lucide.Search,
@@ -300,9 +343,21 @@ fun GameListScreen(
                                 .fillMaxSize()
                                 .wrapContentSize(Alignment.Center)
                         )
-                        sortedItems.isEmpty() -> GameListEmptyState(selectedList)
-                        else -> GameList(
-                            gameItems = sortedItems,
+                        buscando -> ListaPlana(
+                            gameItems = ordenados,
+                            navController = navController,
+                            libraryViewModel = libraryViewModel,
+                            userViewModel = userViewModel,
+                            socialViewModel = socialViewModel
+                        )
+                        grupos.isEmpty() -> GameListEmptyState("all")
+                        else -> GruposBiblioteca(
+                            grupos = grupos,
+                            expandidos = expandidos,
+                            onExpandir = { clave ->
+                                expandidos = if (clave in expandidos) expandidos - clave
+                                else expandidos + clave
+                            },
                             navController = navController,
                             libraryViewModel = libraryViewModel,
                             userViewModel = userViewModel,
@@ -313,21 +368,6 @@ fun GameListScreen(
             }
         }
     )
-}
-
-/**
- * Indicador de carga para la pantalla de juegos (skeleton del design system).
- */
-@Composable
-fun LoadingIndicator() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        repeat(4) { GameRowSkeleton() }
-    }
 }
 
 /**
@@ -359,8 +399,172 @@ fun GameListEmptyState(selectedList: String = "playing") {
     }
 }
 
+/**
+ * Biblioteca apilada (DX.9): un scroll gigante con un carrusel por grupo.
+ * Cada grupo muestra 5 portadas; «Mostrar más» lo despliega como cuadrícula.
+ */
 @Composable
-private fun GameList(
+private fun GruposBiblioteca(
+    grupos: List<GrupoBiblioteca>,
+    expandidos: Set<String>,
+    onExpandir: (String) -> Unit,
+    navController: NavController,
+    libraryViewModel: LibraryViewModel,
+    userViewModel: UserViewModel,
+    socialViewModel: SocialViewModel? = null
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        grupos.forEach { grupo ->
+            item(key = "cab-${grupo.clave}") {
+                GrupoCabecera(titulo = "${grupo.titulo} (${grupo.items.size})")
+            }
+            val expandido = grupo.clave in expandidos
+            if (!expandido) {
+                item(key = "car-${grupo.clave}") {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        items(grupo.items.take(MAX_POR_GRUPO), key = { it.gameId }) { item ->
+                            FichaPortada(
+                                item = item,
+                                navController = navController,
+                                modifier = Modifier.width(120.dp)
+                            )
+                        }
+                    }
+                }
+            } else {
+                grupo.items.chunked(3).forEachIndexed { fila, trozo ->
+                    item(key = "grid-${grupo.clave}-$fila") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            trozo.forEach { item ->
+                                FichaPortada(
+                                    item = item,
+                                    navController = navController,
+                                    compacta = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            repeat(3 - trozo.size) { Spacer(Modifier.weight(1f)) }
+                        }
+                    }
+                }
+            }
+            if (grupo.items.size > MAX_POR_GRUPO) {
+                item(key = "mas-${grupo.clave}") {
+                    TextButton(
+                        onClick = { onExpandir(grupo.clave) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            if (expandido) "Mostrar menos"
+                            else "Mostrar más (${grupo.items.size - MAX_POR_GRUPO})"
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Cabecera de grupo con contador (TalkBack la anuncia como encabezado). */
+@Composable
+private fun GrupoCabecera(titulo: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .semantics { heading() }
+        )
+    }
+}
+
+/**
+ * Portada compacta de grupo: carátula + título (2 líneas) + dato.
+ * En cuadrícula va sin dato para densificar (el título ya identifica).
+ */
+@Composable
+private fun FichaPortada(
+    item: GameListItem,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    compacta: Boolean = false
+) {
+    Column(modifier = modifier.clickable { navController.navigate("gameDetails/${item.gameId}") }) {
+        GameCover(
+            imageUrl = item.coverUrl,
+            title = item.name,
+            modifier = if (compacta) {
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(3f / 4f)
+            } else {
+                Modifier.size(width = 120.dp, height = 160.dp)
+            }
+        )
+        Text(
+            text = item.name,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+        if (!compacta) {
+            MetaDato(
+                item = item,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+/** Dato bajo el título: horas si hay, si no el año (a salvo de vacíos). */
+@Composable
+private fun MetaDato(
+    item: GameListItem,
+    style: androidx.compose.ui.text.TextStyle,
+    modifier: Modifier = Modifier
+) {
+    val horas = item.entry?.minutesTotal ?: 0
+    val texto = if (horas > 0) "Llevas ${horas / 60} h"
+    else anioDe(item.released).orEmpty()
+    if (texto.isNotBlank()) {
+        Text(
+            text = texto,
+            style = style,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun ListaPlana(
     gameItems: List<GameListItem>,
     navController: NavController,
     libraryViewModel: LibraryViewModel,
@@ -374,7 +578,7 @@ private fun GameList(
     ) {
         items(gameItems, key = { it.gameId }) { item ->
             Box(Modifier.animateItem()) {
-GameListCard(
+                FilaCompacta(
                     item = item,
                     navController = navController,
                     libraryViewModel = libraryViewModel,
@@ -386,8 +590,13 @@ GameListCard(
     }
 }
 
+/**
+ * Fila compacta de la lista plana (búsqueda/filtros): misma geometría que
+ * `GameRowSkeleton` (portada 64 + dos líneas), con las acciones de la tarjeta
+ * a tamaño táctil completo (48 dp, DX-T18).
+ */
 @Composable
-private fun GameListCard(
+private fun FilaCompacta(
     item: GameListItem,
     navController: NavController,
     libraryViewModel: LibraryViewModel,
@@ -420,135 +629,70 @@ private fun GameListCard(
         )
     }
 
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .height(200.dp)
-            .clickable { navController.navigate("gameDetails/${item.gameId}") },
-        shape = RoundedCornerShape(16.dp),
+            .clickable { navController.navigate("gameDetails/${item.gameId}") }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen de fondo (shared element: vuela al detalle)
-            GameCover(
-                imageUrl = item.coverUrl,
-                title = item.name,
-                contentDescription = "Imagen del juego",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .gvSharedElement(key = "cover-${item.gameId}")
+        GameCover(
+            imageUrl = item.coverUrl,
+            title = item.name,
+            contentDescription = "Imagen del juego",
+            modifier = Modifier.size(64.dp)
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            // Panel inferior con los datos del juego
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-                    )
-                    .padding(12.dp)
+            MetaDato(
+                item = item,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+        // F2/T2.6: añadir/quitar de listas curadas (solo con sesión).
+        if (socialViewModel != null && item.entry != null) {
+            IconButton(
+                onClick = { showListDialog = true },
+                modifier = Modifier.size(48.dp)
             ) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                Icon(
+                    imageVector = Lucide.ListPlus,
+                    contentDescription = "Añadir a una lista",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        if (item.released.length >= 4) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("Año: ")
-                                    }
-                                    append(anioDe(item.released).orEmpty())
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+            }
+        }
+        // Solo las fichas de la biblioteca se pueden eliminar
+        // (el historial local no se toca desde aquí).
+        item.entry?.let { entry ->
+            IconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        val userId = uid
+                        if (userId.isNullOrBlank()) {
+                            userViewModel.setMessage("Inicia sesión para gestionar tu biblioteca")
+                            return@launch
                         }
-                        if (item.genres.isNotEmpty()) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("Géneros: ")
-                                    }
-                                    append(item.genres.joinToString(", "))
-                                },
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        item.entry?.let { entry ->
-                            Text(
-                                text = "Estado: ${entry.status.label}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            entry.rating?.let { nota ->
-                                Text(
-                                    text = "Tu nota: " + formatRating(nota),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                        libraryViewModel.removeFromLibrary(userId, entry).onFailure { error ->
+                            userViewModel.setMessage("No se pudo eliminar: ${error.message}")
                         }
                     }
-                    // Acciones de tarjeta: añadir a lista JUNTO a eliminar,
-                    // misma fila, mismo tamaño, sin paddings internos que las separen.
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // F2/T2.6: añadir/quitar de listas curadas (solo con sesión).
-                        if (socialViewModel != null && item.entry != null) {
-                            IconButton(
-                                onClick = { showListDialog = true },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Lucide.ListPlus,
-                                    contentDescription = "Añadir a una lista",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                        // Solo las fichas de la biblioteca se pueden eliminar
-                        // (el historial local no se toca desde aquí).
-                        item.entry?.let { entry ->
-                            IconButton(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        val userId = uid
-                                        if (userId.isNullOrBlank()) {
-                                            userViewModel.setMessage("Inicia sesión para gestionar tu biblioteca")
-                                            return@launch
-                                        }
-                                        libraryViewModel.removeFromLibrary(userId, entry).onFailure { error ->
-                                            userViewModel.setMessage("No se pudo eliminar: ${error.message}")
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Lucide.Trash2,
-                                    contentDescription = "Eliminar juego",
-                                    tint = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+                },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Lucide.Trash2,
+                    contentDescription = "Eliminar juego",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
@@ -567,47 +711,6 @@ fun headerTitle(selectedList: String): String = when (selectedList) {
         "history" -> "Historial"
         else -> "Jugando"
     }
-
-@Composable
-fun SelectListButton(
-    modifier: Modifier = Modifier,
-    onListSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val listas = listOf(
-        "Todos" to "all",
-        "Jugando" to "playing",
-        "Completados" to "completed",
-        "Coleccionados" to "collected",
-        "En pausa" to "paused",
-        "Retirados" to "retired",
-        "Abandonados" to "abandoned",
-        "Deseados" to "wished",
-        "Favoritos" to "favorites",
-        "Historial" to "history"
-    )
-
-    Box(modifier = modifier) {
-        IconButton(onClick = { expanded = true }, modifier = Modifier.size(24.dp)) {
-            Icon(
-                imageVector = Lucide.ChevronDown,
-                contentDescription = "Seleccionar lista",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            listas.forEach { (displayName, param) ->
-                DropdownMenuItem(
-                    text = { Text(displayName) },
-                    onClick = {
-                        expanded = false
-                        onListSelected(param)
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun SortMenuButton(currentSortOption: String, onSortSelected: (String) -> Unit) {
