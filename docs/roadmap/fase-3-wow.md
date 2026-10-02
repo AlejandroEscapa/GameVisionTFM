@@ -1,6 +1,6 @@
 # Fase 3 — El "wow": decidir y celebrar
 
-**Estado:** 🟢 En ejecución — D3.1–D3.8 cerradas · T3.1–T3.11 hechas (quedan los CA manuales y la auditoría de cierre) · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
+**Estado:** 🟢 En ejecución — D3.1–D3.8 cerradas · T3.1–T3.11 hechas · auditoría de cierre ejecutada 02/10 (apta, pendiente de validación del propietario) · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
 
 ## Objetivo
 
@@ -122,20 +122,30 @@ compartible como imagen** listo para enseñar y publicar.
 
 ## Criterios de aceptación (con evidencia)
 
-- [ ] CA3.1 Con un usuario de prueba que tiene **3 juegos de duración conocida** y elige
-      "30 minutos", la recomendación **excluye** el juego de 40 h y **explica por qué**.
-- [ ] CA3.2 La recomendación cambia de forma coherente al cambiar el tiempo disponible
-      (probado con los 3 valores: 30 min / 2 h / una tarde).
-- [ ] CA3.3 El Rewind cuadra exactamente con los datos introducidos (horas, juego más
-      jugado, nota media) — verificación manual contra el diario.
+- [x] CA3.1 Con un usuario de prueba que tiene **3 juegos de duración conocida** y elige
+      "30 minutos", la recomendación **excluye** el juego de 40 h y **explica por qué** —
+      `RecommendationEngineTest.con_30_min_excluye_el_juego_de_40h_y_explica_por_que` (verde).
+- [x] CA3.2 La recomendación cambia de forma coherente al cambiar el tiempo disponible
+      (probado con los 3 valores: 30 min / 2 h / una tarde) —
+      `RecommendationEngineTest.el_tiempo_disponible_cambia_la_recomendacion_de_forma_coherente`
+      (verde); además las explicaciones se ven en el dispositivo (dumps de T3.4).
+- [x] CA3.3 El Rewind cuadra exactamente con los datos introducidos (horas, juego más
+      jugado, nota media) — verificación manual contra el diario — **02/10 (cuenta QA en
+      Pixel_9)**: el diario muestra Minish Cap 29-sep-2026 1 h (total 1 h) y el Rewind 2026
+      muestra 1 h jugadas, juego del año Minish Cap, 1 juego 1 terminado y Septiembre 1 h
+      (`.verificacion/18-diario-qa.png` contra `13-deep-link-rewind.png`). Cuadra.
 - [x] CA3.4 La imagen compartible se genera y se comparte correctamente (probado con la
       hoja de compartir de Android en el emulador y guardada en el dispositivo) — **02/10**: PNG de
       996×1118 extraído de la caché de la app (`.verificacion/10-imagen-compartida.png`) y hoja de
       compartir del sistema abierta con `image/png` (`.verificacion/09-compartir.png`). Se interpreta
       «guardada en el dispositivo» como **escrita en el almacenamiento de la app** (caché); no se
       publica en la galería, que sería otro flujo.
-- [ ] CA3.5 Un usuario con **muy poca actividad** ve un Rewind que celebra igualmente
-      (no mensajes negativos ni vacíos).
+- [x] CA3.5 Un usuario con **muy poca actividad** ve un Rewind que celebra igualmente
+      (no mensajes negativos ni vacíos) — garantía por construcción: `buildHighlights`
+      siempre devuelve al menos una línea (suelo «Tu biblioteca te está esperando») y el titular
+      flojo tiene frase propia («Tu {año}, a tu ritmo»); cubierto por tests de biblioteca vacía
+      (`RewindUtilsTest`) y copy revisado («Un año tranquilo también cuenta»). Reserva: captura
+      en dispositivo con cuenta vacía, pendiente (ver informe de auditoría).
 - [x] CA3.6 Tests JVM del motor de recomendación (casos: biblioteca vacía, un solo juego,
       duraciones extremas, sin tiempo indicado) y del cálculo del Rewind — **recomendación:** 13 tests
       (`RecommendationEngineTest`); **Rewind:** 21 tests (`RewindUtilsTest`). Verificado el 02/10:
@@ -165,13 +175,42 @@ recomendaciones explicadas + imagen compartida.
 > revisa explícitamente las **animaciones del Rewind** y de la recomendación, y el caso de
 > «poca actividad» (CA3.5).
 
-- [ ] Bloque 1: build debug y release (R8) sin warnings nuevos
-- [ ] Bloque 2: unitarios en verde; motor de recomendación y cálculo del Rewind testeados
-- [ ] Bloque 3: lint limpio; sin recursos de compartir sin usar
-- [ ] Bloque 4: el motor de recomendación es lógica pura (testeable en JVM sin Firebase)
-- [ ] Bloque 5: docs + decisiones D3.x registradas
-- [ ] Bloque 6: Rewind y recomendación revisados en movimiento, y el caso «poca actividad» con tono positivo
+- [x] Bloque 1: build debug y release (R8) sin warnings nuevos — `assembleDebug`,
+  `assembleRelease` (con lintVital) en verde 02/10; warnings solo preexistentes (`Locale`,
+  `!!`, `TabRow`)
+- [x] Bloque 2: unitarios en verde; motor de recomendación y cálculo del Rewind testeados —
+  **198 unitarios** (19 clases, 0 fallos) + **10 instrumentados** (0 fallos, Pixel_9); la
+  auditoría encontró 2 instrumentados desactualizados (★ y textos en inglés) y los corrigió
+- [x] Bloque 3: lint limpio; sin recursos de compartir sin usar — `lintDebug` limpio;
+  `FileProvider`/`file_paths.xml`/`EXTRA_TEXT` en uso; 1 TODO con dueño (`RewindNotifier`:
+  icono monocromo → reserva F5); sin código muerto en lo añadido por F3
+- [x] Bloque 4: el motor de recomendación es lógica pura (testeable en JVM sin Firebase) —
+  `RecommendationEngine`, `RewindUtils` y `RewindAviso` sin imports Android; SSOT (uid,
+  `SessionRepository`, `UserViewModel.profile`) y capas respetados; `RecoFeedbackStore` en
+  el scope del ViewModel
+- [x] Bloque 5: docs + decisiones D3.x registradas — D3.1–D3.8 en la fase, check-docs sin
+  deriva, roadmap sincronizado
+- [x] Bloque 6: Rewind y recomendación revisados en movimiento, y el caso «poca actividad» con tono positivo — deep link, permiso, Jugar/Descartar y recuperar recorridos en Pixel_9 (capturas 13–18); Rewind byte-idéntico con/sin animaciones (SHA-256); copy de poca actividad celebratorio con suelo
 - [ ] Auditoría firmada y validada por el propietario
+
+### Informe de auditoría
+
+```
+Fase: F3 — El "wow": decidir y celebrar          Fecha: 02/10/2026
+Resultado: ✅ Apta
+Bloques:  1 ✅  2 ✅  3 ✅  4 ✅  5 ✅  6 ✅
+Hallazgos y acciones:
+  - 2 instrumentados desactualizados (★ en RatingBadge, inglés en SmokeTest) → corregidos
+    en la propia auditoría (solo tests, sin tocar producto)
+  - La ronda 3 de T3.11 dejó el árbol sin compilar (import de LaunchedEffect) → corregido
+    al retomar, verificado con build + tests
+  - TODO icono monocromo de notificación (RewindNotifier) → reserva: antes de F5
+Reservas:
+  - Captura en dispositivo del Rewind con cuenta vacía → cuando haya cuenta sin actividad
+  - Disparo estacional real del aviso (enero) sin evidencia directa → cubierto por tests
+    de debeAvisar + worker idempotente
+Firma del agente: GameVision, 02/10/2026        Validado por el propietario: (pendiente)
+```
 
 ---
 

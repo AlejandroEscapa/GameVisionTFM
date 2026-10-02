@@ -28,7 +28,9 @@ class DesignSystemUiTest {
             GameVisionTheme(darkTheme = true) { RatingBadge(rating = "4.4") }
         }
 
-        composeRule.onNodeWithText("★ 4.4").assertIsDisplayed()
+        // La estrella es icono Lucide, no el carácter "★" (emojis y glifos fuera,
+        // auditoría de diseño 02/10): lo que se afirma es el texto de la nota.
+        composeRule.onNodeWithText("4.4", substring = true).assertIsDisplayed()
     }
 
     @Test

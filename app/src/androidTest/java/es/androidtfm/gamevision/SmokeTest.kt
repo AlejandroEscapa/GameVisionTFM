@@ -24,11 +24,14 @@ class SmokeTest {
     @Test
     fun arrancaYmuestraPantallaPrincipal() {
         composeRule.waitUntil(timeoutMillis = 20_000) {
-            val welcome = composeRule.onAllNodesWithText("Continuar como invitado")
-                .fetchSemanticsNodes().isNotEmpty()
-            val bottomBar = composeRule.onAllNodesWithContentDescription("Search")
+            // Bienvenida en frío (textos en español, DESIGN.md §8) o dock con sesión.
+            val welcome = composeRule.onAllNodesWithText("Iniciar sesión")
                 .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithContentDescription("Home")
+                composeRule.onAllNodesWithText("Explorar sin cuenta")
+                    .fetchSemanticsNodes().isNotEmpty()
+            val bottomBar = composeRule.onAllNodesWithContentDescription("Buscar")
+                .fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithContentDescription("Inicio")
                     .fetchSemanticsNodes().isNotEmpty()
             welcome || bottomBar
         }

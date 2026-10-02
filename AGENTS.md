@@ -37,7 +37,7 @@ App Android 100% Jetpack Compose (cero layouts XML) para consultar videojuegos
 ```bash
 export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # JDK 21; NO usar ~/.jdks/ms-17.0.17 (corrupto)
 ./gradlew assembleDebug            # APK debug
-./gradlew testDebugUnitTest        # tests unitarios (88 verdes, 29/09/2026)
+./gradlew testDebugUnitTest        # tests unitarios (198 verdes, 02/10/2026)
 ./gradlew connectedDebugAndroidTest # tests UI (requiere emulador/dispositivo)
 ./gradlew assembleRelease          # APK release R8 (~7,5 MB; sin firmar si no hay keystore)
 ```
@@ -201,6 +201,11 @@ con 5 (Home, Search, gamelist, Social, Profile). Back hacia `main` con popUpTo.
   emulador (CA2.1–CA2.10) y REST sin autenticar (403). Detalle en
   [fase 2](../docs/roadmap/fase-2-social.md): perfil público, seguir asimétrico, feed en vivo,
   me gusta, Top 4, listas, reportar/bloquear y migración de amigos a aristas.
+- 🟢 **F3 (02/10/2026):** T3.1–T3.11 hechas (D3.1–D3.8 cerradas), **198 unitarios** + **10
+  instrumentados** verdes, `lintDebug` limpio, release R8 OK. Recorrido en Pixel_9 con
+  cuenta QA (deep link, permiso, Jugar/Descartar, CA3.3 cruzado con el diario). Auditoría
+  ejecutada (apta); pendiente de validación del propietario. Detalle en
+  [fase 3](../docs/roadmap/fase-3-wow.md).
 - ⚠️ Pendiente de validación **en dispositivo** (no hubo emulador disponible):
   smoke test de la app release, test de UI `BottomBarNavigationTest`, trazas de
   android-profiler, baseline profiles.

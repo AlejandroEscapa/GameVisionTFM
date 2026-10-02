@@ -43,7 +43,7 @@
 | [F0](fase-0-cimientos-datos.md) | Cimientos de datos | 1 semana | ✅ Completada (29/09) | — |
 | [F1](fase-1-corazon-tracker.md) | El corazón del tracker | 2 semanas | ✅ Completada (29/09) | F0 ✅ |
 | [F2](fase-2-social.md) | Social | 1 semana | ✅ Completada (01/10) — auditoría validada por el propietario | F1 |
-| [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | 🟢 En ejecución — **T3.1–T3.11 hechas** (motor + Home «Para ti», Rewind completo con aviso, acciones en línea y aprendizaje ligero, D3.1–D3.8 cerradas); quedan los CA manuales y la auditoría de cierre | F1 |
+| [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | 🟢 En ejecución — **T3.1–T3.11 hechas** (motor + Home «Para ti», Rewind completo con aviso, acciones en línea y aprendizaje ligero, D3.1–D3.8 cerradas); auditoría ejecutada 02/10 (apta, pendiente de validación) | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |
 | [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | 🔵 Aprobada (02/10) — **DX.1–DX.8 cerradas** ([ADR-0013](../metodologia/adr/0013-el-contrato-visual-manda.md)); el re-anclaje ya está hecho (ADR-0010) y la auditoría existe; quedan motion, accesibilidad y el barrido de adopción | F1–F4 |
 
