@@ -79,7 +79,10 @@ compartible como imagen** listo para enseñar y publicar.
   texto del Rewind y destinos (Quick Share, Drive, Mensajes). **Precisión:** la imagen queda en la
   caché de la app, **no** en la galería; «guardar en el dispositivo» sería otro flujo (MediaStore) y
   no lo pide T3.8
-- [ ] T3.10 "Tu historia con este juego" (mini-recap por juego)
+- [ ] T3.10 "Tu historia con este juego" (mini-recap por juego) — *parcial:* la **lógica está hecha y
+  testeada** (`RewindUtils.computeForGame` → `GameStory`: horas, sesiones, recorrido, racha del juego
+  y nota; **5 tests** nuevos, 184 unitarios verdes). *Falta:* mostrarla en la ficha del juego
+  (`GameDetails`) y, si se quiere, compartirla reutilizando el póster de T3.8
 - [ ] T3.11 Notificación de fin de año cuando el Rewind está listo
 
 ---

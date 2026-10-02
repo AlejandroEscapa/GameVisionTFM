@@ -67,7 +67,6 @@ import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GameRowSkeleton
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
-import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -439,7 +438,7 @@ private fun TarjetaDeMomentos(rewind: RewindData) {
                 DatoLineal("Plataforma principal", plataforma)
             }
             rewind.ratingAverage?.let { nota ->
-                DatoLineal("Nota media", formatNota(nota))
+                DatoLineal("Nota media", RewindUtils.formatNota(nota))
             }
         }
     }
@@ -541,7 +540,3 @@ private fun DatoLineal(label: String, value: String) {
         )
     }
 }
-
-/** Nota en formato español: 4,5. */
-private fun formatNota(value: Double): String =
-    String.format(Locale("es", "ES"), "%.1f", value)

@@ -37,6 +37,25 @@ data class RewindGame(
 data class RewindMonth(val index: Int, val label: String, val minutes: Int)
 
 /**
+ * La historia del usuario con **un** juego (F3/T3.10): el mini-recap que multiplica
+ * las ocasiones de compartir sin depender del cierre del año (D3.5).
+ */
+data class GameStory(
+    val gameId: String,
+    val name: String,
+    val coverUrl: String?,
+    val status: LibraryStatus,
+    val minutesTotal: Int,
+    val sessionsCount: Int,
+    val firstPlayedAt: Long?,
+    val lastPlayedAt: Long?,
+    val longestStreakDays: Int,
+    val rating: Double?,
+    /** Líneas de la historia. **Nunca vacía** (mismo suelo que el recap anual). */
+    val highlights: List<String>
+)
+
+/**
  * El recap anual completo. `hasActivity` distingue el caso normal del caso «poca
  * actividad» (CA3.5), que **no** es un error: se pinta igual, con otro texto.
  */
@@ -116,20 +135,79 @@ object RewindUtils {
      * una sesión, **dentro del año**. Con sesiones en días sueltos devuelve 1; sin
      * sesiones, 0.
      */
-    fun longestStreakDays(sessions: List<PlaySession>, year: Int): Int {
-        val days = sessions
-            .filter { yearOf(it.date) == year }
-            .map { dayOrdinal(it.date) }
-            .distinct()
-            .sorted()
-        if (days.isEmpty()) return 0
-        var best = 1
-        var run = 1
-        for (i in 1 until days.size) {
-            run = if (days[i] == days[i - 1] + 1L) run + 1 else 1
-            if (run > best) best = run
+    fun longestStreakDays(sessions: List<PlaySession>, year: Int): Int =
+        rachaMasLarga(sessions.filter { yearOf(it.date) == year }.map { dayOrdinal(it.date) })
+
+    /**
+     * La historia del usuario con [entry]: horas, sesiones, recorrido temporal, racha
+     * y nota. Pura y testeable, como el recap anual.
+     *
+     * Si no hay diario para ese juego, cae al contador de la ficha (las «horas de
+     * bolsillo»), igual que hace el recap anual.
+     */
+    fun computeForGame(entry: LibraryEntry, sessions: List<PlaySession>): GameStory {
+        val propias = sessions
+            .filter { it.gameId == entry.gameId && it.minutes > 0 }
+            .sortedBy { it.date }
+        val minutos = if (propias.isEmpty()) {
+            entry.minutesTotal.coerceAtLeast(0)
+        } else {
+            propias.sumOf { it.minutes }
         }
-        return best
+        val primero = propias.firstOrNull()?.date
+        val ultimo = propias.lastOrNull()?.date
+        val racha = rachaMasLarga(propias.map { dayOrdinal(it.date) })
+
+        val highlights = buildList {
+            if (minutos > 0) add("${formatHoursTotal(minutos)} en total")
+            if (propias.isNotEmpty()) {
+                add(if (propias.size == 1) "1 sesión apuntada" else "${propias.size} sesiones apuntadas")
+            }
+            if (primero != null && ultimo != null && primero != ultimo) {
+                add("De ${fechaCorta(primero)} a ${fechaCorta(ultimo)}")
+            }
+            if (racha > 1) add("Racha más larga: $racha días seguidos")
+            entry.rating?.let { add("Tu nota: ${formatNota(it)}") }
+            // Suelo: una ficha sin partidas tampoco deja la historia en blanco.
+            if (isEmpty()) add("Todavía sin partidas apuntadas")
+        }
+
+        return GameStory(
+            gameId = entry.gameId,
+            name = entry.name.ifBlank { entry.gameId },
+            coverUrl = entry.coverUrl,
+            status = entry.status,
+            minutesTotal = minutos,
+            sessionsCount = propias.size,
+            firstPlayedAt = primero,
+            lastPlayedAt = ultimo,
+            longestStreakDays = racha,
+            rating = entry.rating,
+            highlights = highlights
+        )
+    }
+
+    /** Nota en formato español: 4,5. Vivía duplicada en la pantalla; aquí es testeable. */
+    fun formatNota(value: Double): String =
+        String.format(Locale("es", "ES"), "%.1f", value)
+
+    /** Día y mes en español, para el recorrido de una historia: «3 de marzo». */
+    internal fun fechaCorta(epochMillis: Long): String {
+        val fecha = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+        return "${fecha.dayOfMonth} de ${MESES_ES[fecha.monthValue - 1]}"
+    }
+
+    /** Mayor número de días consecutivos en una lista de ordinales de día. */
+    private fun rachaMasLarga(dias: List<Long>): Int {
+        val orden = dias.distinct().sorted()
+        if (orden.isEmpty()) return 0
+        var mejor = 1
+        var actual = 1
+        for (i in 1 until orden.size) {
+            actual = if (orden[i] == orden[i - 1] + 1L) actual + 1 else 1
+            if (actual > mejor) mejor = actual
+        }
+        return mejor
     }
 
     /** Horas totales en formato compacto para el recap: «312 h», «1 h», «0 h». */

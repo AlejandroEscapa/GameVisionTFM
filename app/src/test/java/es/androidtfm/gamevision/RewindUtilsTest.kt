@@ -384,13 +384,90 @@ class RewindUtilsTest {
     }
 
     @Test
-    fun el_recap_no_pasa_de_topN_juegos() {
-        val entries = (1..8).map { entry("g$it") }
+    fun el_recap_no_pasa_de_topN_juegos() {        val entries = (1..8).map { entry("g$it") }
         val sessions = (1..8).map { i -> sesion("g$i", dia(month = 5, dayOfMonth = i), i * 10) }
 
         val r = RewindUtils.compute(entries, sessions, YEAR, topN = 4)
 
         assertEquals(4, r.topGames.size)
         assertEquals("g8", r.topGames.first().gameId)
+    }
+
+    // ------------------------------------------------------------------
+    // Historia por juego (T3.10)
+    // ------------------------------------------------------------------
+
+    @Test
+    fun la_historia_de_un_juego_suma_sus_propias_sesiones() {
+        val story = RewindUtils.computeForGame(
+            entry = entry("a", name = "Hades", rating = 4.5),
+            sessions = listOf(
+                sesion("a", dia(month = 1, dayOfMonth = 5), 90),
+                sesion("a", dia(month = 1, dayOfMonth = 6), 60),
+                sesion("b", dia(month = 1, dayOfMonth = 6), 600) // otro juego
+            )
+        )
+
+        assertEquals(150, story.minutesTotal)
+        assertEquals(2, story.sessionsCount)
+        assertEquals("Hades", story.name)
+        assertEquals(4.5, story.rating!!, 0.001)
+        assertTrue(story.highlights.any { it.contains("2 sesiones") })
+        assertTrue(story.highlights.any { it.contains("4,5") })
+    }
+
+    @Test
+    fun la_historia_da_el_recorrido_y_la_racha_del_juego() {
+        val story = RewindUtils.computeForGame(
+            entry = entry("a"),
+            sessions = listOf(
+                sesion("a", dia(month = 3, dayOfMonth = 1), 30),
+                sesion("a", dia(month = 3, dayOfMonth = 2), 30),
+                sesion("a", dia(month = 3, dayOfMonth = 3), 30),
+                sesion("a", dia(month = 9, dayOfMonth = 28), 30)
+            )
+        )
+
+        assertEquals(3, story.longestStreakDays)
+        assertTrue(story.highlights.any { it.contains("De 1 de marzo a 28 de septiembre") })
+        assertTrue(story.highlights.any { it.contains("3 días seguidos") })
+    }
+
+    @Test
+    fun la_historia_sin_diario_cae_al_contador_de_la_ficha() {
+        val story = RewindUtils.computeForGame(
+            entry = entry("a", minutesTotal = 480, rating = 3.0),
+            sessions = emptyList()
+        )
+
+        assertEquals(480, story.minutesTotal)
+        assertEquals(0, story.sessionsCount)
+        assertNull(story.firstPlayedAt)
+        assertEquals(0, story.longestStreakDays)
+        assertTrue(story.highlights.any { it.contains("8 h") })
+    }
+
+    @Test
+    fun la_historia_de_una_ficha_vacia_no_queda_en_blanco() {
+        val story = RewindUtils.computeForGame(entry("a"), emptyList())
+
+        assertTrue("la historia nunca queda vacía", story.highlights.isNotEmpty())
+        assertTrue(story.highlights.first().contains("Todavía sin partidas"))
+    }
+
+    @Test
+    fun la_historia_no_cruza_sesiones_de_otro_juego_en_la_racha() {
+        val story = RewindUtils.computeForGame(
+            entry = entry("a"),
+            sessions = listOf(
+                sesion("a", dia(month = 5, dayOfMonth = 1), 10),
+                // El día siguiente lo jugó a OTRO juego: la racha de "a" no se estira.
+                sesion("b", dia(month = 5, dayOfMonth = 2), 10),
+                sesion("a", dia(month = 5, dayOfMonth = 3), 10)
+            )
+        )
+
+        assertEquals(1, story.longestStreakDays)
+        assertEquals(2, story.sessionsCount)
     }
 }
