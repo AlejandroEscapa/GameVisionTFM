@@ -1,6 +1,6 @@
 # Fase 3 — El "wow": decidir y celebrar
 
-**Estado:** 🔵 Aprobada (01/10) — D3.1–D3.6 cerradas · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
+**Estado:** 🟢 En ejecución — D3.1–D3.6 cerradas y **D3.7 abierta** (bloquea solo T3.11) · T3.1–T3.3 hechas, **T3.6–T3.10 hechas** · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
 
 ## Objetivo
 
@@ -36,6 +36,28 @@ compartible como imagen** listo para enseñar y publicar.
 | D3.4 | **Formato de compartir** | (a) Imagen generada (tarjeta) · (b) Texto · (c) Ambos | **(a) imagen**, con las tarjetas del design system: es lo que se comparte de verdad (el formato de Strava/Spotify) | ✅ (a) (01/10) |
 | D3.5 | **Periodicidad del Rewind** | (a) Sólo anual · (b) Anual + mensual + "tu historia con este juego" | **(b) anual como plato fuerte y "por juego" como relleno**: multiplica las ocasiones de compartir con poco trabajo extra | ✅ (b) anual + por juego (01/10) |
 | D3.6 | **Tono del Rewind** | (a) Celebrar siempre (también si jugaste poco) · (b) Mostrar también lo no jugado | **(a) celebrar**: la investigación avisa de que la gamificación puede volverse tóxica; nunca culpabilizar | ✅ (a) (01/10) |
+| D3.7 | **¿Cómo se avisa de que el Rewind está listo?** (T3.11) | (a) **WorkManager** periódico con `HiltWorker` · (b) `AlarmManager` anual + `BroadcastReceiver` contra una caché local · (c) aviso en la app al abrirla, sin notificación | **(a)**, pero **el alcance de T3.11 hay que partirlo**: ver abajo | ⬜ **Abierta (02/10)** |
+
+> **Por qué T3.11 no se ha implementado todavía (decisión, no dejadez).** La regla 4 de este roadmap
+> dice: *si aparece una decisión nueva durante la ejecución, se añade a la fase **antes** de
+> improvisar*. T3.11 introduce **la primera dependencia nueva de la fase** y tiene tres preguntas sin
+> cerrar:
+>
+> 1. **¿Cuándo es «fin de año»?** El Rewind del año que cierra solo tiene sentido **en enero**; lanzarlo
+>    en diciembre cuenta un año a medias. Hay que fijar el día y la hora.
+> 2. **¿Cómo se llega al usuario?** `WorkManager` es lo estándar, pero exige `androidx.work` **más
+>    `androidx.hilt:hilt-work`**, un `HiltWorkerFactory`, que `GameVisionApplication` implemente
+>    `Configuration.Provider` y quitar el inicializador por defecto del manifest. La alternativa
+>    (`AlarmManager` + receptor) evita dependencias pero obliga a mantener una caché local del año, y
+>    el receptor no puede leer Firestore sin sesión. **La opción (a) es la recomendada**, y es trabajo
+>    real: no se improvisa en una ronda.
+> 3. **¿Y si no hay actividad?** D3.6 prohíbe culpabilizar: **sin datos no se notifica**. Un aviso de
+>    «tu Rewind está listo» a quien no jugó es exactamente el mensaje tóxico que la investigación
+>    desaconseja. Hay que persistir «ya avisado de {año}» para no repetir.
+>
+> **Parte que sí es independiente y no bloquea:** el canal de notificación, el permiso
+> `POST_NOTIFICATIONS` (API 33+) y el enlace para que tocar la notificación abra el Rewind. Se pueden
+> hacer cuando se cierre D3.7, junto con el programador.
 
 ---
 
@@ -85,7 +107,9 @@ compartible como imagen** listo para enseñar y publicar.
   juego (`GameDetails`), visible solo si el juego está en la biblioteca. *Evidencia:* `.verificacion/12-historia-juego.png`
   (la tarjeta en la ficha de Elden Ring, con el caso suelo «Todavía sin partidas apuntadas» porque
   ese juego no tiene diario); el caso con datos lo cubren los tests. 184 unitarios verdes, lint limpio
-- [ ] T3.11 Notificación de fin de año cuando el Rewind está listo
+- [ ] T3.11 Notificación de fin de año cuando el Rewind está listo — **bloqueada por la decisión
+  D3.7** (cuándo, cómo se llega al usuario y con qué dependencia). No se implementa a medias: ver el
+  bloque de D3.7 para las tres preguntas abiertas y la parte que sí es independiente
 
 ---
 
