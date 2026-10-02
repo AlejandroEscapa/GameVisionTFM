@@ -28,6 +28,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import es.androidtfm.gamevision.ui.designsystem.LocalSharedTransitionScope
+import es.androidtfm.gamevision.ui.designsystem.LocalReduceMotion
+import es.androidtfm.gamevision.ui.designsystem.rememberSystemReduceMotion
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -133,6 +135,11 @@ fun MainScreen(
 
     var isNavHostInitialized by remember { mutableStateOf(false) }
 
+    // Preferencia de «reducir movimiento» del sistema (ADR-0013 §5.2). Se lee una
+    // vez aquí y se provee a toda la app: hasta ahora LocalReduceMotion estaba
+    // declarado en GVMotion con valor por defecto fijo y nadie lo conectaba.
+    val reduceMotion = rememberSystemReduceMotion()
+
     GameVisionTheme(darkTheme = isDarkTheme) {
         // Apariencia de los iconos de las barras del sistema (edge-to-edge: las barras son transparentes)
         SystemBarAppearance(window, isDarkTheme)
@@ -149,7 +156,10 @@ fun MainScreen(
             ) {
             // Shared elements habilitados para todo el grafo (la portada vuela al detalle)
             SharedTransitionLayout {
-                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                CompositionLocalProvider(
+                    LocalSharedTransitionScope provides this,
+                    LocalReduceMotion provides reduceMotion
+                ) {
                     // Se invoca el NavGraph compartido, pasando los ViewModels ya instanciados
                     NavHost(
                         navController = navController,

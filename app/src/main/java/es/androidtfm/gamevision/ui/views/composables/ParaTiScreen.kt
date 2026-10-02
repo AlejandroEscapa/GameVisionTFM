@@ -20,7 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +51,7 @@ import es.androidtfm.gamevision.data.library.RecommendationEngine.Mood
 import es.androidtfm.gamevision.data.model.GameList
 import com.composables.icons.lucide.Gamepad2
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
 import es.androidtfm.gamevision.ui.designsystem.components.GVChip
 import es.androidtfm.gamevision.ui.designsystem.components.GVScreenHeader
@@ -160,6 +163,50 @@ fun ParaTiScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+
+        // ---- Tu Rewind (F3/T3.7): la celebración del año -----------------
+        // Va el primero porque es el motor viral del producto: lo que se comparte.
+        Spacer(Modifier.height(GVSpacing.md))
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = GVSpacing.screenPadding)
+                .clickable { navController.navigate("rewind") },
+            shape = GVShapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainer
+        ) {
+            Row(
+                modifier = Modifier.padding(GVSpacing.xl),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Iconos decorativos: acompañan a un texto que ya lo dice, así que
+                // van en tinta secundaria y sin descripción (ADR-0012).
+                Icon(
+                    Lucide.Sparkles,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.width(GVSpacing.md))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "Tu Rewind",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "El resumen de tu año en juegos",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(
+                    Lucide.ArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Spacer(Modifier.height(GVSpacing.xl))
 
         // ---- Continúa ---------------------------------------------------
         if (enCurso.isNotEmpty()) {

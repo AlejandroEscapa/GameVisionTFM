@@ -1,9 +1,19 @@
 package es.androidtfm.gamevision.ui.designsystem
 
+import android.animation.ValueAnimator
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 /*
  * GameVision Design System — motion (ver DESIGN.md §5).
@@ -40,5 +50,36 @@ object GVMotion {
 /**
  * true cuando el usuario pide reducir movimiento en el sistema: las
  * transiciones y staggered entries se sustituyen por fades directos.
+ *
+ * **Ya está conectado** (ADR-0013 §5.2): `MainActivity` lee la preferencia real
+ * del sistema con [rememberSystemReduceMotion] y la provee aquí, así que
+ * cualquier pantalla puede consultarla con `LocalReduceMotion.current`.
  */
 val LocalReduceMotion = staticCompositionLocalOf { false }
+
+/**
+ * Lee la preferencia de «reducir movimiento» del sistema.
+ *
+ * Se apoya en `ValueAnimator.areAnimatorsEnabled()` (API de plataforma, la misma
+ * que respeta Compose por debajo) en lugar de un `CompositionLocal` de Compose,
+ * porque `LocalMotionDurationScale` no existe en la versión de Compose de este
+ * proyecto. Se vuelve a leer en cada `ON_RESUME`, que es cuando el usuario puede
+ * haber cambiado el ajuste en Ajustes del sistema.
+ */
+@Composable
+fun rememberSystemReduceMotion(): Boolean {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var animatorsEnabled by remember { mutableStateOf(ValueAnimator.areAnimatorsEnabled()) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                animatorsEnabled = ValueAnimator.areAnimatorsEnabled()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    return !animatorsEnabled
+}

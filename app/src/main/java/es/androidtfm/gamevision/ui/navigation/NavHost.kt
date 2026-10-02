@@ -40,6 +40,7 @@ import es.androidtfm.gamevision.ui.views.composables.RegisterScreen
 import es.androidtfm.gamevision.ui.views.composables.SearchScreen
 import es.androidtfm.gamevision.ui.views.composables.SocialScreen
 import es.androidtfm.gamevision.ui.views.composables.StatsScreen
+import es.androidtfm.gamevision.ui.views.composables.RewindScreen
 import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.GoogleViewModel
@@ -301,6 +302,21 @@ fun NavHost(
                 userViewModel = userViewModel
             ) { paddingValues ->
                 StatsScreen(
+                    navController = navController,
+                    paddingValues = paddingValues,
+                    libraryViewModel = libraryViewModel,
+                    userViewModel = userViewModel
+                )
+            }
+        }
+
+        // Pantalla del GameVision Rewind (F3 — Bloque B, T3.7)
+        composable("rewind") {
+            AppScaffold(
+                navController = navController,
+                userViewModel = userViewModel
+            ) { paddingValues ->
+                RewindScreen(
                     navController = navController,
                     paddingValues = paddingValues,
                     libraryViewModel = libraryViewModel,

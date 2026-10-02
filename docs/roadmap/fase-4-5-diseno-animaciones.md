@@ -182,6 +182,14 @@ antes/después por pantalla + capturas o vídeo de las transiciones principales.
   tamaño, sombras y grano global, y monoespaciada para cifras.
   Motivo de cerrarlas ahora: **la fase no empieza hasta que sus decisiones están cerradas** (regla 1
   del roadmap), y F4.5 es la que bloquea a F5 (Publicación).
+- **02/10/2026 — `LocalReduceMotion` queda conectado (avance de DX-T10).** Estaba **declarado en
+  `GVMotion.kt` con valor por defecto fijo `false`** y nadie lo proveía ni lo consumía: el soporte de
+  «reducir movimiento» existía escrito y sin enchufar. Ahora `MainActivity` lee la preferencia real
+  del sistema (`ValueAnimator.areAnimatorsEnabled()`, releída en cada `ON_RESUME`, y no un
+  `CompositionLocal` de Compose porque `LocalMotionDurationScale` **no existe** en la versión de
+  Compose de este proyecto) y la provee a toda la app. `RewindScreen` (F3/T3.7) es el primer
+  consumidor y el primer sitio donde el escalonado se apaga por completo. Falta aplicarlo al resto
+  de flujos.
 
 ---
 

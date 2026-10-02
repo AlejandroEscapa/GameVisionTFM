@@ -52,7 +52,15 @@ compartible como imagen** listo para enseñar y publicar.
 
 ### B. Celebrar: GameVision Rewind
 - [x] T3.6 Cálculo del recap: horas totales, juego más jugado, géneros dominantes, nota media, racha más larga, mes más activo, plataforma principal — `data/library/RewindUtils.kt`, **21 tests** (`RewindUtilsTest`). *Evidencia:* **178 unitarios en verde** (17 clases, 0 fallos) y `testDebugUnitTest` BUILD SUCCESSFUL. Cubre CA3.5 (poca actividad y biblioteca vacía siguen teniendo recap, nunca vacío) y CA3.6. La racha usa `java.time` y el ordinal de día, así que es correcta en cambios de mes, de año y de hora de verano (documentado en la cabecera del fichero)
-- [ ] T3.7 Pantalla del Rewind con animación y las tarjetas del design system
+- [x] T3.7 Pantalla del Rewind con animación y las tarjetas del design system —
+  `ui/views/composables/RewindScreen.kt`, ruta `rewind` en el NavHost y entrada desde **Home**
+  (tarjeta «Tu Rewind» en `ParaTiScreen`, la primera de la pantalla porque esto es lo que se comparte).
+  *Evidencia en emulador (Pixel_9, API 36):* `.verificacion/01-arranque.png` (la tarjeta en Home),
+  `.verificacion/02-rewind.png` (el recap con datos reales: 1 h, 1 juego, 1 terminado, 3,5 de nota,
+  juego del año, género, mes y plataforma) y `.verificacion/03-rewind-sin-animaciones.png` (**con las
+  animaciones del sistema desactivadas la pantalla se pinta completa e idéntica** — el gate de
+  movimiento reducido funciona, CA4.5.4). *Build:* 178 unitarios verdes, `lintDebug` limpio,
+  `assembleDebug` OK
 - [ ] T3.8 Generación de imagen compartible (con marca de la app)
 - [ ] T3.9 Compartir nativo de Android (hoja de compartir del sistema)
 - [ ] T3.10 "Tu historia con este juego" (mini-recap por juego)
@@ -121,3 +129,13 @@ recomendaciones explicadas + imagen compartida.
   regla de convivencia de [ADR-0009](../metodologia/adr/0009-reanclaje-design-system.md) — ver el
   debate de arranque en el registro de la sesión.
 - **Estado de la fase:** 🔵 Aprobada — lista para ejecutar.
+
+## Hallazgos abiertos (detectados al verificar T3.7 en emulador)
+
+- **Los géneros llegan en inglés.** La captura `02-rewind.png` muestra «Género dominante: **Action**».
+  El dato viene de RAWG y se pinta tal cual, así que incumple `DESIGN.md` §8 («cero textos en inglés»).
+  **No es un problema del Rewind:** afecta también a Estadísticas (`topGenres`), a los filtros de la
+  biblioteca y a cualquier sitio que muestre géneros. Dos salidas razonables: (a) tabla de traducción
+  en la capa de presentación (barato, y el género original se conserva para comparar con RAWG), o
+  (b) traducir en la ingesta del catálogo (hay que migrar lo ya guardado). **Decisión pendiente del
+  propietario**; no bloquea T3.7 y se anota aquí para que no se pierda.
