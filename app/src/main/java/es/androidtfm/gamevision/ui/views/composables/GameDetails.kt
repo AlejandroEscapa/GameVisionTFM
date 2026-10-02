@@ -52,9 +52,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import es.androidtfm.gamevision.data.catalog.CatalogGame
+import es.androidtfm.gamevision.data.library.GameStory
 import es.androidtfm.gamevision.data.library.LibraryEntry
+import es.androidtfm.gamevision.data.library.RewindUtils
 import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.datastore.RecentGame
+import es.androidtfm.gamevision.ui.designsystem.GVShapes
 import es.androidtfm.gamevision.ui.designsystem.components.GameCover
 import es.androidtfm.gamevision.ui.designsystem.components.GVSkeleton
 import es.androidtfm.gamevision.ui.designsystem.GVSpacing
@@ -129,6 +132,14 @@ fun GameDetails(
         .collectAsStateWithLifecycle(initialValue = null)
     val entry = library?.getOrNull()?.firstOrNull { it.gameId == gameId.toString() }
 
+    // Diario del usuario: alimenta «Tu historia con este juego» (T3.10).
+    val sessions by remember(uid) { libraryViewModel.observeSessions(uid.orEmpty()) }
+        .collectAsStateWithLifecycle(initialValue = null)
+    // `remember` devuelve el valor, no un State: aquí va `=`, no `by`.
+    val historia = remember(entry, sessions) {
+        entry?.let { RewindUtils.computeForGame(it, sessions?.getOrNull().orEmpty()) }
+    }
+
     // Historial local de recientes (F0-B: ya no se guarda en Firestore).
     LaunchedEffect(game) {
         game?.let { g -> libraryViewModel.addRecentGame(RecentGame(g.id, g.name, g.coverUrl)) }
@@ -188,6 +199,9 @@ fun GameDetails(
                     // Duración estimada (T1.11): el valor manual del usuario gana;
                     // si no hay dato ni manual, la tarjeta no se muestra.
                     DurationCard(entry = entry, playtimes = playtimes)
+
+                    // Tu historia con este juego (F3/T3.10): solo si está en tu biblioteca.
+                    historia?.let { HistoriaDelJuego(story = it) }
 
 
                     // Sección de botones
@@ -748,6 +762,42 @@ private fun LibraryPanel(
  * Prioridad: valor MANUAL del usuario > dato de HowLongToBeat. Si no hay
  * ninguno de los dos, la tarjeta NO se muestra (sin dato, se oculta).
  */
+/**
+ * Tu historia con este juego (F3/T3.10).
+ *
+ * Es el «mini-recap» que multiplica las ocasiones de compartir sin esperar al cierre del
+ * año (D3.5). Los datos los calcula `RewindUtils.computeForGame` (lógica pura y testeada);
+ * aquí solo se pintan. Los datos van en tinta y se jerarquizan por tamaño: el acento es
+ * para lo que se toca (ADR-0012).
+ */
+@Composable
+private fun HistoriaDelJuego(
+    story: GameStory,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = GVSpacing.screenPadding),
+        shape = GVShapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Tu historia con este juego", style = MaterialTheme.typography.titleMedium)
+            story.highlights.forEach { linea ->
+                Text(
+                    text = linea,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun DurationCard(
     entry: LibraryEntry?,
@@ -780,7 +830,9 @@ private fun DurationCard(
                 Text(
                     text = "Llevas jugado: " + es.androidtfm.gamevision.data.hltb.HltbUtils.format(jugado),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    // Dato, no acción: tinta (ADR-0012). Estaba en `primary`, y era una de
+                    // las que el barrido del 02/10 dejó atrás.
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 // Barra de progreso jugado / historia principal (si hay dato).
                 val referencia = manual ?: playtimes?.mainMinutes

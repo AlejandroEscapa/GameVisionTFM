@@ -79,10 +79,12 @@ compartible como imagen** listo para enseñar y publicar.
   texto del Rewind y destinos (Quick Share, Drive, Mensajes). **Precisión:** la imagen queda en la
   caché de la app, **no** en la galería; «guardar en el dispositivo» sería otro flujo (MediaStore) y
   no lo pide T3.8
-- [ ] T3.10 "Tu historia con este juego" (mini-recap por juego) — *parcial:* la **lógica está hecha y
-  testeada** (`RewindUtils.computeForGame` → `GameStory`: horas, sesiones, recorrido, racha del juego
-  y nota; **5 tests** nuevos, 184 unitarios verdes). *Falta:* mostrarla en la ficha del juego
-  (`GameDetails`) y, si se quiere, compartirla reutilizando el póster de T3.8
+- [x] T3.10 "Tu historia con este juego" (mini-recap por juego) — lógica **pura y testeada** en
+  `RewindUtils.computeForGame` → `GameStory` (horas, sesiones, recorrido «De 1 de marzo a 28 de
+  septiembre», racha del juego y nota; **5 tests**), y tarjeta `HistoriaDelJuego` en la ficha del
+  juego (`GameDetails`), visible solo si el juego está en la biblioteca. *Evidencia:* `.verificacion/12-historia-juego.png`
+  (la tarjeta en la ficha de Elden Ring, con el caso suelo «Todavía sin partidas apuntadas» porque
+  ese juego no tiene diario); el caso con datos lo cubren los tests. 184 unitarios verdes, lint limpio
 - [ ] T3.11 Notificación de fin de año cuando el Rewind está listo
 
 ---
@@ -162,3 +164,8 @@ recomendaciones explicadas + imagen compartida.
   en la capa de presentación (barato, y el género original se conserva para comparar con RAWG), o
   (b) traducir en la ingesta del catálogo (hay que migrar lo ya guardado). **Decisión pendiente del
   propietario**; no bloquea T3.7 y se anota aquí para que no se pierda.
+- **El barrido del acento (ADR-0012) seguía incompleto.** Al tocar `GameDetails` para T3.10
+  apareció `DurationCard` pintando **«Llevas jugado: N h»** con `colorScheme.primary`: es un dato, no
+  una acción, y ADR-0012 lo prohíbe explícitamente. Corregido a tinta el 02/10/2026 (commit de T3.10).
+  Confirma lo que la auditoría ya avisaba: los **50 `colorScheme.primary` de 23 ficheros** siguen
+  necesitando el barrido completo que DX-T4 deja pendiente. Se deja anotado aquí.
