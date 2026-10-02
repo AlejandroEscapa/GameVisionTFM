@@ -43,6 +43,8 @@ object RecommendationEngine {
         GENERO_AFIN,
         /** El usuario le puso nota alta: le gustó. */
         NOTA_ALTA,
+        /** Lo eligió antes con «Jugar»: sigue siendo buena opción (T3.5). */
+        ELEGIDO_ANTES,
         /** Sin dato de duración: se recomienda sin prometer tiempos. */
         DURACION_DESCONOCIDA
     }
@@ -80,16 +82,21 @@ object RecommendationEngine {
      * @param favoriteGenres géneros favoritos del momento (de StatisticsUtils).
      * @param availableMinutes tiempo libre; **<= 0 = sin límite indicado**: el
      *   factor tiempo no puntúa y la explicación no promete ventanas.
+     * @param descartados juegos que el usuario descartó (T3.5): no vuelven a salir.
+     * @param aceptados juegos que el usuario eligió con «Jugar» (T3.5): suben.
      */
     fun recommend(
         candidates: List<Candidate>,
         availableMinutes: Int,
         favoriteGenres: Set<String> = emptySet(),
         mood: Mood = Mood.ANY,
-        max: Int = 3
+        max: Int = 3,
+        descartados: Set<String> = emptySet(),
+        aceptados: Set<String> = emptySet()
     ): List<Recommendation> {
         val elegibles = candidates.filter {
-            it.status == LibraryStatus.PLAYING || it.status == LibraryStatus.PAUSED
+            (it.status == LibraryStatus.PLAYING || it.status == LibraryStatus.PAUSED) &&
+                it.gameId !in descartados
         }
         if (elegibles.isEmpty()) return emptyList()
 
@@ -138,6 +145,12 @@ object RecommendationEngine {
             if ((c.rating ?: 0.0) >= 4.0) {
                 score += 10
                 motivos += Reason.NOTA_ALTA
+            }
+
+            // Factor 4 — aprendizaje ligero (T3.5): lo eligió antes, sigue arriba.
+            if (c.gameId in aceptados) {
+                score += 15
+                motivos += Reason.ELEGIDO_ANTES
             }
 
             Recommendation(
@@ -205,6 +218,9 @@ object RecommendationEngine {
         }
         if (Reason.NOTA_ALTA in motivos && c.rating != null) {
             partes += "Le pusiste ${c.rating}."
+        }
+        if (Reason.ELEGIDO_ANTES in motivos) {
+            partes += "Lo marcaste para jugar."
         }
         if (partes.isEmpty()) partes += "Está en tu biblioteca esperando."
         return partes.joinToString(" ")

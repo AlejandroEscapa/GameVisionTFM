@@ -13,6 +13,8 @@ import es.androidtfm.gamevision.data.library.LibraryRepository
 import es.androidtfm.gamevision.data.library.LibraryStats
 import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.library.PlaySession
+import es.androidtfm.gamevision.data.library.RecoFeedback
+import es.androidtfm.gamevision.data.library.RecoFeedbackStore
 import es.androidtfm.gamevision.datastore.RecentGame
 import es.androidtfm.gamevision.datastore.RecentGamesStore
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +38,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
+    private val recoFeedbackStore: RecoFeedbackStore,
     private val recentGamesStore: RecentGamesStore,
     private val hltbRepository: HltbRepository,
     private val analytics: AnalyticsLogger
@@ -69,6 +72,29 @@ class LibraryViewModel @Inject constructor(
             AnalyticsEvents.STATUS_CHANGE,
             mapOf("from" to from.value, "to" to to.value)
         )
+    }
+
+    // ------------------------------------------------------------------------
+    // Feedback de la recomendación (F3/T3.5, decisión D3.8)
+    // ------------------------------------------------------------------------
+
+    /** Feedback en vivo del usuario: qué aceptó y qué descartó. */
+    fun feedbackRecomendacion(uid: String): Flow<RecoFeedback> =
+        recoFeedbackStore.feedback(uid)
+
+    /** «Jugar»: señal positiva; corre en el scope del ViewModel, no en la pantalla. */
+    fun aceptarRecomendacion(uid: String, gameId: String) {
+        viewModelScope.launch { recoFeedbackStore.registrarAceptado(uid, gameId) }
+    }
+
+    /** «Descartar»: señal negativa; la tarjeta desaparece de la respuesta. */
+    fun descartarRecomendacion(uid: String, gameId: String) {
+        viewModelScope.launch { recoFeedbackStore.registrarDescartado(uid, gameId) }
+    }
+
+    /** Vuelve a mostrar las descartadas. */
+    fun recuperarDescartados(uid: String) {
+        viewModelScope.launch { recoFeedbackStore.limpiarDescartados(uid) }
     }
 
     /** Fija (o borra con `rating = null`) la nota personal (F1/T1.3). */

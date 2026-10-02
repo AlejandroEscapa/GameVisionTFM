@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
@@ -48,6 +49,7 @@ import es.androidtfm.gamevision.data.library.LibraryStatus
 import es.androidtfm.gamevision.data.library.RecommendationEngine
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Candidate
 import es.androidtfm.gamevision.data.library.RecommendationEngine.Mood
+import es.androidtfm.gamevision.data.library.RecoFeedback
 import es.androidtfm.gamevision.data.model.GameList
 import com.composables.icons.lucide.Gamepad2
 import es.androidtfm.gamevision.ui.designsystem.components.GVButton
@@ -62,6 +64,7 @@ import es.androidtfm.gamevision.viewmodel.LibraryViewModel
 import es.androidtfm.gamevision.viewmodel.SearchViewModel
 import es.androidtfm.gamevision.viewmodel.SocialViewModel
 import es.androidtfm.gamevision.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 
 /*
  * Home «Para ti» (iteración 02/10, bloque F): la pantalla central.
@@ -98,6 +101,9 @@ fun ParaTiScreen(
     var biblioteca by remember { mutableStateOf<List<es.androidtfm.gamevision.data.library.LibraryEntry>>(emptyList()) }
     var minutosDisponibles by remember { mutableStateOf(120) }
     var animo by remember { mutableStateOf(Mood.ANY) }
+    // Feedback aceptar/descartar (T3.5): alimenta al motor para que aprenda.
+    var feedback by remember { mutableStateOf(RecoFeedback()) }
+    val alcance = rememberCoroutineScope()
 
     // Listas curadas (T2.6): la Home ofrece crearlas y cuenta cuántas hay.
     val listas by socialViewModel.lists.collectAsStateWithLifecycle()
@@ -118,6 +124,12 @@ fun ParaTiScreen(
         }
     }
 
+    // Feedback en vivo (T3.5): lo descartado no vuelve a salir, lo aceptado sube.
+    LaunchedEffect(uid) {
+        val id = uid?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        libraryViewModel.feedbackRecomendacion(id).collect { feedback = it }
+    }
+
     // Catálogo para las secciones de descubrimiento (populares y novedades).
     val populares by searchViewModel.populares.collectAsStateWithLifecycle()
     val paraTiCatalogo by searchViewModel.paraTi.collectAsStateWithLifecycle()
@@ -128,8 +140,8 @@ fun ParaTiScreen(
     val enCurso = biblioteca.filter { it.status == LibraryStatus.PLAYING }
     val deseados = biblioteca.filter { it.status == LibraryStatus.WISHED }
 
-    // El motor (T3.1) recibe la biblioteca y el tiempo elegido.
-    val recomendaciones = remember(biblioteca, minutosDisponibles, animo, generosFavoritos) {
+    // El motor (T3.1) recibe la biblioteca, el tiempo elegido y el feedback (T3.5).
+    val recomendaciones = remember(biblioteca, minutosDisponibles, animo, generosFavoritos, feedback) {
         RecommendationEngine.recommend(
             candidates = biblioteca.map {
                 Candidate(
@@ -145,7 +157,9 @@ fun ParaTiScreen(
             availableMinutes = minutosDisponibles,
             favoriteGenres = generosFavoritos.toSet(),
             mood = animo,
-            max = 2
+            max = 2,
+            descartados = feedback.descartados,
+            aceptados = feedback.aceptados
         )
     }
 
@@ -284,11 +298,31 @@ fun ParaTiScreen(
             Spacer(Modifier.height(12.dp))
 
             if (recomendaciones.isEmpty()) {
-                Text(
-                    text = "Añade juegos a tu biblioteca y aquí aparecerá qué jugar hoy.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (feedback.descartados.isNotEmpty()) {
+                    // Todo descartado (T3.5): descartar no es para siempre.
+                    Text(
+                        text = "Has descartado las sugerencias.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    GVButton(
+                        text = "Mostrar de nuevo",
+                        onClick = {
+                            uid?.takeIf { it.isNotBlank() }?.let {
+                                libraryViewModel.recuperarDescartados(it)
+                            }
+                        },
+                        secondary = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Text(
+                        text = "Añade juegos a tu biblioteca y aquí aparecerá qué jugar hoy.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             } else {
                 recomendaciones.forEach { rec ->
                     Card(
@@ -322,6 +356,50 @@ fun ParaTiScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            // Acciones en línea (T3.4): jugar o descartar sin abrir la ficha.
+                            Spacer(Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                GVButton(
+                                    text = "Jugar",
+                                    onClick = {
+                                        val id = uid?.takeIf { it.isNotBlank() }
+                                            ?: return@GVButton
+                                        libraryViewModel.aceptarRecomendacion(id, rec.gameId)
+                                        alcance.launch {
+                                            val entrada = biblioteca.firstOrNull {
+                                                it.gameId == rec.gameId
+                                            }
+                                            if (entrada != null &&
+                                                entrada.status == LibraryStatus.PAUSED
+                                            ) {
+                                                val resultado = libraryViewModel.updateStatus(
+                                                    id,
+                                                    rec.gameId,
+                                                    entrada.status,
+                                                    LibraryStatus.PLAYING
+                                                )
+                                                if (resultado.isFailure) {
+                                                    userViewModel.setMessage(
+                                                        "No se pudo marcar como jugando"
+                                                    )
+                                                }
+                                            }
+                                            navController.navigate("gameDetails/${rec.gameId}")
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                GVButton(
+                                    text = "Descartar",
+                                    onClick = {
+                                        uid?.takeIf { it.isNotBlank() }?.let {
+                                            libraryViewModel.descartarRecomendacion(it, rec.gameId)
+                                        }
+                                    },
+                                    secondary = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
                 }

@@ -188,4 +188,53 @@ class RecommendationEngineTest {
         assertEquals(3, r.size)
         assertTrue(r.zipWithNext().all { (a, b) -> a.score >= b.score })
     }
+
+    // ------------------------------------------------------------------
+    // Aprendizaje ligero (T3.5): descartados fuera, aceptados arriba
+    // ------------------------------------------------------------------
+
+    @Test
+    fun descartado_no_vuelve_a_salir() {
+        val r = RecommendationEngine.recommend(
+            listOf(cand("a", durationMin = 60), cand("b", durationMin = 60)),
+            60,
+            descartados = setOf("a")
+        )
+        assertEquals(listOf("b"), r.map { it.gameId })
+    }
+
+    @Test
+    fun si_todo_esta_descartado_no_hay_respuesta() {
+        val r = RecommendationEngine.recommend(
+            listOf(cand("a", durationMin = 60)),
+            60,
+            descartados = setOf("a")
+        )
+        assertTrue(r.isEmpty())
+    }
+
+    @Test
+    fun aceptado_sube_primero_y_se_explica() {
+        val primero = cand("primero", durationMin = 120)
+        val elegido = cand("elegido", durationMin = 120)
+        val r = RecommendationEngine.recommend(
+            listOf(primero, elegido),
+            120,
+            aceptados = setOf("elegido")
+        )
+        assertEquals("elegido", r.first().gameId)
+        assertTrue(Reason.ELEGIDO_ANTES in r.first().reasons)
+        assertTrue(r.first().explanation.contains("Lo marcaste para jugar."))
+    }
+
+    @Test
+    fun descartar_gana_a_aceptar() {
+        val r = RecommendationEngine.recommend(
+            listOf(cand("a", durationMin = 60), cand("b", durationMin = 60)),
+            60,
+            descartados = setOf("a"),
+            aceptados = setOf("a", "b")
+        )
+        assertEquals(listOf("b"), r.map { it.gameId })
+    }
 }

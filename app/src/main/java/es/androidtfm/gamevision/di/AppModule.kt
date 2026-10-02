@@ -22,6 +22,7 @@ import es.androidtfm.gamevision.data.catalog.GameCatalog
 import es.androidtfm.gamevision.data.catalog.local.CatalogDatabase
 import es.androidtfm.gamevision.data.catalog.local.GameDao
 import es.androidtfm.gamevision.data.catalog.rawg.RawgGameCatalog
+import es.androidtfm.gamevision.data.library.RecoFeedbackStore
 import es.androidtfm.gamevision.datastore.SessionPreferences
 import es.androidtfm.gamevision.datastore.ThemeDataStore
 import es.androidtfm.gamevision.data.steam.SteamProxyService
@@ -115,6 +116,12 @@ object AppModule {
     @Singleton
     fun provideThemeDataStore(@ApplicationContext context: Context): ThemeDataStore =
         ThemeDataStore(context)
+
+    /** Feedback aceptar/descartar de la recomendación (F3/T3.5, decisión D3.8). */
+    @Provides
+    @Singleton
+    fun provideRecoFeedbackStore(@ApplicationContext context: Context): RecoFeedbackStore =
+        RecoFeedbackStore(context)
 
     /**
      * Scope de aplicación para corrutinas de ViewModels que sobreviven a la pantalla

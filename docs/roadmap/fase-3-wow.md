@@ -1,6 +1,6 @@
 # Fase 3 — El "wow": decidir y celebrar
 
-**Estado:** 🟢 En ejecución — D3.1–D3.7 cerradas · T3.1–T3.3 hechas, **T3.6–T3.11 hechas** · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
+**Estado:** 🟢 En ejecución — D3.1–D3.8 cerradas · T3.1–T3.11 hechas (quedan los CA manuales y la auditoría de cierre) · **Estimación:** 1 semana · **Depende de:** F1 · **No depende de:** F2
 
 ## Objetivo
 
@@ -37,6 +37,7 @@ compartible como imagen** listo para enseñar y publicar.
 | D3.5 | **Periodicidad del Rewind** | (a) Sólo anual · (b) Anual + mensual + "tu historia con este juego" | **(b) anual como plato fuerte y "por juego" como relleno**: multiplica las ocasiones de compartir con poco trabajo extra | ✅ (b) anual + por juego (01/10) |
 | D3.6 | **Tono del Rewind** | (a) Celebrar siempre (también si jugaste poco) · (b) Mostrar también lo no jugado | **(a) celebrar**: la investigación avisa de que la gamificación puede volverse tóxica; nunca culpabilizar | ✅ (a) (01/10) |
 | D3.7 | **¿Cómo se avisa de que el Rewind está listo?** (T3.11) | (a) **WorkManager** periódico con `HiltWorker` · (b) `AlarmManager` anual + `BroadcastReceiver` contra una caché local · (c) aviso en la app al abrirla, sin notificación | **(a)**, pero **el alcance de T3.11 hay que partirlo**: ver abajo | ✅ **Cerrada (02/10): (a)** — comprobación **diaria idempotente** (`RewindAvisoWorker`), aviso del **año cerrado** cualquier día desde el 1 de enero, **sin datos no se avisa** (D3.6) y «ya avisado de {año}» persistido en prefs |
+| D3.8 | **¿Dónde vive el feedback aceptar/descartar?** (T3.5) | (a) DataStore local por uid · (b) Firestore (perfil o subcolección) | **(a)**: el motor corre en cliente con datos locales (D3.3); es lo "ligero" que pide T3.5; no toca `firestore.rules` (checks explícitos + despliegue a producción); funciona en invitado | ✅ **Cerrada (02/10): (a)** — `RecoFeedbackStore`; migrable a Firestore si el feedback debe cruzar dispositivos |
 
 > **Cómo se cerró T3.11/D3.7 (02/10).** La regla 4 de este roadmap obligó a debatir
 > antes de tocar código; estas fueron las respuestas que fijaron la implementación:
@@ -65,8 +66,8 @@ compartible como imagen** listo para enseñar y publicar.
   (*evidencia:* 132 unitarios en verde; regla CA3.1 con el matiz anti-caja-vacía)
 - [x] T3.2 Pantalla "¿Qué juego ahora?" con el tiempo disponible como entrada rápida (30 min / 2 h / una tarde) — **hecha dentro de la Home «Para ti»** (bloque F de la iteración): chips de tiempo + ánimo en `ParaTiScreen`
 - [x] T3.3 Explicación de cada recomendación en lenguaje natural — el motor ya la devuelve (D3.2) y la Home la pinta en cada tarjeta
-- [ ] T3.4 Acciones directas desde la recomendación (empezar, marcar como jugando, descartar) — *parcial:* la tarjeta abre la ficha (donde ya se cambia de estado); faltan las acciones en línea
-- [ ] T3.5 Aprendizaje ligero: registrar si el usuario aceptó o descartó para mejorar el orden
+- [x] T3.4 Acciones directas desde la recomendación (empezar, marcar como jugando, descartar) — cada tarjeta trae **«Jugar»** (registra aceptado en T3.5; si estaba en pausa pasa a jugando; abre la ficha) y **«Descartar»** (registra y oculta la tarjeta). *Evidencia en emulador:* `.verificacion/15-recomendacion-acciones.png` (tarjetas con botones) y «Jugar» abre la ficha del juego
+- [x] T3.5 Aprendizaje ligero: registrar si el usuario aceptó o descartó para mejorar el orden — `RecoFeedbackStore` (DataStore local por uid, D3.8): lo descartado se excluye del motor, lo aceptado sube (+15 con motivo `ELEGIDO_ANTES` explicado). Si todo está descartado se ofrece «Mostrar de nuevo» (descartar no es para siempre). *Evidencia:* 4 tests del motor + 5 del store; ciclo completo en emulador (descartar ×2 → aviso + recuperar → tarjetas de vuelta, `.verificacion/14-recomendacion-descartada.png`)
 
 ### B. Celebrar: GameVision Rewind
 - [x] T3.6 Cálculo del recap: horas totales, juego más jugado, géneros dominantes, nota media, racha más larga, mes más activo, plataforma principal — `data/library/RewindUtils.kt`, **21 tests** (`RewindUtilsTest`). *Evidencia:* **178 unitarios en verde** (17 clases, 0 fallos) y `testDebugUnitTest` BUILD SUCCESSFUL. Cubre CA3.5 (poca actividad y biblioteca vacía siguen teniendo recap, nunca vacío) y CA3.6. La racha usa `java.time` y el ordinal de día, así que es correcta en cambios de mes, de año y de hora de verano (documentado en la cabecera del fichero)
@@ -189,6 +190,8 @@ recomendaciones explicadas + imagen compartida.
   el 1 de enero, del año que acaba de cerrar (si el móvil estuvo apagado, sale el día que
   pueda). Sin actividad no se avisa (D3.6) y «ya avisado de {año}» se persiste en prefs. La
   alternativa `AlarmManager` se descartó (no sobrevive al reinicio sin `BOOT_COMPLETED`).
+- **D3.8 — Cerrada con la opción (a) (02/10/2026).** Feedback aceptar/descartar en DataStore
+  local por uid (`RecoFeedbackStore`); el motor excluye descartados y empuja aceptados.
 
 ## Hallazgos abiertos (detectados al verificar T3.7 en emulador)
 
