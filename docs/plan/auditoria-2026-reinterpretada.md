@@ -133,12 +133,15 @@ niveles son reales, pero el impacto decreciente es el inverso al orden en que lo
 
 ## 5. Foco: hay que ampliarlo en tres direcciones
 
-1. **Dentro del repo.** 26 skills locales en `.zcode/skills/` sin usar, entre ellas **`styles`**
-   (la guía de estilo del propio proyecto) y **`display-glasses-with-jetpack-compose-glimmer`**
-   (32 ficheros, 372.430 bytes). Auditar la app contra skills externas mientras se ignoran
-   las del repo es un error de método. **Corrección:** esa segunda skill **no es sobre animación**;
-   es *Jetpack Compose Glimmer*, el toolkit de UI de **Android XR para gafas con pantalla**. Se
-   trata en el §7.
+1. **Dentro del repo.** 26 skills locales instaladas en `.zcode/skills/` sin usar. **Corrección
+   importante:** no son la guía de estilo del proyecto. Son **skills de proveedor** (Google LLC,
+   fechadas en septiembre de 2026) sobre APIs que el repo todavía no usa. `styles` cubre la **API
+   `Style` de Compose** y `adaptive` cubre layouts flexibles y multi-pane. Ninguna menciona
+   GameVision ni sus tokens, y `styles/SKILL.md:23-24` **no soporta los componentes Material**, que
+   es justo lo que usa el design system. Ver el §8.
+   Junto a ellas, **`display-glasses-with-jetpack-compose-glimmer`** (32 ficheros, 372.430 bytes),
+   que **no es sobre animación**: es *Jetpack Compose Glimmer*, el toolkit de UI de **Android XR para
+   gafas con pantalla**. Se trata en el §7.
 2. **Dentro de la investigación ya hecha.** El repo tiene investigación de UX y benchmarking
    competitivo (`docs/investigacion-2026/fuentes/04-diseno-ux-2026.md`,
    `fuentes-competencia/04-ui-ux-referencias.md`, `analisis-competitivo-2026.md`). La auditoría
@@ -174,6 +177,18 @@ niveles son reales, pero el impacto decreciente es el inverso al orden en que lo
 - La investigación sigue afirmando que "monocromo cálido + `#C8F135` + Space Grotesk se mantiene".
   Está **superada por ADR-0010**, pero el texto sigue ahí y contradice a `DESIGN.md`. Cita muerta que
   hay que retirar o marcar como histórica.
+- **Sombras.** `DESIGN.md` dice "nada de sombras en UI". La librería externa recomienda
+  `[46] Dimensional Layering` con cuatro sombras escaladas, y `[39] Bento` con sombra. Es el choque
+  de dirección más caro: el modo oscuro se ve plano sin elevación, y el repo prohíbe la herramienta
+  que lo resuelve. **Decisión del propietario.**
+- **Mezcla de familias tipográficas.** `DESIGN.md:92-93` la prohíbe; `typography.csv` propone
+  Inter + Russo One + Fira Code (cifras).
+- **Breakpoints.** `DESIGN.md` **no fija ninguno** y `adaptive` los da con nombre
+  (`WIDTH_DP_MEDIUM/EXPANDED`) y comportamiento. Hueco real del contrato actual.
+- **Micro-interacciones 50-100 ms con háptica.** El CSV las asigna a "Mobile apps, touchscreen
+  UIs" y es la capa táctil que `DESIGN.md` no cubre. Candidata a entrar en el contrato.
+- **Mis cinco ideas que incumplen `DESIGN.md`** (§8.3): cada una necesita enmienda al contrato o
+  descarte. No se ejecutan "porque el skill lo diga".
 
 ## 7. Ejecución: Glimmer es otra cosa, y `GVMotion` tiene la mitad muerta
 
@@ -233,18 +248,92 @@ aparece 4 veces (`MainActivity.kt` ×2, `GVSharedTransition.kt` ×2). Conectar `
 `LocalMotionDurationScale` y proveerlo en `MainActivity` son unas tres líneas, más el gate en los
 sitios que animen.
 
-## 8. Estado de esta iteración
+## 8. Las skills locales, y las cinco cosas que mi brainstorm incumple
 
-Producidos en `.skills/_digests/`:
+### 8.1 Qué son de verdad
 
-- `06-investigacion-ux-competencia.md` (30,6 KB) — benchmark competitivo, decisiones ya tomadas,
-  huecos, y la separación entre "¿está aplicado el sistema?" y "¿es el producto correcto?".
-- `08-glimmer-motion.md` (19 KB) — qué es realmente Glimmer, sus 4 técnicas portables y el estado
-  símbolo a símbolo de `GVMotion`.
+Skills de proveedor (**Google LLC**, septiembre de 2026). Ninguna menciona GameVision ni sus tokens.
 
-En producción: `05-skills-locales-repo.md` (skills `styles` y `adaptive` del propio repo) y
-`07-ui-ux-pro-max-aplicado.md` (los CSV de estilos, tipografías, paletas y guías UX).
+- **`styles`** cubre la **API `Style` experimental de Compose**. Requiere foundation
+  ≥ `1.12.0-alpha01` o BOM ≥ `2026.04.01`, `compileSdk ≥ 37` (el repo cumple), opt-in
+  `ExperimentalFoundationStyleApi` y `jvmTarget 17`. Firma exigida: quitar
+  `backgroundColor/shape/textStyle/contentPadding` y dejar `style: Style = Style`. Última propiedad
+  gana, no son aditivas; precedencia directos > style > modificador > padre.
+  **Límite duro:** `styles/SKILL.md:23-24` **no soporta Styles de componentes Material**, así que
+  todo el design system del repo (`GVButton`, `GVChip`, `GVSearchField`) queda **fuera de su
+  alcance**.
+- **`adaptive`** cubre barra↔rail, multi-pane con Nav3, Grid/FlexBox y MediaQuery. Prohíbe
+  `ListDetailPaneScaffold` y `SupportingPaneScaffold`, ordena `GridCells.Adaptive`, fija Grid por
+  debajo de 800 dp a 2×4, y MediaQuery a 20/18/16 sp.
+- `adaptive` **se contradice a sí misma en versiones**: su `SKILL.md` dice que Grid llega en Compose
+  1.11.0-beta01, pero sus propios documentos de flexbox y grid exigen **1.13.0-alpha03**. El repo
+  está en **1.12.1**. No es aplicable tal cual.
 
-Cuando aterricen, este documento se cierra con las reglas del skill `styles` del repo, los estilos
-candidatos de `styles.csv`, el catálogo de gráficos para un tracker, y la lista de contradicciones
-entre las skills locales y `DESIGN.md`.
+### 8.2 Contradicciones duras con `DESIGN.md`
+
+| `DESIGN.md` dice | Las skills locales dicen | Gravedad |
+|---|---|---|
+| §7: **cabecera FIJA**, vive fuera del scroll | `adaptive/SKILL.md:260-266`: ocultar app bars al hacer scroll (`exitUntilCollapsed`/`enterAlways`) | **La más fuerte** |
+| §1 y §8: **nada de sombras** en UI | `fundamentals.md:25`: `dropShadow`/`innerShadow` son propiedades de `Style`; `theming.md:68-84`: `interactiveShadowAtomic` | Alta |
+| §1 y §8: **nada de gradientes** | `fundamentals.md:22/332/361`: `background`/`contentBrush` aceptan `Brush` | Alta |
+| §5: física de muelles, **nunca tweens** | `state-animations.md:199-204`: `animate {}` sin `animationSpec` usa el default del API | Media |
+| §5: pulsado **encoge** a 0.95 | `state-animations.md:248-250`: al pulsar **crece** a `scale(1.2f)` | Media |
+| §3: **sin mezcla de familias** | `typography.csv` propone Inter + Russo One + Fira Code | Media |
+| §7: la vuelta vive en el `leading` | `adaptive/SKILL.md:174`: las pantallas de detalle **no deben mostrar flecha de volver** en list-detail | Media |
+| (no fija ningún breakpoint) | `adaptive` fija `WIDTH_DP_MEDIUM/EXPANDED` con nombre y comportamiento | Hueco |
+
+### 8.3 Mi brainstorm incumple el contrato de tu propio repo
+
+Esto es una corrección a mi trabajo, y es la parte más útil de todo el ejercicio. De
+[brainstorm-wow-2026.md](brainstorm-wow-2026.md):
+
+| Idea que propuse | Dónde | Contra qué choca |
+|---|---|---|
+| **E4**: cabecera colapsable con `LargeTopAppBar` + `exitUntilCollapsedScrollBehavior` + parallax | `:140` | `DESIGN.md:185` **cabecera FIJA**. Y lo grave: coincide con la skill de Google, o sea que **me alineé con Google y no con tu contrato** |
+| **A4**: stagger con `tween(delayMillis = ...)` | `:98` | `DESIGN.md:109` "nunca tweens" |
+| "nada de animar `padding`, `offset` en dp, `width`/`height`" | `:158` | Las skills **sí** animan `size` y `externalPadding`: son propiedades de `Style`. Mi regla era una traducción demasiado literal de CSS |
+| **D3** sombras tintadas y **D1** grano global | `:129`, `:127` | `DESIGN.md:46/:203` "nada de sombras"; y D1 contradice mi propio §4 ("nada de ruido permanente") |
+| **E2** `FontFamily.Monospace` para cifras | `:138` | `DESIGN.md:79/:92-93` "sin mezcla de familias" |
+
+**Conclusión honesta:** traté `DESIGN.md` como punto de partida cuando es un **contrato**. Cinco ideas
+necesitan o una enmienda explícita a `DESIGN.md` o ser descartadas. No vale ejecutarlas "porque el
+skill lo dice": el skill no manda aquí.
+
+### 8.4 Lo que la librería externa empuja en dirección contraria
+
+De `ui-ux-pro-max` (`styles.csv`, `colors.csv`, `ui-reasoning.csv`):
+
+- Sus estilos recomendados para entretenimiento y móvil son **`[46] Dimensional Layering`** (4
+  sombras escaladas), **`[39] Bento Box Grid`** (con sombra) y **`[14] Liquid Glass`** (blur 15 px).
+  Los tres van **contra el "nada de sombras, nada de gradientes"** de `DESIGN.md`. Es una decisión
+  del propietario, no un error de nadie.
+- **`[16] Micro-interactions`** (50-100 ms, háptica, feedback) es la capa más barata y la que
+  `DESIGN.md` no tiene. El CSV la asigna literalmente a "Mobile apps, touchscreen UIs". Es lo más
+  aprovechable de toda la librería.
+- **`[7] Dark Mode (OLED)`** propone `#000000` y `#121212`. `DESIGN.md` ya usa `#0E0E10`, que es
+  mejor: prohíbe negros puros. Mantener lo del repo.
+- `colors.csv` tiene una vertical **Gaming** con morado `#7C3AED`, y `ui-reasoning.csv` repite el
+  anti-patrón **"AI purple/pink gradients"** en más de veinte filas. Traducido: si algún día se va a
+  morado, **plano y nunca como gradiente de fondo**.
+- La columna de librerías de `charts.csv` (Chart.js, Recharts, D3) es **relleno inaplicable** a
+  Android; el tipo de gráfico sí sirve. `web-interface.csv` es ~70 % inaplicable en Compose.
+
+### 8.5 Trazabilidad
+
+Los tres conflictos abiertos de **Inter**, **blanco puro** y **serif** vienen de los seis skills
+globales (`.skills/design/`), **no** de estas dos skills locales. No hay que atribuírselos.
+
+## 9. Estado de esta iteración
+
+Los cuatro digests están producidos en `.skills/_digests/`:
+
+| Digest | Tamaño | Qué cierra |
+|---|---|---|
+| `05-skills-locales-repo.md` | — | Qué son `styles` y `adaptive`, 39 + 40 reglas, y las contradicciones con `DESIGN.md` |
+| `06-investigacion-ux-competencia.md` | 30,6 KB | Benchmark competitivo, decisiones tomadas, huecos, y la separación producto / sistema |
+| `07-ui-ux-pro-max-aplicado.md` | 63,4 KB / 679 líneas | Los 9 CSV: 5 estilos candidatos, 99 guías UX, 20 reglas de mayor impacto, gráficos por tipo de dato |
+| `08-glimmer-motion.md` | 19 KB | Qué es Glimmer de verdad, 4 técnicas portables, y `GVMotion` símbolo a símbolo |
+
+Con esto la reinterpretación está cerrada. Lo que **no** cierra este documento, porque no se
+cierra auditando: las mecánicas de producto del §6.2 del digest 06 (import/export, ELO, mood tags,
+estantería, Rewind) siguen **sin fase asignada**.
