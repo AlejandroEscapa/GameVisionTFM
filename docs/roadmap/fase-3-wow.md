@@ -51,7 +51,7 @@ compartible como imagen** listo para enseñar y publicar.
 - [ ] T3.5 Aprendizaje ligero: registrar si el usuario aceptó o descartó para mejorar el orden
 
 ### B. Celebrar: GameVision Rewind
-- [ ] T3.6 Cálculo del recap: horas totales, juego más jugado, géneros dominantes, nota media, racha más larga, mes más activo, plataforma principal
+- [x] T3.6 Cálculo del recap: horas totales, juego más jugado, géneros dominantes, nota media, racha más larga, mes más activo, plataforma principal — `data/library/RewindUtils.kt`, **21 tests** (`RewindUtilsTest`). *Evidencia:* **178 unitarios en verde** (17 clases, 0 fallos) y `testDebugUnitTest` BUILD SUCCESSFUL. Cubre CA3.5 (poca actividad y biblioteca vacía siguen teniendo recap, nunca vacío) y CA3.6. La racha usa `java.time` y el ordinal de día, así que es correcta en cambios de mes, de año y de hora de verano (documentado en la cabecera del fichero)
 - [ ] T3.7 Pantalla del Rewind con animación y las tarjetas del design system
 - [ ] T3.8 Generación de imagen compartible (con marca de la app)
 - [ ] T3.9 Compartir nativo de Android (hoja de compartir del sistema)
@@ -72,8 +72,10 @@ compartible como imagen** listo para enseñar y publicar.
       hoja de compartir de Android en el emulador y guardada en el dispositivo).
 - [ ] CA3.5 Un usuario con **muy poca actividad** ve un Rewind que celebra igualmente
       (no mensajes negativos ni vacíos).
-- [ ] CA3.6 Tests JVM del motor de recomendación (casos: biblioteca vacía, un solo juego,
-      duraciones extremas, sin tiempo indicado) y del cálculo del Rewind.
+- [x] CA3.6 Tests JVM del motor de recomendación (casos: biblioteca vacía, un solo juego,
+      duraciones extremas, sin tiempo indicado) y del cálculo del Rewind — **recomendación:** 13 tests
+      (`RecommendationEngineTest`); **Rewind:** 21 tests (`RewindUtilsTest`). Verificado el 02/10:
+      178 unitarios en verde, 0 fallos.
 
 ---
 
