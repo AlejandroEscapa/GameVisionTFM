@@ -8,6 +8,12 @@
 > El look anterior (monocromo cálido + verde ácido) queda conservado en el
 > [snapshot del diseño provisional](docs/plan/snapshot-design-provisional-2026-09.md) (tag
 > `diseno-provisional-2026-09`). Cualquier cambio visual pasa por aquí primero.
+>
+> **Precedencia (ADR-0013).** Este documento es el **contrato** y prevalece sobre cualquier corpus
+> de diseño externo (skills, librerías de estilos, guías de terceros). Una idea externa solo entra
+> si (a) es compatible, o (b) **enmienda este documento por escrito** con su porqué y su fecha.
+> "Lo dice el skill" no es un argumento. Ver
+> [ADR-0013](docs/metodologia/adr/0013-el-contrato-visual-manda.md).
 
 ## 1. Atmósfera
 
@@ -16,6 +22,11 @@ superficies planas alternando claro/oscuro — el cambio de superficie hace de d
 decorativos, sin gradientes, sin sombras (la única sombra del sistema es para imágenes de producto
 apoyadas en una superficie). Un solo acento interactivo: **Action Blue**. Si dudas sobre énfasis,
 alterna superficie antes de añadir chrome.
+
+> **Profundidad sin sombra (ADR-0013).** En modo oscuro la jerarquía se construye con la **escalera
+> de superficies** (`#161619` → `#272729` → `#2A2A2C`), nunca con elevación. Si una zona parece
+> plana, el recurso es **subir un peldaño de superficie**, no añadir sombra. Esta regla existe porque
+> es la tentación número uno al adoptar estilos de terceros que sí usan sombras.
 
 ## 2. Color
 
@@ -92,6 +103,12 @@ Reglas: titulares siempre peso 600 con tracking apretado ("Apple tight"); cuerpo
 de 17 sp en lectura; sin serifa, sin mezcla de familias; el énfasis dentro de un titular es
 *cursiva o negrita de la misma familia*, nunca otra fuente.
 
+**Cifras tabulares (ADR-0013).** Los números que **se animan o se comparan en columna** (contadores
+de Estadísticas, totales del Diario, horas, notas) llevan cifras tabulares: `fontFeatureSettings =
+"tnum"` en su `TextStyle`. Motivo: en cifras proporcionales cada dígito mide distinto y un contador
+animado **baila** al cambiar de valor. Se resuelve **dentro de Inter**, con una característica
+tipográfica, y **no** añadiendo una monoespaciada: "sin mezcla de familias" sigue siendo regla dura.
+
 > **El tracking negativo es SOLO para display y titulares (≥17 sp).** Por debajo de 17 sp el
 > tracking es `0`: en tamaños pequeños el negativo hacía que el primer glifo sobresaliera del área
 > de texto y quedara recortado contra el contenedor (bug detectado el 01/10: "Limbo" se veía como
@@ -110,6 +127,37 @@ Física de muelles (nunca tweens lineales) + la micro-interacción universal del
 **escala 0.95 en estado pulsado** en todo botón. Entrada fade+slide 16 dp con emphasized
 decelerate; máximo 3 elementos animando a la vez; respeta reducir-movimiento. Skeletons, cero
 spinners.
+
+### 5.1 Qué se usa (ADR-0013)
+
+El sistema tiene un único dueño por propiedad: **nada de dos APIs animando lo mismo** en el mismo
+nodo.
+
+| Necesidad | API | Regla |
+|---|---|---|
+| Pulsación, selección, escala, posición | `spring` de `GVMotion` | **Obligatorio muelle.** Prohibido `tween` para física |
+| Opacidad y entradas/salidas de pantalla | `tween` con `GVMotion.EnterEasing`/`ExitEasing` | Único tween permitido |
+| Contenido que cambia de alto (expandir, resumen) | `animateContentSize` | Permitido y motivado: el alto lo dicta el contenido |
+| Parallax, profundidad, desplazamiento ligado al scroll | `Modifier.graphicsLayer` | **Obligatorio**: animar `padding`/`offset`/`size` recompondo por frame y está prohibido |
+| Aparición escalonada de listas | `LaunchedEffect` + retardo, y luego **muelle** | El retardo no convierte la animación en un tween. Tope acumulado: `min(index, 6)` |
+| Reordenación de listas | `Modifier.animateItem()` | Con `key` estable en el `LazyColumn` |
+| Cambio de contenido en el mismo sitio | `AnimatedContent` / `Crossfade` | Un solo dueño de la transición |
+
+**Lo que sigue prohibido:** animar `top/left/width/height` en dp como sustituto de
+`graphicsLayer`; cabeceras que se ocultan o colapsan al hacer scroll (la cabecera es **FIJA**, §7);
+bucles infinitos decorativos; animación que sea la **única** forma de entender algo.
+
+### 5.2 Movimiento reducido (obligatorio, ADR-0013)
+
+Cuando el usuario pide reducir movimiento en el sistema, **la app se entiende y se usa igual**: las
+transiciones pasan a fundido directo y no hay parallax, escalonados ni bucles.
+
+- El interruptor ya existe en el sistema: **`LocalReduceMotion`** (`ui/designsystem/GVMotion.kt`).
+- Está **declarado y sin conectar**: nadie lo provee y su valor por defecto es `false` fijo. Hay que
+  leer la preferencia real del sistema (`LocalMotionDurationScale`, `Settings.Global.ANIMATOR_DURATION_SCALE`)
+  y **proveerlo** en `MainActivity`, donde `CompositionLocalProvider` ya se usa.
+- Todo patrón de §5.1 con retardo, parallax o bucle debe consultarlo. Es criterio de aceptación
+  (`CA4.5.4`), no una mejora opcional.
 
 ## 6. Componentes (`ui/designsystem/`)
 
@@ -191,6 +239,21 @@ Primera escala de espaciado del sistema (iteración 02/10/2026): **antes no exis
 escaladas al tamaño de la portada**; los títulos de juego usan `maxLines` **con `Ellipsis`** —
 sin `overflow` Compose corta los glifos a media letra.
 
+### Breakpoints (ADR-0013)
+
+Antes no estaban fijados y cada pantalla improvisaba el suyo. Se declaran los tres de Material 3,
+leyendo las constantes de `WindowSizeClass` que el código **ya usa** (no se inventan valores):
+
+| Clase | Ancho | Navegación | Contenido |
+|---|---|---|---|
+| **Compact** | < 600 dp (`WIDTH_DP_MEDIUM_LOWER_BOUND`) | `Scaffold` + barra inferior | Una columna. Bento y rejillas asimétricas **colapsan a una columna** |
+| **Medium** | 600–839 dp | `NavigationSuiteScaffold` + rail | Dos columnas permitidas; list-detail a partir de aquí |
+| **Expanded** | ≥ 840 dp (`WIDTH_DP_EXPANDED_LOWER_BOUND`) | Rail | Multi-pane |
+
+Reglas: la decisión se toma **una vez** en `BottomBarNavigation`/`AppScaffold`, no pantalla a
+pantalla; y ninguna rejilla asimétrica puede depender de que la ventana sea ancha sin declarar su
+colapso a una columna en Compact.
+
 ## 8. Do / Don't
 
 **Do:** un acento **y solo para lo que se toca**; superficies planas alternando tono; cuerpo 17;
@@ -206,3 +269,8 @@ pintado con el acento; ningún `substring` con índices fijos sobre datos de red
 vacíos: un `StringIndexOutOfBounds` dentro de un `LazyColumn` deja la lista entera sin pintar); ningún
 componente nuevo que duplique uno existente (ver "código muerto" en §6); ningún `e.message` de una
 excepción enseñado al usuario.
+
+**Añadidos por ADR-0013:** ninguna sombra para dar profundidad (se sube un peldaño de superficie);
+ninguna segunda familia tipográfica para las cifras (se usan cifras tabulares de Inter); ninguna
+cabecera que se oculte o colapse al hacer scroll; ninguna animación sin consultar el movimiento
+reducido; ningún breakpoint improvisado dentro de una pantalla.

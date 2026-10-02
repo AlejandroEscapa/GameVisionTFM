@@ -166,7 +166,16 @@ niveles son reales, pero el impacto decreciente es el inverso al orden en que lo
 | Micro-interacciones de recompensa (C1–C6) propuestas sin marco | El marco ético ya está investigado y con literatura: celebrar sin castigar, rachas opcionales sin penalización pública, **no monetizar el recap**, no gamificar volumen de horas |
 | Accesibilidad tratada como incidentes ("cajas bajo 48 dp") | Criterio normativo ya documentado: WCAG 2.2 SC 2.5.8 (24×24), 2.5.5 (44×44) y 48 dp Material, más clases de ventana para tablet y plegable |
 
-### Decisiones abiertas que este trabajo añade
+### Decisiones abiertas que este trabajo añadió
+
+> **Estado (02/10): las cuatro primeras están CERRADAS por
+> [ADR-0013](../metodologia/adr/0013-el-contrato-visual-manda.md)** con el criterio "el contrato
+> manda": sombras (nada de elevación, la profundidad es la escalera de superficies), familias
+> tipográficas (una sola; cifras tabulares con `fontFeatureSettings = "tnum"`), breakpoints
+> (Compact/Medium/Expanded, ya escritos en `DESIGN.md` §7) y mis cinco ideas que incumplían el
+> contrato (marcadas en [brainstorm-wow-2026.md](brainstorm-wow-2026.md)). Se dejan aquí como
+> registro del debate. Lo que **sigue abierto** es la dirección (la tipografía con carácter) y las
+> mecánicas de producto sin fase asignada.
 
 - Estantería con lomos: la referencia la quiere en **acento**; ADR-0012 dice que el acento es solo
   para lo que se **toca**. Un lomo es contenido. **Choca.**

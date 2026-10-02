@@ -4,6 +4,15 @@
 > única de verdad visual. Esto es diagnóstico + banco de ideas priorizado por impacto/esfuerzo.
 > Generado el 02/10/2026 a partir de los skills de diseño del propietario, trasladados a
 > `.skills/` (fuera del repo, por diseño) y destilados en `.skills/_digests/`.
+>
+> ⚠️ **Correcciones del 02/10/2026 ([ADR-0013](../metodologia/adr/0013-el-contrato-visual-manda.md)).**
+> Este documento se escribió tratando `DESIGN.md` como punto de partida, y **es un contrato**: cinco
+> de sus ideas lo incumplían. Quedan marcadas en su sitio (❌ descartada · ⚠️ enmendada): **A4**
+> (tween con retardo → muelle), **D1** (grano global, descartada), **D3** (sombras tintadas,
+> descartada), **E2** (monoespaciada → cifras tabulares de Inter), **E4** (cabecera colapsable,
+> descartada). Además, el orden de impacto de §3 está revisado en
+> [auditoria-2026-reinterpretada.md](auditoria-2026-reinterpretada.md): el wow es **producto →
+> dirección → ejecución**, y este documento solo cubría la ejecución.
 
 ## 0. De dónde sale esto
 
@@ -95,7 +104,7 @@ transición de estado o narrativa) o se borra.
 | A1 | **Respetar "reducir movimiento"** en toda la app | 4/1 | `LocalMotionDurationScale.current.scaleFactor == 0f` → degradar a estado final. Hoy hay 0 usos. Es accesibilidad, no adorno |
 | A2 | Ampliar `GVMotion` con una escala de muelles con nombre (press, enter, exit, sheet, layout) | 4/2 | `spring(dampingRatio = 0.86f, stiffness = 100f)`; ojo: el `damping: 20` de Framer equivale a ζ≈1.0, no a `dampingRatio = 20f`. Documentar la conversión en `DESIGN.md` |
 | A3 | **Press scale universal 0.95** ya declarado en `DESIGN.md` §5, verificado en todos los clicables | 3/2 | `interactionSource.collectIsPressedAsState()` + `animateFloatAsState` + `Modifier.graphicsLayer { scaleX/scaleY }` (hoy `graphicsLayer` = 0) |
-| A4 | Stagger de entrada en listas, con tope | 4/2 | `tween(delayMillis = min(index, 6) * 60)`; sin tope, el ítem 25 arranca a los 1,5 s y se percibe como bug |
+| A4 | Stagger de entrada en listas, con tope | 4/2 | ⚠️ **ENMENDADA (ADR-0013)**: el retardo no puede ir en un `tween` (`DESIGN.md` §5: muelles, nunca tweens). Se hace `LaunchedEffect` con el retardo y **después** muelle de `GVMotion`. Tope `min(index, 6)`: sin tope, el ítem 25 arranca a los 1,5 s y se percibe como bug |
 | A5 | Animación de reordenación en listas | 3/1 | `Modifier.animateItem()` en `LazyColumn`/`LazyVerticalGrid` (hoy 1 uso) |
 | A6 | Sustituir `AnimatedVisibility` suelto por un único dueño de animación por propiedad | 2/3 | Evitar dos APIs animando el mismo nodo |
 
@@ -124,9 +133,9 @@ transición de estado o narrativa) o se borra.
 
 | # | Idea | I/E | Cómo |
 |---|---|---|---|
-| D1 | **Grano/noise global a opacidad 0.02-0.04** | 4/2 | Un solo `ImageBitmap` de ruido cacheado, `drawWithCache` + `BlendMode.Overlay` en el root. Mata la sensación de vector plano. Hoy `drawBehind` = 0 |
+| D1 | ~~Grano/noise global a opacidad 0.02-0.04~~ | — | ❌ **DESCARTADA (ADR-0013)**: `DESIGN.md` §1 prohíbe el chrome decorativo y este propio documento lo veta en §4 ("nada de ruido permanente"). Contradecía el contrato y a sí misma |
 | D2 | Blob radial ambiental a 0.03 de opacidad, movimiento de 20 s+ | 4/3 | `rememberInfiniteTransition` moviendo el `center` de un `Brush.radialGradient` en `Canvas` de fondo |
-| D3 | Sombras tintadas donde haya elevación real (sheets, FAB) | 2/2 | `Modifier.shadow(ambientColor, spotColor)` con el tono del fondo, nunca negro |
+| D3 | ~~Sombras tintadas donde haya elevación real~~ | — | ❌ **DESCARTADA (ADR-0013)**: `DESIGN.md` §1 y §8 prohíben sombras en UI. La profundidad se consigue **subiendo un peldaño de la escalera de superficies** (`#161619` → `#272729` → `#2A2A2C`) |
 | D4 | Translucidez + borde interior de 1 px en la barra inferior | 3/3 | En Android **no hay `backdrop-filter`**: `Modifier.blur` desenfoca el propio contenido, no el fondo. Solo translucidez + borde + highlight, con fallback opaco obligatorio |
 | D5 | Textura tactile/scanline como **efecto puntual** en la retrospectiva anual | 3/2 | `drawWithCache` cacheando offsets; jamás global |
 
@@ -135,9 +144,9 @@ transición de estado o narrativa) o se borra.
 | # | Idea | I/E | Cómo |
 |---|---|---|---|
 | E1 | Contadores animados en Estadísticas y Diario | 5/2 | `animateIntAsState` sobre el total; jerarquía por tamaño y peso, sin acento (regla §2) |
-| E2 | **Cifras en monoespaciada tabular** | 4/1 | `FontFamily.Monospace` en los `TextStyle` de datos; hoy hay **0 usos**. Sin esto, los contadores "bailan" al animar |
+| E2 | **Cifras tabulares** | 4/1 | ⚠️ **ENMENDADA (ADR-0013)**: `FontFamily.Monospace` rompe "sin mezcla de familias" (`DESIGN.md` §3). Se consigue lo mismo —que los contadores no bailen— con `fontFeatureSettings = "tnum"` **sobre Inter**. Hoy hay **0 usos** de cifras tabulares |
 | E3 | Sparkline de horas jugadas por semana | 4/3 | `Canvas` + `Path` con `drawPath`; sin librería de gráficos |
-| E4 | Cabecera colapsable con parallax de carátula en la ficha | 5/3 | `LargeTopAppBar` con `exitUntilCollapsedScrollBehavior` + `derivedStateOf` sobre `LazyListState` |
+| E4 | ~~Cabecera colapsable con parallax de carátula en la ficha~~ | — | ❌ **DESCARTADA (ADR-0013)**: `DESIGN.md` §7 fija la **cabecera FIJA**, fuera del scroll. El parallax de carátula sí cabe, pero dentro del contenido con `graphicsLayer`, no colapsando la cabecera |
 | E5 | Anillo de progreso de backlog por estado | 3/2 | `Canvas` + `drawArc` animado por `animateFloatAsState` |
 
 ### Capa F — Onboarding y captación (único sitio donde `gpt-taste` aplica al 100%)
@@ -153,7 +162,8 @@ transición de estado o narrativa) o se borra.
 - **Nada de bucles infinitos por tarjeta.** El skill lo subraya: si la sección es informativa, se
   queda quieta. Un loop perpetuo visible a la vez, máximo.
 - **Nada de GSAP ni pinning/scrubbing de scroll.** En Compose no hay `ScrollTrigger` con scrub
-  arbitrario; el coste/beneficio es malo. Se emula con cabecera colapsable y `derivedStateOf`.
+  arbitrario; el coste/beneficio es malo. Se emula con `derivedStateOf` sobre `LazyListState` y
+  `graphicsLayer` **dentro del contenido** (la cabecera es fija y no se colapsa, §7 del contrato).
 - **Nada de `window`/listeners manuales de scroll** → `derivedStateOf` sobre `LazyListState`.
 - **Nada de animar `padding`, `offset` en dp ni `width`/`height`** → solo `graphicsLayer` y `alpha`.
 - **Nada de ruido o scanline global permanente**: cansa en una app de uso diario.

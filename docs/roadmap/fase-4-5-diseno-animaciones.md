@@ -1,6 +1,6 @@
 # Fase 4.5 — Diseño, animaciones y auditoría de experiencia
 
-**Estado:** ⬜ Pendiente · **Estimación:** ~1 semana · **Depende de:** F1–F4 · **Bloquea a:** F5 (Publicación)
+**Estado:** 🔵 Aprobada (02/10) — **DX.1–DX.8 cerradas** · **Estimación:** ~1 semana · **Depende de:** F1–F4 · **Bloquea a:** F5 (Publicación)
 
 > **Encaje.** Va **entre F4 (Nativo) y F5 (Publicación)**: se audita y se pule la experiencia
 > **antes** de abrir la monetización. Monetizar una experiencia sin pulir es el peor orden posible.
@@ -54,13 +54,13 @@ producto, no como un adorno final.
 
 | # | Decisión | Opciones | Recomendación | Estado |
 |---|---|---|---|---|
-| DX.1 | **Sistema de animaciones** | (a) Motion de Material 3 tal cual · (b) **motion propio documentado** sobre las APIs de Compose | **(b)**: documentar duraciones, curvas y usos evita animaciones «de cada pantalla» | ⬜ |
-| DX.2 | **Nivel de movimiento** | (a) Sobrio/**sutil** · (b) Expresivo · (c) Distinto por vista | **(a) sutil, con celebraciones puntuales** (Rewind, completar un juego): el detalle se nota, el exceso cansa | ⬜ |
-| DX.3 | **¿Rediseñar o refinar?** | (a) **Refinar lo existente** · (b) Rediseños puntuales · (c) Rediseño total | **(a) con excepciones**: partir del design system y corregir, no rehacer; rediseño sólo donde la auditoría lo justifique | ⬜ |
-| DX.4 | **Herramienta de motion** | (a) **APIs nativas de Compose** (`animate*AsState`, `AnimatedContent`, transiciones) · (b) Librería externa | **(a)**: sin dependencias nuevas, coherente con ser 100 % Compose | ⬜ |
-| DX.5 | **Movimiento reducido / accesibilidad** | (a) **Respetar la preferencia del sistema** (`ANIMATOR_DURATION_SCALE` / «reducir movimiento») · (b) Ignorarla | **(a)**: obligatorio; la animación nunca puede ser la única forma de entender algo | ⬜ |
-| DX.6 | **Alcance de la auditoría funcional** | (a) **Todas las pantallas contra `integracion-por-vistas-2026.md`** · (b) Sólo las dudosas | **(a)**: verificar que cada acción está donde el usuario la busca (cruza con las D-V ratificadas) | ⬜ |
-| DX.7 | **¿Se retoca el onboarding?** | (a) Sí, si la auditoría lo pide · (b) No | **(a)**: el onboarding es la primera impresión y es donde más se nota el motion bien hecho | ⬜ |
+| DX.1 | **Sistema de animaciones** | (a) Motion de Material 3 tal cual · (b) **motion propio documentado** sobre las APIs de Compose | **(b)**: documentar duraciones, curvas y usos evita animaciones «de cada pantalla» | ✅ **(b) (02/10)** — escrito en `DESIGN.md` §5.1, con la tabla de qué API usa cada necesidad |
+| DX.2 | **Nivel de movimiento** | (a) Sobrio/**sutil** · (b) Expresivo · (c) Distinto por vista | **(a) sutil, con celebraciones puntuales** (Rewind, completar un juego): el detalle se nota, el exceso cansa | ✅ **(a) (02/10)** — sutil con celebraciones puntuales; el Rewind de F3 es la celebración |
+| DX.3 | **¿Rediseñar o refinar?** | (a) **Refinar lo existente** · (b) Rediseños puntuales · (c) Rediseño total | **(a) con excepciones**: partir del design system y corregir, no rehacer; rediseño sólo donde la auditoría lo justifique | ✅ **(a) (02/10)** — ratificado por [ADR-0013](../metodologia/adr/0013-el-contrato-visual-manda.md) |
+| DX.4 | **Herramienta de motion** | (a) **APIs nativas de Compose** (`animate*AsState`, `AnimatedContent`, transiciones) · (b) Librería externa | **(a)**: sin dependencias nuevas, coherente con ser 100 % Compose | ✅ **(a) (02/10)** — revisado Glimmer (toolkit de Android XR): **no se instala**; sus técnicas portables se reimplementan sin dependencia |
+| DX.5 | **Movimiento reducido / accesibilidad** | (a) **Respetar la preferencia del sistema** (`ANIMATOR_DURATION_SCALE` / «reducir movimiento») · (b) Ignorarla | **(a)**: obligatorio; la animación nunca puede ser la única forma de entender algo | ✅ **(a) (02/10)** — obligatorio **y conectado**: `LocalReduceMotion` existe declarado y sin enchufar (`GVMotion.kt:44`, default `false` fijo). Regla en `DESIGN.md` §5.2 |
+| DX.6 | **Alcance de la auditoría funcional** | (a) **Todas las pantallas contra `integracion-por-vistas-2026.md`** · (b) Sólo las dudosas | **(a)**: verificar que cada acción está donde el usuario la busca (cruza con las D-V ratificadas) | ✅ **(a) (02/10)** — alcance completo, todas las pantallas |
+| DX.7 | **¿Se retoca el onboarding?** | (a) Sí, si la auditoría lo pide · (b) No | **(a)**: el onboarding es la primera impresión y es donde más se nota el motion bien hecho | ✅ **(a) (02/10)** — y entra aquí el arranque **TTFV < 60 s** («elegir 3 juegos ya jugados»), que estaba decidido en la investigación y **sin fase asignada** |
 | DX.8 | **¿Se conserva el design system actual o se re-ancla al entrante?** | (a) Mantener el actual · (b) **Re-anclar al design system que aportará el propietario** | **(b)**: confirmado un design system nuevo; `DESIGN.md` pasa a provisional y esta fase aplica sus tokens/componentes. Lo agnóstico al sistema (estados, motion, estructura) se conserva | ✅ **Cerrada (01–02/10)**: la fuente llegó y el re-anclaje se adelantó — [ADR-0010](../metodologia/adr/0010-reanclaje-adelantado-fuente-recibida.md). Ejecutado (DX-T23…DX-T28 y CA4.5.7) |
 
 ---
@@ -167,6 +167,21 @@ antes/después por pantalla + capturas o vídeo de las transiciones principales.
   contraste, a11y). **El alcance del acento se fija en [ADR-0012](../metodologia/adr/0012-alcance-del-acento.md)**
   (Action Blue solo para lo que se toca). Queda pendiente el barrido de espaciado/formas y la
   consolidación de duplicados, listados en el informe.
+- **02/10/2026 — DX.1–DX.7 cerradas en bloque**, con el criterio fijado en
+  [ADR-0013](../metodologia/adr/0013-el-contrato-visual-manda.md): **`DESIGN.md` es el contrato y
+  prevalece sobre el corpus de diseño externo**; una idea de fuera solo entra si es compatible o si
+  enmienda el documento por escrito. De ahí salen cuatro resoluciones que estaban abiertas:
+  **sombras** (nada de elevación; la profundidad en oscuro se hace subiendo un peldaño de la
+  escalera de superficies), **familias tipográficas** (una sola; las cifras tabulares se consiguen
+  con `fontFeatureSettings = "tnum"` sobre Inter, no con una monoespaciada), **breakpoints**
+  (Compact/Medium/Expanded con las constantes de `WindowSizeClass` que el código ya usa) y **motion**
+  (`DESIGN.md` §5.1 fija qué API usa cada necesidad y §5.2 cierra el movimiento reducido como
+  obligatorio y conectado).
+  Además quedan **descartadas** cinco ideas de [brainstorm-wow-2026.md](../plan/brainstorm-wow-2026.md)
+  que incumplían el contrato: cabecera colapsable, `tween` con retardo, prohibición de animar el
+  tamaño, sombras y grano global, y monoespaciada para cifras.
+  Motivo de cerrarlas ahora: **la fase no empieza hasta que sus decisiones están cerradas** (regla 1
+  del roadmap), y F4.5 es la que bloquea a F5 (Publicación).
 
 ---
 

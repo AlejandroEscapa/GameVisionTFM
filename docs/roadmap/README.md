@@ -45,7 +45,7 @@
 | [F2](fase-2-social.md) | Social | 1 semana | ✅ Completada (01/10) — auditoría validada por el propietario | F1 |
 | [F3](fase-3-wow.md) | El "wow": decidir y celebrar | 1 semana | 🟢 En ejecución (01/10) — T3.1 hecha; pantalla y Rewind pendientes | F1 |
 | [F4](fase-4-nativo.md) | Nativo y pulido | 1 semana | ⬜ Pendiente | F1 |
-| [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | ⬜ Pendiente — **el re-anclaje ya está hecho** (adelantado el 01–02/10, ADR-0010) y la auditoría de diseño existe; le quedan motion, accesibilidad y el barrido de adopción | F1–F4 |
+| [F4.5](fase-4-5-diseno-animaciones.md) | Diseño, animaciones y auditoría de experiencia | ~1 semana | 🔵 Aprobada (02/10) — **DX.1–DX.8 cerradas** ([ADR-0013](../metodologia/adr/0013-el-contrato-visual-manda.md)); el re-anclaje ya está hecho (ADR-0010) y la auditoría existe; quedan motion, accesibilidad y el barrido de adopción | F1–F4 |
 
 > **Dónde vive el estado.** Esta tabla es un **índice**, no la fuente de verdad. El estado real de
 > una fase lo declara su fichero (`fase-N-*.md`, apartado "Progreso por bloques"). Si esta tabla y
