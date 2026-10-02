@@ -135,8 +135,10 @@ niveles son reales, pero el impacto decreciente es el inverso al orden en que lo
 
 1. **Dentro del repo.** 26 skills locales en `.zcode/skills/` sin usar, entre ellas **`styles`**
    (la guía de estilo del propio proyecto) y **`display-glasses-with-jetpack-compose-glimmer`**
-   (364 KB sobre animación en Compose). Auditar la app contra skills externas mientras se ignoran
-   las del repo es un error de método.
+   (32 ficheros, 372.430 bytes). Auditar la app contra skills externas mientras se ignoran
+   las del repo es un error de método. **Corrección:** esa segunda skill **no es sobre animación**;
+   es *Jetpack Compose Glimmer*, el toolkit de UI de **Android XR para gafas con pantalla**. Se
+   trata en el §7.
 2. **Dentro de la investigación ya hecha.** El repo tiene investigación de UX y benchmarking
    competitivo (`docs/investigacion-2026/fuentes/04-diseno-ux-2026.md`,
    `fuentes-competencia/04-ui-ux-referencias.md`, `analisis-competitivo-2026.md`). La auditoría
@@ -173,17 +175,76 @@ niveles son reales, pero el impacto decreciente es el inverso al orden en que lo
   Está **superada por ADR-0010**, pero el texto sigue ahí y contradice a `DESIGN.md`. Cita muerta que
   hay que retirar o marcar como histórica.
 
-## 7. Estado de esta iteración
+## 7. Ejecución: Glimmer es otra cosa, y `GVMotion` tiene la mitad muerta
+
+### 7.1 Glimmer no es una librería de animación
+
+`display-glasses-with-jetpack-compose-glimmer` es **Jetpack Compose Glimmer**, el toolkit de UI de
+**Android XR para gafas con pantalla** (Projected Activity), de Google. Coordenadas reales
+`androidx.xr.glimmer:glimmer` y `androidx.xr.glimmer:glimmer-google-fonts`; **ninguna versión**
+aparece en los 32 ficheros. La licencia se declara en un `LICENSE.txt` que **no existe** en el
+directorio (los fuentes llevan cabeceras Apache 2.0).
+
+**Como dependencia, no.** Instalarlo **prohíbe `MaterialTheme`**, exige fondo negro puro obligatorio
+y una `Projected Activity` nueva; `ProjectedContext` pide API 34/35/36 según el miembro. Es un factor
+de forma que GameVision no tiene, y esa decisión es de producto (`PLAN-MAESTRO-2026`), no de motion.
+
+**Como fuente de técnicas, sí**, porque el código se reimplementa sin coste de build. Cuatro
+portables:
+
+| Técnica | API real | Coste |
+|---|---|---|
+| Profundidad en 2 capas de sombra lerpeadas por progreso | `Modifier.depthEffect(...)`, `DepthEffectLevels.level1..level5` (radios 12 → 56 dp) | Cero dependencias; sustituye a `elevation` |
+| Borde vivo cónico que rota con el foco | `RuntimeShader` AGSL de 4 colores | **API 33+**; el repo ya está en `minSdk 33` |
+| Scrim con desenfoque progresivo bajo la barra inferior | 2 pasadas horizontal + vertical con `RenderEffect.createRuntimeShaderEffect` | GPU-intensivo: 2 shaders por elemento |
+| Specs de muelle calibrados | press `spring(0.84f, 8000f)` / `spring(0.85f, 50f)` con suelo de 300 ms; snap de pila `spring(0.56f, 118f)` | Son dos `val` nuevos en `GVMotion` |
+
+**Aviso de accesibilidad:** Glimmer **no menciona accesibilidad ni reducción de movimiento en
+ninguno de sus 32 ficheros**, y su pulso ambiental es una animación infinita. Si se copia cualquier
+técnica, el gate de reducir-movimiento hay que escribirlo aquí. Ver el §7.2.
+
+Glimmer **no cambia el diagnóstico**: no aporta `graphicsLayer`, `drawBehind`/`Canvas`,
+`animateContentSize` ni `AnimatedContent`. Es ortogonal a `GVSharedTransition` (no documenta shared
+elements en ningún fichero) y complementario de `GVMotion`.
+
+### 7.2 `GVMotion`: 5 de sus 8 miembros nunca se conectaron
+
+Medido símbolo a símbolo, no por impresión:
+
+| Miembro de `GVMotion.kt` | Usos reales |
+|---|---|
+| `EnterEasing` / `ExitEasing` | 4 + 4, todos en `NavHost.kt` |
+| `springStandard` / `springBouncy` | **1 + 1**, los dos en `BottomBarNavigation.kt` |
+| `DURATION_FAST` / `DURATION_NORMAL` / `DURATION_SLOW` | **0** |
+| `STAGGER_INCREMENT_MS` | **0** |
+| **`LocalReduceMotion`** | **1**, y es su propia línea de declaración (44) |
+
+`LocalReduceMotion` es un `staticCompositionLocalOf { false }` con un comentario que explica
+exactamente para qué existe ("true cuando el usuario pide reducir movimiento en el sistema").
+**Nadie lo provee. Nadie lo consume. El valor por defecto está fijado a `false`, así que aunque
+alguien lo consumiera nunca podría ser `true`.**
+
+Esto afina el hallazgo anterior. No es que falte soporte de reducción de movimiento: es que
+**alguien escribió la API, la documentó y no la conectó al sistema operativo**. Es el mismo patrón que
+en toda la capa de movimiento: el sistema se construyó por delante de su consumo.
+
+La buena noticia es que el arreglo es pequeño y el mecanismo ya está en uso: `CompositionLocalProvider`
+aparece 4 veces (`MainActivity.kt` ×2, `GVSharedTransition.kt` ×2). Conectar `LocalReduceMotion` a
+`LocalMotionDurationScale` y proveerlo en `MainActivity` son unas tres líneas, más el gate en los
+sitios que animen.
+
+## 8. Estado de esta iteración
 
 Producidos en `.skills/_digests/`:
 
 - `06-investigacion-ux-competencia.md` (30,6 KB) — benchmark competitivo, decisiones ya tomadas,
   huecos, y la separación entre "¿está aplicado el sistema?" y "¿es el producto correcto?".
+- `08-glimmer-motion.md` (19 KB) — qué es realmente Glimmer, sus 4 técnicas portables y el estado
+  símbolo a símbolo de `GVMotion`.
 
-En producción: `05-skills-locales-repo.md` (skills `styles` y `adaptive` del propio repo),
-`07-ui-ux-pro-max-aplicado.md` (los CSV de estilos, tipografías, paletas y guías UX) y
-`08-glimmer-motion.md` (la skill local de animación para Compose).
+En producción: `05-skills-locales-repo.md` (skills `styles` y `adaptive` del propio repo) y
+`07-ui-ux-pro-max-aplicado.md` (los CSV de estilos, tipografías, paletas y guías UX).
 
-Cuando aterricen, este documento se cierra con: las reglas del skill `styles` del repo, los estilos
-candidatos de `styles.csv`, el catálogo de gráficos para un tracker y el veredicto sobre Glimmer como
-acelerador de la capa de movimiento.
+Cuando aterricen, este documento se cierra con las reglas del skill `styles` del repo, los estilos
+candidatos de `styles.csv`, el catálogo de gráficos para un tracker, y la lista de contradicciones
+entre las skills locales y `DESIGN.md`.
